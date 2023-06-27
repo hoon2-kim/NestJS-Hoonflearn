@@ -4,17 +4,21 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { DataSource, Repository } from 'typeorm';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { UserEntity } from './entities/user.entity';
 import * as bcrypt from 'bcrypt';
+import { AwsS3Service } from '../aws-s3/aws-s3.service';
 
 @Injectable()
 export class UserService {
   constructor(
     @InjectRepository(UserEntity)
     private readonly userRepository: Repository<UserEntity>,
+
+    private readonly dataSource: DataSource,
+    private readonly awsS3Service: AwsS3Service,
   ) {}
 
   async findUserById(userId: string) {
@@ -39,6 +43,12 @@ export class UserService {
     }
 
     return user;
+  }
+
+  async getProfile(user: UserEntity) {
+    const profile = await this.findUserById(user.id);
+
+    return profile;
   }
 
   async create(createUserDto: CreateUserDto) {
@@ -100,5 +110,51 @@ export class UserService {
     Object.assign(user, updateUserDto);
 
     return await this.userRepository.save(user);
+  }
+
+  async upload(user: UserEntity, file: Express.Multer.File) {
+    const queryRunner = this.dataSource.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction('SERIALIZABLE');
+
+    try {
+      const userInfo = await queryRunner.manager.findOne(UserEntity, {
+        where: { id: user.id },
+      });
+
+      if (userInfo.profileAvatar) {
+        const fileKey = userInfo.profileAvatar.match(/[^/]+$/)[0];
+        console.log(fileKey);
+
+        await this.awsS3Service.deleteS3Object(fileKey);
+      }
+
+      const folderName = `${user.id}/프로필이미지`;
+
+      const s3upload = await this.awsS3Service.uploadFileToS3(folderName, file);
+
+      await queryRunner.manager.update(
+        UserEntity,
+        { id: user.id },
+        { profileAvatar: s3upload },
+      );
+
+      await queryRunner.commitTransaction();
+
+      return s3upload;
+    } catch (error) {
+      await queryRunner.rollbackTransaction();
+      throw error;
+    } finally {
+      await queryRunner.release();
+    }
+  }
+
+  async delete(user: UserEntity) {
+    const userInfo = await this.findUserById(user.id);
+
+    const result = await this.userRepository.softDelete({ id: userInfo.id });
+
+    return result.affected ? true : false;
   }
 }

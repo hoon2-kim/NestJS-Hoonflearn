@@ -6,10 +6,20 @@ import {
   Patch,
   Param,
   Delete,
+  UseGuards,
+  Put,
+  UseInterceptors,
+  UploadedFile,
+  BadRequestException,
 } from '@nestjs/common';
 import { UserService } from './user.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { AtGuard } from '../auth/guard/at.guard';
+import { CurrentUser } from '../auth/decorators/current-user.decorator';
+import { UserEntity } from './entities/user.entity';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { ReturnUserProfile } from './dto/return-user-profile.dto';
 
 @Controller('users')
 export class UserController {
@@ -18,7 +28,7 @@ export class UserController {
   @Get('/profile')
   @UseGuards(AtGuard)
   async getMyUserProfile(
-    @CurrentUser() user: User, //
+    @CurrentUser() user: UserEntity, //
   ): Promise<ReturnUserProfile> {
     return new ReturnUserProfile(await this.userService.getProfile(user));
   }
@@ -43,7 +53,7 @@ export class UserController {
   @UseGuards(AtGuard)
   @UseInterceptors(FileInterceptor('avatar'))
   uploadUserAvatar(
-    @CurrentUser() user: User,
+    @CurrentUser() user: UserEntity,
     @UploadedFile() file: Express.Multer.File,
   ) {
     if (!file) {
@@ -57,7 +67,7 @@ export class UserController {
   @Delete('/withdrawal')
   @UseGuards(AtGuard)
   withdrawalUser(
-    @CurrentUser() user: User, //
+    @CurrentUser() user: UserEntity, //
   ) {
     return this.userService.delete(user);
   }
