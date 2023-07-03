@@ -4,6 +4,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { AwsS3Module } from './aws-s3/aws-s3.module';
 import { UserModule } from './user/user.module';
 import { AuthModule } from './auth/auth.module';
+import { CategoryModule } from './category/category.module';
 import ormConfig from './config/orm.config';
 import ormConfigProd from './config/orm.config.prod';
 
@@ -20,6 +21,7 @@ import ormConfigProd from './config/orm.config.prod';
     AwsS3Module,
     UserModule,
     AuthModule,
+    CategoryModule,
   ],
   controllers: [],
   providers: [],
