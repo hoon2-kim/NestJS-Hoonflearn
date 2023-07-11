@@ -1,26 +1,156 @@
-import { Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { AuthService } from 'src/auth/auth.service';
+import { RoleType, UserEntity } from 'src/user/entities/user.entity';
+import { UserService } from 'src/user/user.service';
+import { Repository } from 'typeorm';
 import { CreateInstructorDto } from './dto/create-instructor.dto';
 import { UpdateInstructorDto } from './dto/update-instructor.dto';
+import { InstructorProfileEntity } from './entities/instructor-profile.entity';
+import { Response } from 'express';
+import { IInstructorCreateResult } from './interfaces/instructor.interface';
 
 @Injectable()
 export class InstructorService {
-  create(createInstructorDto: CreateInstructorDto) {
-    return 'This action adds a new instructor';
+  constructor(
+    @InjectRepository(InstructorProfileEntity)
+    private readonly instructorRepository: Repository<InstructorProfileEntity>,
+    @InjectRepository(UserEntity)
+    private readonly userRepository: Repository<UserEntity>,
+
+    private readonly userService: UserService,
+    private readonly authService: AuthService,
+  ) {}
+
+  async findOneById(instructorId: string) {
+    const instructor = await this.instructorRepository.findOne({
+      where: { id: instructorId },
+      relations: ['user'],
+    });
+
+    if (!instructor) {
+      throw new NotFoundException('해당 지식공유자가 존재하지 않습니다.');
+    }
+
+    return instructor;
   }
 
-  findAll() {
-    return `This action returns all instructor`;
+  async findCourses(user: UserEntity) {
+    //
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} instructor`;
+  async create(
+    createInstructorDto: CreateInstructorDto,
+    user: UserEntity,
+    res: Response,
+  ): Promise<IInstructorCreateResult> {
+    const { contactEmail, nameOrBusiness, ...instructorInfo } =
+      createInstructorDto;
+
+    const isInstructor = await this.userService.findByOptions({
+      where: { id: user.id, role: RoleType.Instructor },
+    });
+
+    if (isInstructor) {
+      throw new BadRequestException('이미 지식공유자로 등록하셨습니다.');
+    }
+
+    const isExistEmail = await this.instructorRepository.findOne({
+      where: { contactEmail },
+    });
+
+    if (isExistEmail) {
+      throw new BadRequestException('이미 존재하는 이메일입니다.');
+    }
+
+    const isExistNameOrBusiness = await this.instructorRepository.findOne({
+      where: { nameOrBusiness },
+    });
+
+    if (isExistNameOrBusiness) {
+      throw new BadRequestException(
+        '이미 존재하는 지식공유자 실명 또는 사업체명 입니다.',
+      );
+    }
+
+    const instructorProfile = this.instructorRepository.create({
+      contactEmail,
+      nameOrBusiness,
+      ...instructorInfo,
+      user: { id: user.id },
+    });
+
+    await this.instructorRepository.save(instructorProfile);
+
+    const newAt = this.authService.getAccessToken(
+      user.id,
+      user.email,
+      user.role,
+    );
+    const newRt = this.authService.getRefreshToken(
+      user.id,
+      user.email,
+      user.role,
+    );
+
+    const rtHash = await this.authService.hashData(newRt);
+
+    await this.userRepository
+      .createQueryBuilder('user')
+      .update(UserEntity)
+      .where('id = :userId', { userId: user.id })
+      .set({ role: RoleType.Instructor, hashedRt: rtHash })
+      .execute();
+
+    res.cookie('refreshToken', newRt, {
+      httpOnly: true,
+      secure: false, // https 환경에서는 true
+      sameSite: 'none',
+      path: '/',
+    });
+
+    return {
+      access_token: newAt,
+      instructorProfile,
+    };
   }
 
-  update(id: number, updateInstructorDto: UpdateInstructorDto) {
-    return `This action updates a #${id} instructor`;
-  }
+  async update(instructorId: string, updateInstructorDto: UpdateInstructorDto) {
+    const { contactEmail, nameOrBusiness } = updateInstructorDto;
 
-  remove(id: number) {
-    return `This action removes a #${id} instructor`;
+    const instructor = await this.findOneById(instructorId);
+
+    if (contactEmail) {
+      const isExistEmail = await this.instructorRepository.findOne({
+        where: { contactEmail },
+      });
+
+      if (isExistEmail && contactEmail !== instructor.contactEmail) {
+        throw new BadRequestException('이미 존재하는 이메일입니다.');
+      }
+    }
+
+    if (nameOrBusiness) {
+      const isExistNameOrBusiness = await this.instructorRepository.findOne({
+        where: { nameOrBusiness },
+      });
+
+      if (
+        isExistNameOrBusiness &&
+        nameOrBusiness !== instructor.nameOrBusiness
+      ) {
+        throw new BadRequestException(
+          '이미 존재하는 지식공유자 실명 또는 사업체명 입니다.',
+        );
+      }
+    }
+
+    Object.assign(instructor, updateInstructorDto);
+
+    return await this.instructorRepository.save(instructor);
   }
 }
