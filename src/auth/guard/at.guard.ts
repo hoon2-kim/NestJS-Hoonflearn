@@ -5,7 +5,7 @@ import { Observable } from 'rxjs';
 
 const HTTP_STATUS_TOKEN_EXPIRED = 498;
 
-export class AtGuard extends AuthGuard(process.env.JWT_AT_NAME) {
+export class AtGuard extends AuthGuard('access') {
   canActivate(
     context: ExecutionContext,
   ): boolean | Promise<boolean> | Observable<boolean> {
@@ -26,7 +26,6 @@ export class AtGuard extends AuthGuard(process.env.JWT_AT_NAME) {
         HttpStatus.UNAUTHORIZED,
       );
     }
-    console.log({ user });
 
     return user;
   }

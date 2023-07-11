@@ -4,7 +4,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { DataSource, Repository } from 'typeorm';
+import { DataSource, FindOneOptions, Repository } from 'typeorm';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { UserEntity } from './entities/user.entity';
@@ -20,6 +20,12 @@ export class UserService {
     private readonly dataSource: DataSource,
     private readonly awsS3Service: AwsS3Service,
   ) {}
+
+  async findByOptions(option: FindOneOptions<UserEntity>) {
+    const user: UserEntity | null = await this.userRepository.findOne(option);
+
+    return user;
+  }
 
   async findUserById(userId: string) {
     const user = await this.userRepository.findOne({
@@ -156,5 +162,13 @@ export class UserService {
     const result = await this.userRepository.softDelete({ id: userInfo.id });
 
     return result.affected ? true : false;
+  }
+
+  async updateRefreshToken(userId: string, rt: string) {
+    await this.userRepository.update({ id: userId }, { hashedRt: rt });
+  }
+
+  async removeRefreshToken(userId: string) {
+    await this.userRepository.update({ id: userId }, { hashedRt: null });
   }
 }

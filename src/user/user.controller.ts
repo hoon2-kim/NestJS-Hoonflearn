@@ -7,7 +7,6 @@ import {
   Param,
   Delete,
   UseGuards,
-  Put,
   UseInterceptors,
   UploadedFile,
   BadRequestException,
@@ -40,7 +39,7 @@ export class UserController {
     return this.userService.create(createUserDto);
   }
 
-  @Put('/profile')
+  @Patch('/profile')
   @UseGuards(AtGuard)
   updateUserProfile(
     @CurrentUser('id') userId: string,

@@ -9,5 +9,6 @@ import { AwsS3Module } from '../aws-s3/aws-s3.module';
   imports: [TypeOrmModule.forFeature([UserEntity]), AwsS3Module],
   controllers: [UserController],
   providers: [UserService],
+  exports: [UserService],
 })
 export class UserModule {}

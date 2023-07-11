@@ -5,6 +5,8 @@ import { AwsS3Module } from './aws-s3/aws-s3.module';
 import { UserModule } from './user/user.module';
 import { AuthModule } from './auth/auth.module';
 import { CategoryModule } from './category/category.module';
+import { CourseModule } from './course/course.module';
+import { InstructorModule } from './instructor/instructor.module';
 import ormConfig from './config/orm.config';
 import ormConfigProd from './config/orm.config.prod';
 
@@ -22,6 +24,8 @@ import ormConfigProd from './config/orm.config.prod';
     UserModule,
     AuthModule,
     CategoryModule,
+    CourseModule,
+    InstructorModule,
   ],
   controllers: [],
   providers: [],

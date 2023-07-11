@@ -1,11 +1,11 @@
-version: '3.7'
+version: '3.8'
 
 services:
-  hoonflearn-db:
-    container_name: Hoonflearn-DB
+  postgres:
+    container_name: hoonflearn_db
     image: postgres:latest
     ports:
-      - '5432:5432'
+      - 5432:5432
     restart: always
     environment:
       POSTGRES_USER: ${DB_USERNAME}
