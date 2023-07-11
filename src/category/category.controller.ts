@@ -24,7 +24,7 @@ export class CategoryController {
   findOneCategoryWithSub(
     @Param('categoryId') categoryId: string, //
   ) {
-    return this.categoryService.findOne(categoryId);
+    return this.categoryService.findOneById(categoryId);
   }
 
   @Post()

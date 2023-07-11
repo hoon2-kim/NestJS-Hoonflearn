@@ -26,28 +26,34 @@ export class CategoryService {
     for (const category of parents) {
       const subCategories = await this.categoryRepository.find({
         where: { parent: { id: category.id } },
+        order: { name: 'ASC' },
       });
       category.children = subCategories;
     }
 
-    return parent;
+    return parents;
   }
 
-  async findOne(categoryId: string, withRelations = true) {
-    const query = {
-      where: { id: categoryId, parent: IsNull() },
-    };
+  async findOneById(categoryId: string, withRelations = true) {
+    const queryBuilder = this.categoryRepository
+      .createQueryBuilder('category')
+      .where('category.id = :categoryId', { categoryId });
 
     if (withRelations) {
-      query['relations'] = {
-        children: true,
-      };
+      const hasParent = await this.categoryRepository
+        .createQueryBuilder('category')
+        .where('category.id = :categoryId', { categoryId })
+        .andWhere('category.parent IS NOT NULL')
+        .getOne();
+
+      if (!hasParent)
+        queryBuilder.leftJoinAndSelect('category.children', 'children');
     }
 
-    const category = await this.categoryRepository.findOne(query);
+    const category = await queryBuilder.getOne();
 
     if (!category) {
-      throw new NotFoundException('부모 카테고리가 존재하지 않습니다.');
+      throw new NotFoundException('카테고리가 존재하지 않습니다.');
     }
 
     return category;
@@ -66,7 +72,7 @@ export class CategoryService {
   async createSub(categoryId: string, createCategoryDto: CreateCategoryDto) {
     const { name } = createCategoryDto;
 
-    await this.findOne(categoryId, false);
+    await this.findOneById(categoryId, false);
 
     await this.isCategoryName(name);
 
@@ -79,7 +85,7 @@ export class CategoryService {
   async update(categoryId: string, updateCategoryDto: UpdateCategoryDto) {
     const { name } = updateCategoryDto;
 
-    const category = await this.findOne(categoryId, false);
+    const category = await this.findOneById(categoryId, false);
 
     const duplicateName = await this.isCategoryName(name);
 
@@ -93,7 +99,7 @@ export class CategoryService {
   }
 
   async delete(categoryId: string) {
-    await this.findOne(categoryId, false);
+    await this.findOneById(categoryId, false);
 
     const result = await this.categoryRepository.delete({ id: categoryId });
 
@@ -105,10 +111,6 @@ export class CategoryService {
       where: { name },
     });
 
-    if (isName) {
-      throw new BadRequestException('이미 존재하는 카테고리 이름입니다.');
-    }
-
-    return true;
+    return isName;
   }
 }
