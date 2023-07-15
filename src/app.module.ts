@@ -7,6 +7,8 @@ import { AuthModule } from './auth/auth.module';
 import { CategoryModule } from './category/category.module';
 import { CourseModule } from './course/course.module';
 import { InstructorModule } from './instructor/instructor.module';
+import { CategoryCourseModule } from './category_course/category_course.module';
+import { CourseWishModule } from './course_wish/course_wish.module';
 import ormConfig from './config/orm.config';
 import ormConfigProd from './config/orm.config.prod';
 
@@ -26,6 +28,8 @@ import ormConfigProd from './config/orm.config.prod';
     CategoryModule,
     CourseModule,
     InstructorModule,
+    CategoryCourseModule,
+    CourseWishModule,
   ],
   controllers: [],
   providers: [],

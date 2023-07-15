@@ -3,10 +3,15 @@ import {
   CreateDateColumn,
   DeleteDateColumn,
   Entity,
+  OneToMany,
+  OneToOne,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
 import { Exclude } from 'class-transformer';
+import { InstructorProfileEntity } from 'src/instructor/entities/instructor-profile.entity';
+import { CourseEntity } from 'src/course/entities/course.entity';
+import { CourseWishEntity } from 'src/course_wish/entities/course-wish.entity';
 
 export enum RoleType {
   User = 'User',
@@ -53,13 +58,15 @@ export class UserEntity {
   @UpdateDateColumn({ type: 'timestamptz' })
   updatedAt: Date;
 
-  @Exclude()
-  @DeleteDateColumn({ type: 'timestamptz', nullable: true })
-  deletedAt?: Date | null;
+  @OneToOne(
+    () => InstructorProfileEntity,
+    (instructorProfile) => instructorProfile.user,
+  )
+  instructorProfile: InstructorProfileEntity;
 
-  // @OneToOne(
-  //   () => InstructorProfile,
-  //   (instructorProfile) => instructorProfile.user,
-  // )
-  // instructorProfile: InstructorProfile;
+  @OneToMany(() => CourseEntity, (course) => course.instructor)
+  courses: CourseEntity[];
+
+  @OneToMany(() => CourseWishEntity, (courseWish) => courseWish.user)
+  coursesWishs: CourseWishEntity[];
 }

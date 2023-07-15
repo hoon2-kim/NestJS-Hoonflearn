@@ -1,4 +1,6 @@
 import { Exclude } from 'class-transformer';
+import { CategoryCourseEntity } from 'src/category_course/entities/category-course.entitiy';
+import { CourseWishEntity } from 'src/course_wish/entities/course-wish.entity';
 import { UserEntity } from 'src/user/entities/user.entity';
 import {
   Column,
@@ -6,6 +8,7 @@ import {
   Entity,
   JoinColumn,
   ManyToOne,
+  OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
@@ -59,7 +62,7 @@ export class CourseEntity {
   reviewCount: number;
 
   @Column({ type: 'int', default: 0 })
-  dibsCount: number;
+  wishCount: number;
 
   @CreateDateColumn({ type: 'timestamptz' })
   createdAt: Date;
@@ -67,7 +70,7 @@ export class CourseEntity {
   @UpdateDateColumn({ type: 'timestamptz' })
   updatedAt: Date;
 
-  @ManyToOne(() => UserEntity, { onDelete: 'SET NULL' })
+  @ManyToOne(() => UserEntity)
   @JoinColumn({ name: 'fk_instructor_id' })
   instructor: UserEntity;
 
@@ -75,8 +78,14 @@ export class CourseEntity {
   @Column({ type: 'uuid' })
   fk_instructor_id: string;
 
-  //   @OneToMany(() => CategoryCourse, (categoryCourse) => categoryCourse.course)
-  //   categoriesCourses: CategoryCourse[];
+  @OneToMany(
+    () => CategoryCourseEntity,
+    (categoryCourse) => categoryCourse.course,
+  )
+  categoriesCourses: CategoryCourseEntity[];
+
+  @OneToMany(() => CourseWishEntity, (courseWish) => courseWish.course)
+  coursesWishs: CourseWishEntity[];
 
   //   @OneToMany(() => CoursesReview, (review) => review.course)
   //   reviews: CoursesReview[];

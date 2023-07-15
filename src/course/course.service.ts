@@ -1,26 +1,282 @@
-import { Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  ForbiddenException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { AwsS3Service } from 'src/aws-s3/aws-s3.service';
+import { CategoryService } from 'src/category/category.service';
+import { CategoryCourseService } from 'src/category_course/category_course.service';
+import { CourseWishService } from 'src/course_wish/course_wish.service';
+import { UserEntity } from 'src/user/entities/user.entity';
+import { DataSource, FindOneOptions, Repository } from 'typeorm';
 import { CreateCourseDto } from './dto/create-course.dto';
 import { UpdateCourseDto } from './dto/update-course.dto';
+import { CourseEntity } from './entities/course.entity';
+import { URL } from 'url';
 
 @Injectable()
 export class CourseService {
-  create(createCourseDto: CreateCourseDto) {
-    return 'This action adds a new course';
+  constructor(
+    @InjectRepository(CourseEntity)
+    private readonly courseRepository: Repository<CourseEntity>,
+
+    private readonly categoryService: CategoryService,
+    private readonly categoryCourseService: CategoryCourseService,
+    private readonly courseWishService: CourseWishService,
+    private readonly awsS3Service: AwsS3Service,
+    private readonly dataSource: DataSource,
+  ) {}
+
+  async findOne(courseId: string) {
+    const course = await this.courseRepository.findOne({
+      where: { id: courseId },
+      relations: {
+        categoriesCourses: true,
+      },
+    });
+
+    return course;
   }
 
-  findAll() {
-    return `This action returns all course`;
+  async findByOptions(options: FindOneOptions<CourseEntity>) {
+    const course: CourseEntity | null = await this.courseRepository.findOne(
+      options,
+    );
+
+    return course;
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} course`;
+  async create(
+    createCourseDto: CreateCourseDto,
+    user: UserEntity,
+  ): Promise<CourseEntity> {
+    const { title, selectedCategoryIds, ...info } = createCourseDto;
+
+    const queryRunner = this.dataSource.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction('SERIALIZABLE');
+
+    try {
+      const existCourse = await queryRunner.manager.findOne(CourseEntity, {
+        where: { title },
+      });
+
+      if (existCourse) {
+        throw new BadRequestException('같은 제목의 강의가 이미 존재합니다.');
+      }
+
+      // 카테고리 검증
+      await this.categoryService.validateCategoryWithTransaction(
+        selectedCategoryIds,
+        queryRunner,
+      );
+
+      const course = queryRunner.manager.create(CourseEntity, {
+        title,
+        ...info,
+        instructor: user,
+      });
+
+      const result = await queryRunner.manager.save(CourseEntity, course);
+
+      await this.categoryCourseService.saveWithTransaction(
+        selectedCategoryIds,
+        result.id,
+        queryRunner,
+      );
+
+      await queryRunner.commitTransaction();
+
+      return result;
+    } catch (error) {
+      console.log(error);
+
+      await queryRunner.rollbackTransaction();
+      throw error;
+    } finally {
+      await queryRunner.release();
+    }
   }
 
-  update(id: number, updateCourseDto: UpdateCourseDto) {
-    return `This action updates a #${id} course`;
+  async update(
+    courseId: string,
+    updateCourseDto: UpdateCourseDto,
+    user: UserEntity,
+  ) {
+    const { title, selectedCategoryIds } = updateCourseDto;
+
+    const existCourse = await this.findByOptions({
+      where: { id: courseId },
+    });
+
+    if (!existCourse) {
+      throw new NotFoundException('해당 강의가 존재하지 않습니다.');
+    }
+
+    if (existCourse.fk_instructor_id !== user.id) {
+      throw new ForbiddenException('해당 강의를 만든 지식공유자가 아닙니다.');
+    }
+
+    if (title && existCourse.title !== title) {
+      const existTitle = await this.findByOptions({
+        where: { title },
+      });
+
+      if (existTitle) {
+        throw new BadRequestException('같은 제목의 강의가 이미 존재합니다.');
+      }
+    }
+
+    if (selectedCategoryIds) {
+      await this.categoryService.validateCategory(selectedCategoryIds);
+
+      await this.categoryCourseService.saveWithoutTransaction(
+        selectedCategoryIds,
+        existCourse.id,
+      );
+    }
+
+    Object.assign(existCourse, updateCourseDto);
+
+    await this.courseRepository.save(existCourse);
+
+    return existCourse;
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} course`;
+  async uploadImage(
+    courseId: string,
+    user: UserEntity,
+    file: Express.Multer.File,
+  ) {
+    const queryRunner = this.dataSource.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction('SERIALIZABLE');
+
+    try {
+      const course = await queryRunner.manager.findOne(CourseEntity, {
+        where: { id: courseId },
+      });
+
+      if (!course) {
+        throw new NotFoundException('해당 강의가 존재하지 않습니다.');
+      }
+
+      if (course.fk_instructor_id !== user.id) {
+        throw new ForbiddenException('해당 강의를 만든 지식공유자가 아닙니다.');
+      }
+
+      if (course.coverImage) {
+        const url = course.coverImage;
+        const parsedUrl = new URL(url);
+        const fileKey = decodeURIComponent(parsedUrl.pathname.substring(1));
+
+        await this.awsS3Service.deleteS3Object(fileKey);
+      }
+
+      const folderName = `유저-${user.id}/강의-${courseId}/coverImage`;
+
+      const s3upload = await this.awsS3Service.uploadFileToS3(folderName, file);
+
+      await queryRunner.manager.update(
+        CourseEntity,
+        { id: course.id },
+        { coverImage: s3upload },
+      );
+
+      await queryRunner.commitTransaction();
+
+      return s3upload;
+    } catch (error) {
+      console.log(error);
+
+      await queryRunner.rollbackTransaction();
+      throw error;
+    } finally {
+      await queryRunner.release();
+    }
+  }
+
+  async addWish(courseId: string, user: UserEntity) {
+    const existCourse = await this.findByOptions({
+      where: { id: courseId },
+    });
+
+    if (!existCourse) {
+      throw new NotFoundException('해당 강의가 존재하지 않습니다.');
+    }
+
+    const isWished = await this.courseWishService.findByOptions({
+      where: {
+        fk_course_id: courseId,
+        fk_user_id: user.id,
+      },
+    });
+
+    if (!isWished) {
+      await this.courseWishService.addWish(courseId, user.id);
+      await this.courseRepository.update(
+        { id: courseId },
+        { wishCount: existCourse.wishCount + 1 },
+      );
+    } else {
+      return;
+    }
+  }
+
+  async cancelWish(courseId: string, user: UserEntity) {
+    const existCourse = await this.findByOptions({
+      where: { id: courseId },
+    });
+
+    if (!existCourse) {
+      throw new NotFoundException('해당 강의가 존재하지 않습니다.');
+    }
+
+    const isWished = await this.courseWishService.findByOptions({
+      where: {
+        fk_course_id: courseId,
+        fk_user_id: user.id,
+      },
+    });
+
+    if (isWished) {
+      await this.courseWishService.cancelWish(courseId, user.id);
+      await this.courseRepository.update(
+        { id: courseId },
+        { wishCount: existCourse.wishCount - 1 },
+      );
+    } else {
+      return;
+    }
+  }
+
+  async delete(courseId: string, user: UserEntity) {
+    const course = await this.findByOptions({
+      where: { id: courseId },
+    });
+
+    if (!course) {
+      throw new NotFoundException('해당 강의가 존재하지 않습니다.');
+    }
+
+    if (course.fk_instructor_id !== user.id) {
+      throw new ForbiddenException('해당 강의를 만든 지식공유자가 아닙니다.');
+    }
+
+    if (course.coverImage) {
+      const url = course.coverImage;
+      const parsedUrl = new URL(url);
+      const fileKey = decodeURIComponent(parsedUrl.pathname.substring(1));
+
+      await this.awsS3Service.deleteS3Object(fileKey);
+    }
+
+    // TODO 영상도 삭제
+
+    const result = await this.courseRepository.delete({ id: courseId });
+
+    return result.affected ? true : false;
   }
 }

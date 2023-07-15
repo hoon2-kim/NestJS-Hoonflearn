@@ -159,7 +159,7 @@ export class UserService {
   async delete(user: UserEntity) {
     const userInfo = await this.findUserById(user.id);
 
-    const result = await this.userRepository.softDelete({ id: userInfo.id });
+    const result = await this.userRepository.delete({ id: userInfo.id });
 
     return result.affected ? true : false;
   }

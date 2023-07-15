@@ -21,7 +21,7 @@ export enum FieldOfHopeType {
   Etc = '기타',
 }
 
-@Entity({ name: 'instructors_profile' })
+@Entity({ name: 'instructorsProfile' })
 export class InstructorProfileEntity {
   @PrimaryGeneratedColumn('uuid')
   id: string;

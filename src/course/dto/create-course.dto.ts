@@ -1,3 +1,4 @@
+import { Type } from 'class-transformer';
 import {
   ArrayMaxSize,
   ArrayMinSize,
@@ -9,6 +10,7 @@ import {
   IsString,
   IsUUID,
   Min,
+  ValidateNested,
 } from 'class-validator';
 import { CourseLevelType } from '../entities/course.entity';
 
@@ -51,13 +53,18 @@ export class CreateCourseDto {
   @IsNotEmpty()
   price: number;
 
-  @IsUUID()
-  @IsNotEmpty()
-  parentCategoryId: string;
-
   @IsArray()
-  @IsUUID('4', { each: true })
   @ArrayMaxSize(4)
   @IsNotEmpty()
-  subCategoryIds: string[];
+  @ValidateNested({ each: true }) // 배열 내의 각 내장 객체들도 검사
+  @Type(() => CategoryIdsDto) // 변환
+  selectedCategoryIds: CategoryIdsDto[];
+}
+
+export class CategoryIdsDto {
+  @IsUUID('4')
+  parentCategoryId: string;
+
+  @IsUUID('4')
+  subCategoryId: string;
 }

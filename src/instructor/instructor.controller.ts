@@ -37,7 +37,7 @@ export class InstructorController {
   registerInstructor(
     @Body() createInstructorDto: CreateInstructorDto,
     @CurrentUser() user: UserEntity,
-    @Res() res: Response,
+    @Res({ passthrough: true }) res: Response,
   ): Promise<IInstructorCreateResult> {
     return this.instructorService.create(createInstructorDto, user, res);
   }

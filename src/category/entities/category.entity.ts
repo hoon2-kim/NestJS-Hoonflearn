@@ -9,6 +9,7 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 import { Exclude } from 'class-transformer';
+import { CategoryCourseEntity } from 'src/category_course/entities/category-course.entitiy';
 
 @Entity({ name: 'categories' })
 export class CategoryEntity {
@@ -38,6 +39,15 @@ export class CategoryEntity {
   @OneToMany(() => CategoryEntity, (category) => category.parent)
   children: CategoryEntity[];
 
-  //   @OneToMany(() => CategoryCourse, (categoryCourse) => categoryCourse.category)
-  //   categoriesCourses: CategoryCourse[];
+  @OneToMany(
+    () => CategoryCourseEntity,
+    (categoryCourse) => categoryCourse.parentCategory,
+  )
+  parentCategoriesCourses: CategoryCourseEntity[];
+
+  @OneToMany(
+    () => CategoryCourseEntity,
+    (categoryCourse) => categoryCourse.subCategory,
+  )
+  subCategoriesCourses: CategoryCourseEntity[];
 }

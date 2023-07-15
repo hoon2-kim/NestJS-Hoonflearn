@@ -25,8 +25,8 @@ export class AwsS3Service {
     try {
       const splitFolder = folder.split('/');
 
-      const key = `${splitFolder[0]}/${
-        splitFolder[1]
+      const key = `${splitFolder[0]}/${splitFolder[1]}/${
+        splitFolder[2]
       }/${Date.now()}_${path.basename(file.originalname)}`.replace(/ /g, '');
 
       await this.aswS3
