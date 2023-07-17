@@ -48,6 +48,30 @@ export class CourseService {
     return course;
   }
 
+  async findCurriculum(courseId: string) {
+    const course = await this.findByOptions({
+      where: { id: courseId },
+    });
+
+    if (!course) {
+      throw new NotFoundException('해당 강의가 존재하지 않습니다.');
+    }
+
+    const curriculum = await this.findByOptions({
+      where: { id: courseId },
+      relations: {
+        sections: {
+          lessons: true,
+        },
+      },
+      order: {
+        createdAt: 'ASC',
+      },
+    });
+
+    return curriculum;
+  }
+
   async create(
     createCourseDto: CreateCourseDto,
     user: UserEntity,
@@ -278,5 +302,19 @@ export class CourseService {
     const result = await this.courseRepository.delete({ id: courseId });
 
     return result.affected ? true : false;
+  }
+
+  async validateInstructor(courseId: string, userId: string) {
+    const course = await this.findByOptions({
+      where: {
+        id: courseId,
+      },
+    });
+
+    if (course.fk_instructor_id !== userId) {
+      throw new ForbiddenException('해당 강의를 만든 지식공유자가 아닙니다.');
+    }
+
+    return course;
   }
 }

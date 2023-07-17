@@ -40,6 +40,13 @@ export class CourseController {
     return this.courseService.findOne(courseId);
   }
 
+  @Get('/:courseId/curriculums')
+  findCourseCurriculum(
+    @Param('courseId') courseId: string, //
+  ) {
+    return this.courseService.findCurriculum(courseId);
+  }
+
   @Post()
   @Roles(RoleType.Instructor)
   @UseGuards(AtGuard, RoleGuard)

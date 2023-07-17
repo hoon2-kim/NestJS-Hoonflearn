@@ -9,6 +9,8 @@ import { CourseModule } from './course/course.module';
 import { InstructorModule } from './instructor/instructor.module';
 import { CategoryCourseModule } from './category_course/category_course.module';
 import { CourseWishModule } from './course_wish/course_wish.module';
+import { SectionModule } from './section/section.module';
+import { LessonModule } from './lesson/lesson.module';
 import ormConfig from './config/orm.config';
 import ormConfigProd from './config/orm.config.prod';
 
@@ -30,6 +32,8 @@ import ormConfigProd from './config/orm.config.prod';
     InstructorModule,
     CategoryCourseModule,
     CourseWishModule,
+    SectionModule,
+    LessonModule,
   ],
   controllers: [],
   providers: [],

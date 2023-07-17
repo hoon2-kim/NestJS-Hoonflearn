@@ -18,5 +18,6 @@ import { CourseWishModule } from 'src/course_wish/course_wish.module';
   ],
   controllers: [CourseController],
   providers: [CourseService],
+  exports: [CourseService],
 })
 export class CourseModule {}
