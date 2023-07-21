@@ -11,6 +11,8 @@ import { CategoryCourseModule } from './category_course/category_course.module';
 import { CourseWishModule } from './course_wish/course_wish.module';
 import { SectionModule } from './section/section.module';
 import { LessonModule } from './lesson/lesson.module';
+import { VideoModule } from './video/video.module';
+import { ReviewModule } from './review/review.module';
 import ormConfig from './config/orm.config';
 import ormConfigProd from './config/orm.config.prod';
 
@@ -34,6 +36,8 @@ import ormConfigProd from './config/orm.config.prod';
     CourseWishModule,
     SectionModule,
     LessonModule,
+    VideoModule,
+    ReviewModule,
   ],
   controllers: [],
   providers: [],

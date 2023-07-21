@@ -1,3 +1,4 @@
+import { ForbiddenException } from '@nestjs/common';
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { CourseService } from 'src/course/course.service';
@@ -31,13 +32,16 @@ export class SectionService {
   ) {
     const course = await this.courseService.findByOptions({
       where: { id: courseId },
+      select: ['id', 'fk_instructor_id'],
     });
 
     if (!course) {
       throw new NotFoundException('해당 강의가 존재하지 않습니다.');
     }
 
-    await this.courseService.validateInstructor(courseId, user.id);
+    if (course.fk_instructor_id !== user.id) {
+      throw new ForbiddenException('해당 강의를 만든 지식공유자가 아닙니다.');
+    }
 
     return await this.sectionRepository.save({
       ...createSectionDto,
@@ -46,7 +50,6 @@ export class SectionService {
   }
 
   async update(
-    courseId: string,
     sectionId: string,
     updateSectionDto: UpdateSectionDto,
     user: UserEntity,
@@ -59,6 +62,10 @@ export class SectionService {
       throw new NotFoundException('해당 섹션이 존재하지 않습니다.');
     }
 
+    const courseId = await this.getCourseIdBySectionIdWithQueryBuilder(
+      sectionId,
+    );
+
     await this.courseService.validateInstructor(courseId, user.id);
 
     Object.assign(section, updateSectionDto);
@@ -66,7 +73,7 @@ export class SectionService {
     return await this.sectionRepository.save(section);
   }
 
-  async delete(courseId: string, sectionId: string, user: UserEntity) {
+  async delete(sectionId: string, user: UserEntity) {
     const section = await this.findByOptions({
       where: { id: sectionId },
     });
@@ -75,10 +82,24 @@ export class SectionService {
       throw new NotFoundException('해당 섹션이 존재하지 않습니다.');
     }
 
+    const courseId = await this.getCourseIdBySectionIdWithQueryBuilder(
+      sectionId,
+    );
+
     await this.courseService.validateInstructor(courseId, user.id);
 
     const result = await this.sectionRepository.delete({ id: sectionId });
 
     return result.affected ? true : false;
+  }
+
+  async getCourseIdBySectionIdWithQueryBuilder(sectionId: string) {
+    const section = await this.sectionRepository
+      .createQueryBuilder('section')
+      .where('section.id = :sectionId', { sectionId })
+      .select(['section.id', 'section.fk_course_id'])
+      .getOne();
+
+    return section?.fk_course_id;
   }
 }

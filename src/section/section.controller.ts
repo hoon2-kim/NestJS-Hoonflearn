@@ -16,11 +16,11 @@ import { CreateSectionDto } from './dto/create-section.dto';
 import { UpdateSectionDto } from './dto/update-section.dto';
 import { SectionService } from './section.service';
 
-@Controller('courses/:courseId/sections')
+@Controller('')
 export class SectionController {
   constructor(private readonly sectionService: SectionService) {}
 
-  @Post()
+  @Post('courses/:courseId/sections')
   @Roles(RoleType.Instructor)
   @UseGuards(AtGuard, RoleGuard)
   createSection(
@@ -31,31 +31,24 @@ export class SectionController {
     return this.sectionService.create(courseId, createSectionDto, user);
   }
 
-  @Patch('/:sectionId')
+  @Patch('sections/:sectionId')
   @Roles(RoleType.Instructor)
   @UseGuards(AtGuard, RoleGuard)
   updateSection(
-    @Param('courseId') courseId: string,
     @Param('sectionId') sectionId: string,
     @Body() updateSectionDto: UpdateSectionDto,
     @CurrentUser() user: UserEntity,
   ) {
-    return this.sectionService.update(
-      courseId,
-      sectionId,
-      updateSectionDto,
-      user,
-    );
+    return this.sectionService.update(sectionId, updateSectionDto, user);
   }
 
-  @Delete('/:sectionId')
+  @Delete('sections/:sectionId')
   @Roles(RoleType.Instructor)
   @UseGuards(AtGuard, RoleGuard)
   deleteSection(
-    @Param('courseId') courseId: string,
     @Param('sectionId') sectionId: string, //
     @CurrentUser() user: UserEntity,
   ) {
-    return this.sectionService.delete(courseId, sectionId, user);
+    return this.sectionService.delete(sectionId, user);
   }
 }

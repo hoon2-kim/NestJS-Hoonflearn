@@ -1,6 +1,7 @@
 import { Exclude } from 'class-transformer';
 import { CategoryCourseEntity } from 'src/category_course/entities/category-course.entitiy';
 import { CourseWishEntity } from 'src/course_wish/entities/course-wish.entity';
+import { ReviewEntity } from 'src/review/entities/review.entity';
 import { SectionEntity } from 'src/section/entities/section.entity';
 import { UserEntity } from 'src/user/entities/user.entity';
 import {
@@ -65,13 +66,16 @@ export class CourseEntity {
   @Column({ type: 'int', default: 0 })
   wishCount: number;
 
+  @Column({ type: 'int', default: 0 })
+  totalVideosTime: number;
+
   @CreateDateColumn({ type: 'timestamptz' })
   createdAt: Date;
 
   @UpdateDateColumn({ type: 'timestamptz' })
   updatedAt: Date;
 
-  @ManyToOne(() => UserEntity)
+  @ManyToOne(() => UserEntity, (user) => user.madeCourses)
   @JoinColumn({ name: 'fk_instructor_id' })
   instructor: UserEntity;
 
@@ -91,8 +95,8 @@ export class CourseEntity {
   @OneToMany(() => SectionEntity, (section) => section.course)
   sections: SectionEntity[];
 
-  //   @OneToMany(() => CoursesReview, (review) => review.course)
-  //   reviews: CoursesReview[];
+  @OneToMany(() => ReviewEntity, (review) => review.course)
+  reviews: ReviewEntity[];
 
   //   @OneToMany(() => CourseUser, (courseUser) => courseUser.course)
   //   course_user: CourseUser[];

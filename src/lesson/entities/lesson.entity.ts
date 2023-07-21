@@ -1,11 +1,13 @@
 import { Exclude } from 'class-transformer';
 import { SectionEntity } from 'src/section/entities/section.entity';
+import { VideoEntity } from 'src/video/entities/video.entity';
 import {
   Column,
   CreateDateColumn,
   Entity,
   JoinColumn,
   ManyToOne,
+  OneToOne,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
@@ -37,4 +39,7 @@ export class LessonEntity {
   @ManyToOne(() => SectionEntity, (section) => section.lessons)
   @JoinColumn({ name: 'fk_section_id' })
   section: SectionEntity;
+
+  @OneToOne(() => VideoEntity, (video) => video.lesson)
+  video: VideoEntity;
 }

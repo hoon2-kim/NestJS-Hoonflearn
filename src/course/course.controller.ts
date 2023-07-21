@@ -47,6 +47,7 @@ export class CourseController {
     return this.courseService.findCurriculum(courseId);
   }
 
+  // 강의 만드는 방식 변경 할까?
   @Post()
   @Roles(RoleType.Instructor)
   @UseGuards(AtGuard, RoleGuard)

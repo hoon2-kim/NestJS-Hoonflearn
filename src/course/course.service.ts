@@ -10,7 +10,7 @@ import { CategoryService } from 'src/category/category.service';
 import { CategoryCourseService } from 'src/category_course/category_course.service';
 import { CourseWishService } from 'src/course_wish/course_wish.service';
 import { UserEntity } from 'src/user/entities/user.entity';
-import { DataSource, FindOneOptions, Repository } from 'typeorm';
+import { DataSource, EntityManager, FindOneOptions, Repository } from 'typeorm';
 import { CreateCourseDto } from './dto/create-course.dto';
 import { UpdateCourseDto } from './dto/update-course.dto';
 import { CourseEntity } from './entities/course.entity';
@@ -40,10 +40,17 @@ export class CourseService {
     return course;
   }
 
-  async findByOptions(options: FindOneOptions<CourseEntity>) {
-    const course: CourseEntity | null = await this.courseRepository.findOne(
-      options,
-    );
+  async findByOptions(
+    options: FindOneOptions<CourseEntity>,
+    transactionManager?: EntityManager,
+  ) {
+    let course: CourseEntity | null;
+
+    if (transactionManager) {
+      course = await transactionManager.findOne(CourseEntity, options);
+    } else {
+      course = await this.courseRepository.findOne(options);
+    }
 
     return course;
   }
@@ -89,6 +96,10 @@ export class CourseService {
 
       if (existCourse) {
         throw new BadRequestException('같은 제목의 강의가 이미 존재합니다.');
+      }
+
+      if (existCourse.fk_instructor_id !== user.id) {
+        throw new ForbiddenException('해당 강의를 만든 지식공유자가 아닙니다.');
       }
 
       // 카테고리 검증
@@ -176,7 +187,7 @@ export class CourseService {
   ) {
     const queryRunner = this.dataSource.createQueryRunner();
     await queryRunner.connect();
-    await queryRunner.startTransaction('SERIALIZABLE');
+    await queryRunner.startTransaction('READ COMMITTED');
 
     try {
       const course = await queryRunner.manager.findOne(CourseEntity, {
@@ -304,17 +315,23 @@ export class CourseService {
     return result.affected ? true : false;
   }
 
-  async validateInstructor(courseId: string, userId: string) {
-    const course = await this.findByOptions({
-      where: {
-        id: courseId,
+  async validateInstructor(
+    courseId: string,
+    userId: string,
+    transactionManager?: EntityManager,
+  ) {
+    const valid = await this.findByOptions(
+      {
+        where: {
+          id: courseId,
+          fk_instructor_id: userId,
+        },
       },
-    });
+      transactionManager,
+    );
 
-    if (course.fk_instructor_id !== userId) {
+    if (!valid) {
       throw new ForbiddenException('해당 강의를 만든 지식공유자가 아닙니다.');
     }
-
-    return course;
   }
 }

@@ -16,41 +16,39 @@ import { CreateLessonDto } from './dto/create-lesson.dto';
 import { UpdateLessonDto } from './dto/update-lesson.dto';
 import { LessonService } from './lesson.service';
 
-@Controller('courses/:courseId/lessons')
+@Controller('')
 export class LessonController {
   constructor(private readonly lessonService: LessonService) {}
 
-  @Post()
+  @Post('sections/:sectionId/lessons')
   @Roles(RoleType.Instructor)
   @UseGuards(AtGuard, RoleGuard)
   createLesson(
-    @Param('courseId') courseId: string,
+    @Param('sectionId') sectionId: string,
     @Body() createLessonDto: CreateLessonDto,
     @CurrentUser() user: UserEntity,
   ) {
-    return this.lessonService.create(courseId, createLessonDto, user);
+    return this.lessonService.create(sectionId, createLessonDto, user);
   }
 
-  @Patch('/:lessonId')
+  @Patch('lessons/:lessonId')
   @Roles(RoleType.Instructor)
   @UseGuards(AtGuard, RoleGuard)
   updateLesson(
-    @Param('courseId') courseId: string,
     @Param('lessonId') lessonId: string,
     @Body() updateLessonDto: UpdateLessonDto,
     @CurrentUser() user: UserEntity,
   ) {
-    return this.lessonService.update(courseId, lessonId, updateLessonDto, user);
+    return this.lessonService.update(lessonId, updateLessonDto, user);
   }
 
-  @Delete('/:lessonId')
+  @Delete('lessons/:lessonId')
   @Roles(RoleType.Instructor)
   @UseGuards(AtGuard, RoleGuard)
   deleteLesson(
-    @Param('courseId') courseId: string,
     @Param('lessonId') lessonId: string, //
     @CurrentUser() user: UserEntity,
   ) {
-    return this.lessonService.delete(courseId, lessonId, user);
+    return this.lessonService.delete(lessonId, user);
   }
 }
