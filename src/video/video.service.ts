@@ -12,6 +12,8 @@ import getVideoDurationInSeconds from 'get-video-duration';
 import { CourseService } from 'src/course/course.service';
 import { LessonService } from 'src/lesson/lesson.service';
 import { URL } from 'url';
+import { SectionEntity } from 'src/section/entities/section.entity';
+import { CourseEntity } from 'src/course/entities/course.entity';
 
 @Injectable()
 export class VideoService {
@@ -62,21 +64,45 @@ export class VideoService {
 
       const s3upload = await this.awsS3Service.uploadFileToS3(folderName, file);
 
-      const videoTime = await getVideoDurationInSeconds(s3upload).then(
-        (duration) => {
-          const hours = Math.floor(duration / 3600);
-          const minutes = Math.floor(duration / 60);
-          const seconds = Math.floor(duration % 60);
+      // const videoTime = await getVideoDurationInSeconds(s3upload).then(
+      //   (duration) => {
+      //     // const hours = Math.floor(duration / 3600);
+      //     // const minutes = Math.floor(duration / 60);
+      //     // const seconds = Math.floor(duration % 60);
 
-          return Promise.resolve(`${hours}:${minutes}:${seconds}`);
-        },
-      );
+      //     // return Promise.resolve(`${hours}:${minutes}:${seconds}`);
+
+      //     return Promise.resolve(Math.floor(duration));
+      //   },
+      // );
+
+      const videoTime = Math.floor(await getVideoDurationInSeconds(s3upload));
 
       const result = await queryRunner.manager.save(VideoEntity, {
         videoUrl: s3upload,
         videoTime,
         fk_lesson_id: lessonId,
       });
+
+      const section = await queryRunner.manager.findOne(SectionEntity, {
+        where: { id: existLesson.fk_section_id },
+      });
+      await queryRunner.manager.update(
+        SectionEntity,
+        { id: section.id },
+        { totalSectionTime: (section.totalSectionTime += videoTime) },
+      );
+
+      const course = await queryRunner.manager.findOne(CourseEntity, {
+        where: { id: courseId },
+        select: ['id', 'totalVideosTime'],
+      });
+
+      await queryRunner.manager.update(
+        CourseEntity,
+        { id: course.id },
+        { totalVideosTime: (course.totalVideosTime += videoTime) },
+      );
 
       await queryRunner.commitTransaction();
 
@@ -97,6 +123,9 @@ export class VideoService {
     try {
       const existVideo = await queryRunner.manager.findOne(VideoEntity, {
         where: { id: videoId },
+        relations: {
+          lesson: true,
+        },
       });
 
       if (!existVideo) {
@@ -124,6 +153,28 @@ export class VideoService {
       const result = await queryRunner.manager.delete(VideoEntity, {
         id: videoId,
       });
+
+      const section = await queryRunner.manager.findOne(SectionEntity, {
+        where: { id: existVideo.lesson.fk_section_id },
+      });
+      await queryRunner.manager.update(
+        SectionEntity,
+        { id: section.id },
+        {
+          totalSectionTime: (section.totalSectionTime -= existVideo.videoTime),
+        },
+      );
+
+      const course = await queryRunner.manager.findOne(CourseEntity, {
+        where: { id: courseId },
+        select: ['id', 'totalVideosTime'],
+      });
+
+      await queryRunner.manager.update(
+        CourseEntity,
+        { id: course.id },
+        { totalVideosTime: (course.totalVideosTime -= existVideo.videoTime) },
+      );
 
       await queryRunner.commitTransaction();
 

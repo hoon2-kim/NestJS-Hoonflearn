@@ -1,7 +1,6 @@
 import {
   Column,
   CreateDateColumn,
-  DeleteDateColumn,
   Entity,
   OneToMany,
   OneToOne,
@@ -12,6 +11,8 @@ import { Exclude } from 'class-transformer';
 import { InstructorProfileEntity } from 'src/instructor/entities/instructor-profile.entity';
 import { CourseEntity } from 'src/course/entities/course.entity';
 import { CourseWishEntity } from 'src/course_wish/entities/course-wish.entity';
+import { ReviewEntity } from 'src/review/entities/review.entity';
+import { CourseUserEntity } from 'src/course_user/entities/course-user.entity';
 
 export enum RoleType {
   User = 'User',
@@ -65,8 +66,14 @@ export class UserEntity {
   instructorProfile: InstructorProfileEntity;
 
   @OneToMany(() => CourseEntity, (course) => course.instructor)
-  courses: CourseEntity[];
+  madeCourses: CourseEntity[];
 
   @OneToMany(() => CourseWishEntity, (courseWish) => courseWish.user)
   coursesWishs: CourseWishEntity[];
+
+  @OneToMany(() => ReviewEntity, (review) => review.user)
+  reviews: ReviewEntity[];
+
+  @OneToMany(() => CourseUserEntity, (courseUser) => courseUser.user)
+  coursesUsers: CourseUserEntity[];
 }

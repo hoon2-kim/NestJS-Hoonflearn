@@ -19,7 +19,7 @@ export class VideoEntity {
   videoUrl: string;
 
   @Column()
-  videoTime: string;
+  videoTime: number;
 
   @Exclude()
   @Column({ type: 'uuid' })
