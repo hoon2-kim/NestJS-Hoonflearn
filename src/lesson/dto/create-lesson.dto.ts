@@ -7,9 +7,11 @@ import {
 } from 'class-validator';
 
 export class CreateLessonDto {
+  // courseId도 추가할까?
+
   @IsUUID()
   @IsNotEmpty()
-  sectionId!: string;
+  sectionId: string;
 
   @IsString()
   @IsNotEmpty()

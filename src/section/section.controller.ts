@@ -16,22 +16,21 @@ import { CreateSectionDto } from './dto/create-section.dto';
 import { UpdateSectionDto } from './dto/update-section.dto';
 import { SectionService } from './section.service';
 
-@Controller('')
+@Controller('sections')
 export class SectionController {
   constructor(private readonly sectionService: SectionService) {}
 
-  @Post('courses/:courseId/sections')
+  @Post()
   @Roles(RoleType.Instructor)
   @UseGuards(AtGuard, RoleGuard)
   createSection(
-    @Param('courseId') courseId: string,
     @Body() createSectionDto: CreateSectionDto,
     @CurrentUser() user: UserEntity,
   ) {
-    return this.sectionService.create(courseId, createSectionDto, user);
+    return this.sectionService.create(createSectionDto, user);
   }
 
-  @Patch('sections/:sectionId')
+  @Patch('/:sectionId')
   @Roles(RoleType.Instructor)
   @UseGuards(AtGuard, RoleGuard)
   updateSection(
@@ -42,7 +41,7 @@ export class SectionController {
     return this.sectionService.update(sectionId, updateSectionDto, user);
   }
 
-  @Delete('sections/:sectionId')
+  @Delete('/:sectionId')
   @Roles(RoleType.Instructor)
   @UseGuards(AtGuard, RoleGuard)
   deleteSection(

@@ -13,6 +13,10 @@ import { SectionModule } from './section/section.module';
 import { LessonModule } from './lesson/lesson.module';
 import { VideoModule } from './video/video.module';
 import { ReviewModule } from './review/review.module';
+import { CourseUserModule } from './course_user/course_user.module';
+import { QuestionModule } from './question/question.module';
+import { ReviewCommentModule } from './review-comment/review-comment.module';
+import { QuestionCommentModule } from './question-comment/question-comment.module';
 import ormConfig from './config/orm.config';
 import ormConfigProd from './config/orm.config.prod';
 
@@ -38,6 +42,10 @@ import ormConfigProd from './config/orm.config.prod';
     LessonModule,
     VideoModule,
     ReviewModule,
+    CourseUserModule,
+    QuestionModule,
+    ReviewCommentModule,
+    QuestionCommentModule,
   ],
   controllers: [],
   providers: [],

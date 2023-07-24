@@ -25,11 +25,9 @@ export class SectionService {
     return section;
   }
 
-  async create(
-    courseId: string,
-    createSectionDto: CreateSectionDto,
-    user: UserEntity,
-  ) {
+  async create(createSectionDto: CreateSectionDto, user: UserEntity) {
+    const { courseId } = createSectionDto;
+
     const course = await this.courseService.findByOptions({
       where: { id: courseId },
       select: ['id', 'fk_instructor_id'],

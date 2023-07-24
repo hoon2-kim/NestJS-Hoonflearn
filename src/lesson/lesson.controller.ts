@@ -16,22 +16,21 @@ import { CreateLessonDto } from './dto/create-lesson.dto';
 import { UpdateLessonDto } from './dto/update-lesson.dto';
 import { LessonService } from './lesson.service';
 
-@Controller('')
+@Controller('lessons')
 export class LessonController {
   constructor(private readonly lessonService: LessonService) {}
 
-  @Post('sections/:sectionId/lessons')
+  @Post()
   @Roles(RoleType.Instructor)
   @UseGuards(AtGuard, RoleGuard)
   createLesson(
-    @Param('sectionId') sectionId: string,
     @Body() createLessonDto: CreateLessonDto,
     @CurrentUser() user: UserEntity,
   ) {
-    return this.lessonService.create(sectionId, createLessonDto, user);
+    return this.lessonService.create(createLessonDto, user);
   }
 
-  @Patch('lessons/:lessonId')
+  @Patch('/:lessonId')
   @Roles(RoleType.Instructor)
   @UseGuards(AtGuard, RoleGuard)
   updateLesson(
@@ -42,7 +41,7 @@ export class LessonController {
     return this.lessonService.update(lessonId, updateLessonDto, user);
   }
 
-  @Delete('lessons/:lessonId')
+  @Delete('/:lessonId')
   @Roles(RoleType.Instructor)
   @UseGuards(AtGuard, RoleGuard)
   deleteLesson(

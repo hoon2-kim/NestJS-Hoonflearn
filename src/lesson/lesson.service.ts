@@ -33,11 +33,9 @@ export class LessonService {
     return lesson;
   }
 
-  async create(
-    sectionId: string,
-    createLessonDto: CreateLessonDto,
-    user: UserEntity,
-  ) {
+  async create(createLessonDto: CreateLessonDto, user: UserEntity) {
+    const { sectionId } = createLessonDto;
+
     const section = await this.sectionService.findByOptions({
       where: { id: sectionId },
     });
