@@ -1,5 +1,6 @@
 import { Exclude } from 'class-transformer';
 import { CategoryCourseEntity } from 'src/category_course/entities/category-course.entitiy';
+import { CourseUserEntity } from 'src/course_user/entities/course-user.entity';
 import { CourseWishEntity } from 'src/course_wish/entities/course-wish.entity';
 import { ReviewEntity } from 'src/review/entities/review.entity';
 import { SectionEntity } from 'src/section/entities/section.entity';
@@ -98,6 +99,6 @@ export class CourseEntity {
   @OneToMany(() => ReviewEntity, (review) => review.course)
   reviews: ReviewEntity[];
 
-  //   @OneToMany(() => CourseUser, (courseUser) => courseUser.course)
-  //   course_user: CourseUser[];
+  @OneToMany(() => CourseUserEntity, (courseUser) => courseUser.course)
+  coursesUsers: CourseUserEntity[];
 }

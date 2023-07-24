@@ -116,10 +116,10 @@ export class CourseService {
 
       const result = await queryRunner.manager.save(CourseEntity, course);
 
-      await this.categoryCourseService.saveWithTransaction(
+      await this.categoryCourseService.saveCategoryCourseRepo(
         selectedCategoryIds,
         result.id,
-        queryRunner,
+        queryRunner.manager,
       );
 
       await queryRunner.commitTransaction();
@@ -167,7 +167,7 @@ export class CourseService {
     if (selectedCategoryIds) {
       await this.categoryService.validateCategory(selectedCategoryIds);
 
-      await this.categoryCourseService.saveWithoutTransaction(
+      await this.categoryCourseService.saveCategoryCourseRepo(
         selectedCategoryIds,
         existCourse.id,
       );
@@ -333,5 +333,12 @@ export class CourseService {
     if (!valid) {
       throw new ForbiddenException('해당 강의를 만든 지식공유자가 아닙니다.');
     }
+  }
+
+  async courseReviewRatingUpdate(course: CourseEntity, rating: number) {
+    await this.courseRepository.update(
+      { id: course.id },
+      { reviewCount: course.reviewCount + 1, averageRating: rating },
+    );
   }
 }
