@@ -6,7 +6,7 @@ import { Patch } from '@nestjs/common';
 import { Delete } from '@nestjs/common';
 import { Controller } from '@nestjs/common';
 import { CurrentUser } from 'src/auth/decorators/current-user.decorator';
-import { AtGuard } from 'src/auth/guard/at.guard';
+import { AtGuard } from 'src/auth/guards/at.guard';
 import { CreateReviewCommentDto } from './dto/create-review-comment.dto';
 import { UpdateReviewCommentDto } from './dto/update-review-comment.dto';
 import { ReviewCommentService } from './review-comment.service';

@@ -4,8 +4,8 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { CourseService } from 'src/course/course.service';
 import { UserEntity } from 'src/user/entities/user.entity';
 import { FindOneOptions, Repository } from 'typeorm';
-import { CreateSectionDto } from './dto/create-section.dto';
-import { UpdateSectionDto } from './dto/update-section.dto';
+import { CreateSectionDto } from './dtos/create-section.dto';
+import { UpdateSectionDto } from './dtos/update-section.dto';
 import { SectionEntity } from './entities/section.entity';
 
 @Injectable()
@@ -17,7 +17,7 @@ export class SectionService {
     private readonly courseService: CourseService,
   ) {}
 
-  async findByOptions(options: FindOneOptions<SectionEntity>) {
+  async findOneByOptions(options: FindOneOptions<SectionEntity>) {
     const section: SectionEntity | null = await this.sectionRepository.findOne(
       options,
     );
@@ -28,7 +28,7 @@ export class SectionService {
   async create(createSectionDto: CreateSectionDto, user: UserEntity) {
     const { courseId } = createSectionDto;
 
-    const course = await this.courseService.findByOptions({
+    const course = await this.courseService.findOneByOptions({
       where: { id: courseId },
       select: ['id', 'fk_instructor_id'],
     });
@@ -52,7 +52,7 @@ export class SectionService {
     updateSectionDto: UpdateSectionDto,
     user: UserEntity,
   ) {
-    const section = await this.findByOptions({
+    const section = await this.findOneByOptions({
       where: { id: sectionId },
     });
 
@@ -72,7 +72,7 @@ export class SectionService {
   }
 
   async delete(sectionId: string, user: UserEntity) {
-    const section = await this.findByOptions({
+    const section = await this.findOneByOptions({
       where: { id: sectionId },
     });
 

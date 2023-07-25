@@ -12,8 +12,8 @@ import {
 import { VideoService } from './video.service';
 import { Roles } from 'src/auth/decorators/role-protected.decorator';
 import { RoleType, UserEntity } from 'src/user/entities/user.entity';
-import { AtGuard } from 'src/auth/guard/at.guard';
-import { RoleGuard } from 'src/auth/guard/role.guard';
+import { AtGuard } from 'src/auth/guards/at.guard';
+import { RoleGuard } from 'src/auth/guards/role.guard';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { CurrentUser } from 'src/auth/decorators/current-user.decorator';
 

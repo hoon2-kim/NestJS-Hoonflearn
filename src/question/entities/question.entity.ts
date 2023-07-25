@@ -11,6 +11,11 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 
+export enum QuestionStatusType {
+  Resolved = 'Resolved',
+  UnResolved = 'UnResolved',
+}
+
 @Entity({ name: 'questions' })
 export class QuestionEntity {
   @PrimaryGeneratedColumn('uuid')
@@ -22,8 +27,21 @@ export class QuestionEntity {
   @Column({ type: 'text' })
   contents: string;
 
+  @Column({
+    type: 'enum',
+    enum: QuestionStatusType,
+    default: QuestionStatusType.UnResolved,
+  })
+  questionStatus: QuestionStatusType;
+
+  @Column({ type: 'int', default: 0 })
+  likeCount: number;
+
   @Column({ type: 'int', default: 0 })
   commentCount: number;
+
+  @Column({ type: 'int', default: 0 })
+  views: number;
 
   @Exclude()
   @Column({ type: 'uuid' })

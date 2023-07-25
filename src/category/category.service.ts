@@ -4,10 +4,10 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { CategoryIdsDto } from 'src/course/dto/create-course.dto';
-import { In, IsNull, QueryRunner, Repository } from 'typeorm';
-import { CreateCategoryDto } from './dto/create-category.dto';
-import { UpdateCategoryDto } from './dto/update-category.dto';
+import { CategoryIdsDto } from 'src/course/dtos/create-course.dto';
+import { IsNull, QueryRunner, Repository } from 'typeorm';
+import { CreateCategoryDto } from './dtos/create-category.dto';
+import { UpdateCategoryDto } from './dtos/update-category.dto';
 import { CategoryEntity } from './entities/category.entity';
 
 @Injectable()

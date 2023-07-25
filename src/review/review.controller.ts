@@ -8,10 +8,10 @@ import {
   Delete,
 } from '@nestjs/common';
 import { ReviewService } from './review.service';
-import { CreateReviewDto } from './dto/create-review.dto';
-import { UpdateReviewDto } from './dto/update-review.dto';
+import { CreateReviewDto } from './dtos/create-review.dto';
+import { UpdateReviewDto } from './dtos/update-review.dto';
 import { UseGuards } from '@nestjs/common';
-import { AtGuard } from 'src/auth/guard/at.guard';
+import { AtGuard } from 'src/auth/guards/at.guard';
 import { CurrentUser } from 'src/auth/decorators/current-user.decorator';
 import { UserEntity } from 'src/user/entities/user.entity';
 
@@ -35,6 +35,15 @@ export class ReviewController {
     return this.reviewService.create(createReviewDto, user);
   }
 
+  @Post('/:reviewId/like')
+  @UseGuards(AtGuard)
+  addReviewLike(
+    @Param('reviewId') reviewId: string,
+    @CurrentUser('id') userId: string,
+  ) {
+    return this.reviewService.addLike(reviewId, userId);
+  }
+
   @Patch('/:reviewId')
   @UseGuards(AtGuard)
   updateReview(
@@ -52,5 +61,14 @@ export class ReviewController {
     @CurrentUser() user: UserEntity,
   ) {
     return this.reviewService.delete(reviewId, user);
+  }
+
+  @Delete('/:reviewId/like')
+  @UseGuards(AtGuard)
+  cancelReviewLike(
+    @Param('reviewId') reviewId: string,
+    @CurrentUser('id') userId: string,
+  ) {
+    return this.reviewService.cancelLike(reviewId, userId);
   }
 }

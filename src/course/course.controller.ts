@@ -15,12 +15,12 @@ import {
 import { FileInterceptor } from '@nestjs/platform-express';
 import { CurrentUser } from 'src/auth/decorators/current-user.decorator';
 import { Roles } from 'src/auth/decorators/role-protected.decorator';
-import { AtGuard } from 'src/auth/guard/at.guard';
-import { RoleGuard } from 'src/auth/guard/role.guard';
-import { RoleType, UserEntity } from 'src/user/entities/user.entity';
+import { AtGuard } from 'src/auth/guards/at.guard';
+import { RoleGuard } from 'src/auth/guards/role.guard';
 import { CourseService } from './course.service';
-import { CreateCourseDto } from './dto/create-course.dto';
-import { UpdateCourseDto } from './dto/update-course.dto';
+import { CreateCourseDto } from './dtos/create-course.dto';
+import { UpdateCourseDto } from './dtos/update-course.dto';
+import { RoleType, UserEntity } from 'src/user/entities/user.entity';
 
 @Controller('courses')
 export class CourseController {
@@ -47,7 +47,6 @@ export class CourseController {
     return this.courseService.findCurriculum(courseId);
   }
 
-  // 강의 만드는 방식 변경 할까?
   @Post()
   @Roles(RoleType.Instructor)
   @UseGuards(AtGuard, RoleGuard)

@@ -4,8 +4,8 @@ import { CourseService } from 'src/course/course.service';
 import { SectionService } from 'src/section/section.service';
 import { UserEntity } from 'src/user/entities/user.entity';
 import { EntityManager, FindOneOptions, Repository } from 'typeorm';
-import { CreateLessonDto } from './dto/create-lesson.dto';
-import { UpdateLessonDto } from './dto/update-lesson.dto';
+import { CreateLessonDto } from './dtos/create-lesson.dto';
+import { UpdateLessonDto } from './dtos/update-lesson.dto';
 import { LessonEntity } from './entities/lesson.entity';
 
 @Injectable()
@@ -18,7 +18,7 @@ export class LessonService {
     private readonly courseService: CourseService,
   ) {}
 
-  async findByOptions(
+  async findOneByOptions(
     options: FindOneOptions<LessonEntity>,
     transactionManager?: EntityManager,
   ) {
@@ -36,7 +36,7 @@ export class LessonService {
   async create(createLessonDto: CreateLessonDto, user: UserEntity) {
     const { sectionId } = createLessonDto;
 
-    const section = await this.sectionService.findByOptions({
+    const section = await this.sectionService.findOneByOptions({
       where: { id: sectionId },
     });
 
@@ -64,7 +64,7 @@ export class LessonService {
     updateLessonDto: UpdateLessonDto,
     user: UserEntity,
   ) {
-    const lesson = await this.findByOptions({
+    const lesson = await this.findOneByOptions({
       where: { id: lessonId },
     });
 
@@ -82,7 +82,7 @@ export class LessonService {
   }
 
   async delete(lessonId: string, user: UserEntity) {
-    const lesson = await this.findByOptions({
+    const lesson = await this.findOneByOptions({
       where: { id: lessonId },
     });
 

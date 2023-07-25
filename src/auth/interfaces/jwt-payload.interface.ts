@@ -1,4 +1,4 @@
-import { RoleType } from '../../user/entities/user.entity';
+import { RoleType } from 'src/user/entities/user.entity';
 
 export interface JwtPayload {
   id: string;

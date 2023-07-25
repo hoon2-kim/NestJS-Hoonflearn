@@ -9,15 +9,15 @@ import {
   Res,
 } from '@nestjs/common';
 import { InstructorService } from './instructor.service';
-import { CreateInstructorDto } from './dto/create-instructor.dto';
-import { UpdateInstructorDto } from './dto/update-instructor.dto';
+import { CreateInstructorDto } from './dtos/create-instructor.dto';
+import { UpdateInstructorDto } from './dtos/update-instructor.dto';
 import { Roles } from 'src/auth/decorators/role-protected.decorator';
-import { RoleType, UserEntity } from 'src/user/entities/user.entity';
-import { AtGuard } from 'src/auth/guard/at.guard';
-import { RoleGuard } from 'src/auth/guard/role.guard';
+import { AtGuard } from 'src/auth/guards/at.guard';
+import { RoleGuard } from 'src/auth/guards/role.guard';
 import { CurrentUser } from 'src/auth/decorators/current-user.decorator';
 import { Response } from 'express';
 import { IInstructorCreateResult } from './interfaces/instructor.interface';
+import { RoleType, UserEntity } from 'src/user/entities/user.entity';
 
 @Controller('instructors')
 export class InstructorController {

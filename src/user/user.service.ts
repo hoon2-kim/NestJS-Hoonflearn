@@ -5,11 +5,11 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { DataSource, FindOneOptions, Repository } from 'typeorm';
-import { CreateUserDto } from './dto/create-user.dto';
-import { UpdateUserDto } from './dto/update-user.dto';
-import { UserEntity } from './entities/user.entity';
+import { CreateUserDto } from './dtos/create-user.dto';
+import { UpdateUserDto } from './dtos/update-user.dto';
+import { RoleType, UserEntity } from './entities/user.entity';
 import * as bcrypt from 'bcrypt';
-import { AwsS3Service } from '../aws-s3/aws-s3.service';
+import { AwsS3Service } from 'src/aws-s3/aws-s3.service';
 
 @Injectable()
 export class UserService {
@@ -21,7 +21,7 @@ export class UserService {
     private readonly awsS3Service: AwsS3Service,
   ) {}
 
-  async findByOptions(option: FindOneOptions<UserEntity>) {
+  async findOneByOptions(option: FindOneOptions<UserEntity>) {
     const user: UserEntity | null = await this.userRepository.findOne(option);
 
     return user;
@@ -164,8 +164,15 @@ export class UserService {
     return result.affected ? true : false;
   }
 
-  async updateRefreshToken(userId: string, rt: string) {
-    await this.userRepository.update({ id: userId }, { hashedRt: rt });
+  async updateRefreshToken(
+    userId: string,
+    rt: string,
+    roleType?: RoleType.Instructor,
+  ) {
+    await this.userRepository.update(
+      { id: userId },
+      { hashedRt: rt, role: roleType },
+    );
   }
 
   async removeRefreshToken(userId: string) {

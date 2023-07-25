@@ -5,22 +5,20 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { AuthService } from 'src/auth/auth.service';
-import { RoleType, UserEntity } from 'src/user/entities/user.entity';
-import { UserService } from 'src/user/user.service';
 import { Repository } from 'typeorm';
-import { CreateInstructorDto } from './dto/create-instructor.dto';
-import { UpdateInstructorDto } from './dto/update-instructor.dto';
+import { CreateInstructorDto } from './dtos/create-instructor.dto';
+import { UpdateInstructorDto } from './dtos/update-instructor.dto';
 import { InstructorProfileEntity } from './entities/instructor-profile.entity';
 import { Response } from 'express';
 import { IInstructorCreateResult } from './interfaces/instructor.interface';
+import { UserService } from 'src/user/user.service';
+import { RoleType, UserEntity } from 'src/user/entities/user.entity';
 
 @Injectable()
 export class InstructorService {
   constructor(
     @InjectRepository(InstructorProfileEntity)
     private readonly instructorRepository: Repository<InstructorProfileEntity>,
-    @InjectRepository(UserEntity)
-    private readonly userRepository: Repository<UserEntity>,
 
     private readonly userService: UserService,
     private readonly authService: AuthService,
@@ -51,7 +49,7 @@ export class InstructorService {
     const { contactEmail, nameOrBusiness, ...instructorInfo } =
       createInstructorDto;
 
-    const isInstructor = await this.userService.findByOptions({
+    const isInstructor = await this.userService.findOneByOptions({
       where: { id: user.id, role: RoleType.Instructor },
     });
 
@@ -99,12 +97,18 @@ export class InstructorService {
 
     const rtHash = await this.authService.hashData(newRt);
 
-    await this.userRepository
-      .createQueryBuilder('user')
-      .update(UserEntity)
-      .where('id = :userId', { userId: user.id })
-      .set({ role: RoleType.Instructor, hashedRt: rtHash })
-      .execute();
+    await this.userService.updateRefreshToken(
+      user.id,
+      rtHash,
+      RoleType.Instructor,
+    );
+
+    // await this.userRepository
+    //   .createQueryBuilder('user')
+    //   .update(UserEntity)
+    //   .where('id = :userId', { userId: user.id })
+    //   .set({ role: RoleType.Instructor, hashedRt: rtHash })
+    //   .execute();
 
     res.cookie('refreshToken', newRt, {
       httpOnly: true,

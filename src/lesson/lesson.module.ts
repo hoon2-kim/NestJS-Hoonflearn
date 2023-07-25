@@ -3,8 +3,8 @@ import { LessonService } from './lesson.service';
 import { LessonController } from './lesson.controller';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { LessonEntity } from './entities/lesson.entity';
+import { CourseModule } from '../course/course.module';
 import { SectionModule } from 'src/section/section.module';
-import { CourseModule } from 'src/course/course.module';
 
 @Module({
   imports: [

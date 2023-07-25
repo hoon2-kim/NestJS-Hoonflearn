@@ -23,7 +23,7 @@ export class ReviewCommentService {
   ): Promise<ReviewCommentEntity> {
     const { reviewId, contents } = createReviewCommentDto;
 
-    const review = await this.reviewService.findByOptions({
+    const review = await this.reviewService.findOneByOptions({
       where: { id: reviewId },
     });
 

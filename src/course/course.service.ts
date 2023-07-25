@@ -5,16 +5,16 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { DataSource, EntityManager, FindOneOptions, Repository } from 'typeorm';
+import { CreateCourseDto } from './dtos/create-course.dto';
+import { UpdateCourseDto } from './dtos/update-course.dto';
+import { CourseEntity } from './entities/course.entity';
+import { URL } from 'url';
 import { AwsS3Service } from 'src/aws-s3/aws-s3.service';
+import { UserEntity } from 'src/user/entities/user.entity';
 import { CategoryService } from 'src/category/category.service';
 import { CategoryCourseService } from 'src/category_course/category_course.service';
 import { CourseWishService } from 'src/course_wish/course_wish.service';
-import { UserEntity } from 'src/user/entities/user.entity';
-import { DataSource, EntityManager, FindOneOptions, Repository } from 'typeorm';
-import { CreateCourseDto } from './dto/create-course.dto';
-import { UpdateCourseDto } from './dto/update-course.dto';
-import { CourseEntity } from './entities/course.entity';
-import { URL } from 'url';
 
 @Injectable()
 export class CourseService {
@@ -40,7 +40,7 @@ export class CourseService {
     return course;
   }
 
-  async findByOptions(
+  async findOneByOptions(
     options: FindOneOptions<CourseEntity>,
     transactionManager?: EntityManager,
   ) {
@@ -56,7 +56,7 @@ export class CourseService {
   }
 
   async findCurriculum(courseId: string) {
-    const course = await this.findByOptions({
+    const course = await this.findOneByOptions({
       where: { id: courseId },
     });
 
@@ -64,7 +64,7 @@ export class CourseService {
       throw new NotFoundException('해당 강의가 존재하지 않습니다.');
     }
 
-    const curriculum = await this.findByOptions({
+    const curriculum = await this.findOneByOptions({
       where: { id: courseId },
       relations: {
         sections: {
@@ -142,7 +142,7 @@ export class CourseService {
   ) {
     const { title, selectedCategoryIds } = updateCourseDto;
 
-    const existCourse = await this.findByOptions({
+    const existCourse = await this.findOneByOptions({
       where: { id: courseId },
     });
 
@@ -155,7 +155,7 @@ export class CourseService {
     }
 
     if (title && existCourse.title !== title) {
-      const existTitle = await this.findByOptions({
+      const existTitle = await this.findOneByOptions({
         where: { title },
       });
 
@@ -234,7 +234,7 @@ export class CourseService {
   }
 
   async addWish(courseId: string, user: UserEntity) {
-    const existCourse = await this.findByOptions({
+    const existCourse = await this.findOneByOptions({
       where: { id: courseId },
     });
 
@@ -242,7 +242,7 @@ export class CourseService {
       throw new NotFoundException('해당 강의가 존재하지 않습니다.');
     }
 
-    const isWished = await this.courseWishService.findByOptions({
+    const isWished = await this.courseWishService.findOneByOptions({
       where: {
         fk_course_id: courseId,
         fk_user_id: user.id,
@@ -261,7 +261,7 @@ export class CourseService {
   }
 
   async cancelWish(courseId: string, user: UserEntity) {
-    const existCourse = await this.findByOptions({
+    const existCourse = await this.findOneByOptions({
       where: { id: courseId },
     });
 
@@ -269,7 +269,7 @@ export class CourseService {
       throw new NotFoundException('해당 강의가 존재하지 않습니다.');
     }
 
-    const isWished = await this.courseWishService.findByOptions({
+    const isWished = await this.courseWishService.findOneByOptions({
       where: {
         fk_course_id: courseId,
         fk_user_id: user.id,
@@ -288,7 +288,7 @@ export class CourseService {
   }
 
   async delete(courseId: string, user: UserEntity) {
-    const course = await this.findByOptions({
+    const course = await this.findOneByOptions({
       where: { id: courseId },
     });
 
@@ -320,7 +320,7 @@ export class CourseService {
     userId: string,
     transactionManager?: EntityManager,
   ) {
-    const valid = await this.findByOptions(
+    const valid = await this.findOneByOptions(
       {
         where: {
           id: courseId,

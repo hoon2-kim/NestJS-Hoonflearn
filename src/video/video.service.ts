@@ -4,7 +4,6 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { AwsS3Service } from 'src/aws-s3/aws-s3.service';
 import { UserEntity } from 'src/user/entities/user.entity';
 import { DataSource, Repository } from 'typeorm';
 import { VideoEntity } from './entities/video.entity';
@@ -14,6 +13,7 @@ import { LessonService } from 'src/lesson/lesson.service';
 import { URL } from 'url';
 import { SectionEntity } from 'src/section/entities/section.entity';
 import { CourseEntity } from 'src/course/entities/course.entity';
+import { AwsS3Service } from 'src/aws-s3/aws-s3.service';
 
 @Injectable()
 export class VideoService {
@@ -33,7 +33,7 @@ export class VideoService {
     await queryRunner.startTransaction();
 
     try {
-      const existLesson = await this.lessonService.findByOptions(
+      const existLesson = await this.lessonService.findOneByOptions(
         {
           where: { id: lessonId },
         },

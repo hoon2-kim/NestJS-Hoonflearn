@@ -8,7 +8,7 @@ import {
   Delete,
 } from '@nestjs/common';
 import { UseGuards } from '@nestjs/common';
-import { AtGuard } from 'src/auth/guard/at.guard';
+import { AtGuard } from 'src/auth/guards/at.guard';
 import { CurrentUser } from 'src/auth/decorators/current-user.decorator';
 import { QuestionCommentService } from './question-comment.service';
 import { UpdateQuestionCommentDto } from './dto/update-question-comment.dto';

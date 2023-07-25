@@ -37,7 +37,7 @@ export class QuestionCommentEntity {
   @JoinColumn({ name: 'fk_user_id' })
   user: UserEntity;
 
-  @ManyToOne(() => QuestionEntity, { onDelete: 'CASCADE' })
+  @ManyToOne(() => QuestionEntity, { onDelete: 'SET NULL' })
   @JoinColumn({ name: 'fk_question_id' })
   question: QuestionEntity;
 }

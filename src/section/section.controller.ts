@@ -9,11 +9,11 @@ import {
 } from '@nestjs/common';
 import { CurrentUser } from 'src/auth/decorators/current-user.decorator';
 import { Roles } from 'src/auth/decorators/role-protected.decorator';
-import { AtGuard } from 'src/auth/guard/at.guard';
-import { RoleGuard } from 'src/auth/guard/role.guard';
+import { AtGuard } from 'src/auth/guards/at.guard';
+import { RoleGuard } from 'src/auth/guards/role.guard';
 import { RoleType, UserEntity } from 'src/user/entities/user.entity';
-import { CreateSectionDto } from './dto/create-section.dto';
-import { UpdateSectionDto } from './dto/update-section.dto';
+import { CreateSectionDto } from './dtos/create-section.dto';
+import { UpdateSectionDto } from './dtos/update-section.dto';
 import { SectionService } from './section.service';
 
 @Controller('sections')

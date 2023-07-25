@@ -1,24 +1,25 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { AwsS3Module } from './aws-s3/aws-s3.module';
-import { UserModule } from './user/user.module';
 import { AuthModule } from './auth/auth.module';
 import { CategoryModule } from './category/category.module';
-import { CourseModule } from './course/course.module';
-import { InstructorModule } from './instructor/instructor.module';
 import { CategoryCourseModule } from './category_course/category_course.module';
-import { CourseWishModule } from './course_wish/course_wish.module';
-import { SectionModule } from './section/section.module';
-import { LessonModule } from './lesson/lesson.module';
-import { VideoModule } from './video/video.module';
-import { ReviewModule } from './review/review.module';
-import { CourseUserModule } from './course_user/course_user.module';
-import { QuestionModule } from './question/question.module';
-import { ReviewCommentModule } from './review-comment/review-comment.module';
-import { QuestionCommentModule } from './question-comment/question-comment.module';
 import ormConfig from './config/orm.config';
 import ormConfigProd from './config/orm.config.prod';
+import { CourseModule } from './course/course.module';
+import { CourseUserModule } from './course_user/course_user.module';
+import { CourseWishModule } from './course_wish/course_wish.module';
+import { InstructorModule } from './instructor/instructor.module';
+import { LessonModule } from './lesson/lesson.module';
+import { QuestionCommentModule } from './question-comment/question-comment.module';
+import { QuestionModule } from './question/question.module';
+import { ReviewCommentModule } from './review-comment/review-comment.module';
+import { ReviewModule } from './review/review.module';
+import { SectionModule } from './section/section.module';
+import { UserModule } from './user/user.module';
+import { VideoModule } from './video/video.module';
+import { QuestionLikeModule } from './question-like/question-like.module';
+import { ReviewLikeModule } from './review-like/review-like.module';
 
 @Module({
   imports: [
@@ -30,7 +31,6 @@ import ormConfigProd from './config/orm.config.prod';
       useFactory:
         process.env.NODE_ENV !== 'production' ? ormConfig : ormConfigProd,
     }),
-    AwsS3Module,
     UserModule,
     AuthModule,
     CategoryModule,
@@ -46,6 +46,8 @@ import ormConfigProd from './config/orm.config.prod';
     QuestionModule,
     ReviewCommentModule,
     QuestionCommentModule,
+    QuestionLikeModule,
+    ReviewLikeModule,
   ],
   controllers: [],
   providers: [],

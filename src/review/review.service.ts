@@ -4,10 +4,11 @@ import { BadRequestException } from '@nestjs/common';
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { CourseService } from 'src/course/course.service';
+import { ReviewLikeService } from 'src/review-like/review-like.service';
 import { UserEntity } from 'src/user/entities/user.entity';
 import { FindOneOptions, Repository } from 'typeorm';
-import { CreateReviewDto } from './dto/create-review.dto';
-import { UpdateReviewDto } from './dto/update-review.dto';
+import { CreateReviewDto } from './dtos/create-review.dto';
+import { UpdateReviewDto } from './dtos/update-review.dto';
 import { ReviewEntity } from './entities/review.entity';
 
 @Injectable()
@@ -17,10 +18,11 @@ export class ReviewService {
     private readonly reviewRepository: Repository<ReviewEntity>,
 
     private readonly courseService: CourseService,
+    private readonly revivewLikeService: ReviewLikeService,
   ) {}
 
   async findAllByCourse(courseId: string) {
-    const course = await this.courseService.findByOptions({
+    const course = await this.courseService.findOneByOptions({
       where: { id: courseId },
     });
 
@@ -35,7 +37,7 @@ export class ReviewService {
     return review;
   }
 
-  async findByOptions(options: FindOneOptions) {
+  async findOneByOptions(options: FindOneOptions<ReviewEntity>) {
     const review: ReviewEntity | null = await this.reviewRepository.findOne(
       options,
     );
@@ -47,7 +49,7 @@ export class ReviewService {
     // 트랜잭션 해야할까(나중에 동시성 테스트 해보자)
     const { courseId, rating, contents } = createReviewDto;
 
-    const course = await this.courseService.findByOptions({
+    const course = await this.courseService.findOneByOptions({
       where: { id: courseId },
     });
 
@@ -55,7 +57,7 @@ export class ReviewService {
       throw new NotFoundException('해당 강의가 존재하지 않습니다.');
     }
 
-    const isAlreadyReview = await this.findByOptions({
+    const isAlreadyReview = await this.findOneByOptions({
       where: {
         fk_course_id: courseId,
         fk_user_id: user.id,
@@ -85,6 +87,33 @@ export class ReviewService {
     return result;
   }
 
+  async addLike(reviewId: string, userId: string) {
+    const review = await this.findOneByOptions({
+      where: { id: reviewId },
+    });
+
+    if (!review) {
+      throw new NotFoundException('해당 리뷰글이 존재하지 않습니다.');
+    }
+
+    const isLike = await this.revivewLikeService.findOneByOptions({
+      where: {
+        fk_review_id: reviewId,
+        fk_user_id: userId,
+      },
+    });
+
+    if (!isLike) {
+      await this.revivewLikeService.addReviewLike(reviewId, userId);
+      await this.reviewRepository.update(
+        { id: reviewId },
+        { likeCount: review.likeCount + 1 },
+      );
+    } else {
+      return;
+    }
+  }
+
   async update(
     reviewId: string,
     updateReviewDto: UpdateReviewDto,
@@ -92,7 +121,7 @@ export class ReviewService {
   ) {
     const { rating } = updateReviewDto;
 
-    const review = await this.findByOptions({
+    const review = await this.findOneByOptions({
       where: { id: reviewId },
     });
 
@@ -105,7 +134,7 @@ export class ReviewService {
     }
 
     if (rating) {
-      const course = await this.courseService.findByOptions({
+      const course = await this.courseService.findOneByOptions({
         where: { id: review.fk_course_id },
         // 최적화를 위해 select 할까?
       });
@@ -124,7 +153,7 @@ export class ReviewService {
   }
 
   async delete(reviewId: string, user: UserEntity) {
-    const review = await this.findByOptions({
+    const review = await this.findOneByOptions({
       where: { id: reviewId },
     });
 
@@ -136,7 +165,7 @@ export class ReviewService {
       throw new ForbiddenException('리뷰를 작성한 본인이 아닙니다.');
     }
 
-    const course = await this.courseService.findByOptions({
+    const course = await this.courseService.findOneByOptions({
       where: { id: review.fk_course_id },
     });
 
@@ -150,5 +179,32 @@ export class ReviewService {
     const result = await this.reviewRepository.delete({ id: reviewId });
 
     return result.affected ? true : false;
+  }
+
+  async cancelLike(reviewId: string, userId: string) {
+    const review = await this.findOneByOptions({
+      where: { id: reviewId },
+    });
+
+    if (!review) {
+      throw new NotFoundException('해당 리뷰글이 존재하지 않습니다.');
+    }
+
+    const isLike = await this.revivewLikeService.findOneByOptions({
+      where: {
+        fk_review_id: reviewId,
+        fk_user_id: userId,
+      },
+    });
+
+    if (isLike) {
+      await this.revivewLikeService.cancelReviewLike(reviewId, userId);
+      await this.reviewRepository.update(
+        { id: reviewId },
+        { likeCount: review.likeCount - 1 },
+      );
+    } else {
+      return;
+    }
   }
 }

@@ -9,11 +9,11 @@ import {
 } from '@nestjs/common';
 import { CurrentUser } from 'src/auth/decorators/current-user.decorator';
 import { Roles } from 'src/auth/decorators/role-protected.decorator';
-import { AtGuard } from 'src/auth/guard/at.guard';
-import { RoleGuard } from 'src/auth/guard/role.guard';
+import { AtGuard } from 'src/auth/guards/at.guard';
+import { RoleGuard } from 'src/auth/guards/role.guard';
 import { RoleType, UserEntity } from 'src/user/entities/user.entity';
-import { CreateLessonDto } from './dto/create-lesson.dto';
-import { UpdateLessonDto } from './dto/update-lesson.dto';
+import { CreateLessonDto } from './dtos/create-lesson.dto';
+import { UpdateLessonDto } from './dtos/update-lesson.dto';
 import { LessonService } from './lesson.service';
 
 @Controller('lessons')

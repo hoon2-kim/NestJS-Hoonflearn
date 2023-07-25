@@ -7,10 +7,10 @@ import {
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
-import { RoleType, UserEntity } from 'src/user/entities/user.entity';
-import { UserService } from 'src/user/user.service';
-import { LoginUserDto } from './dto/login-user.dto';
+import { LoginUserDto } from './dtos/login-user.dto';
 import { Response, Request } from 'express';
+import { UserService } from 'src/user/user.service';
+import { RoleType } from 'src/user/entities/user.entity';
 
 @Injectable()
 export class AuthService {
@@ -23,7 +23,7 @@ export class AuthService {
     const { email, password } = loginUserDto;
 
     // 이메일 중복확인
-    const user = await this.userService.findByOptions({
+    const user = await this.userService.findOneByOptions({
       where: { email },
     });
 
@@ -84,7 +84,7 @@ export class AuthService {
   }
 
   async restore(userId: string, req: Request) {
-    const user = await this.userService.findByOptions({
+    const user = await this.userService.findOneByOptions({
       where: { id: userId },
     });
 

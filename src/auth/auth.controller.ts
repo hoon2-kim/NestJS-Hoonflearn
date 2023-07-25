@@ -11,9 +11,9 @@ import { Response, Request } from 'express';
 import { UserEntity } from '../user/entities/user.entity';
 import { AuthService } from './auth.service';
 import { CurrentUser } from './decorators/current-user.decorator';
-import { LoginUserDto } from './dto/login-user.dto';
-import { AtGuard } from './guard/at.guard';
-import { RtGuard } from './guard/rt.guard';
+import { LoginUserDto } from './dtos/login-user.dto';
+import { AtGuard } from './guards/at.guard';
+import { RtGuard } from './guards/rt.guard';
 
 @Controller('auth')
 export class AuthController {

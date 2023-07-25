@@ -10,7 +10,7 @@ export class CourseWishService {
     private readonly courseWishRepository: Repository<CourseWishEntity>,
   ) {}
 
-  async findByOptions(options: FindOneOptions<CourseWishEntity>) {
+  async findOneByOptions(options: FindOneOptions<CourseWishEntity>) {
     const courseWish: CourseWishEntity | null =
       await this.courseWishRepository.findOne(options);
 
