@@ -25,13 +25,18 @@ export class HttpExceptionFilter<T extends HttpException>
     if (typeof error === 'string') {
       response.status(status).json({
         statusCode: status,
-        timestamp: new Date().toISOString(),
+        timestamp: new Date().toLocaleString('ko-KR', {
+          timeZone: 'Asia/Seoul',
+        }),
         message: error,
       });
     } else {
-      response
-        .status(status)
-        .json({ ...error, timestamp: new Date().toISOString() });
+      response.status(status).json({
+        ...error,
+        timestamp: new Date().toLocaleString('ko-KR', {
+          timeZone: 'Asia/Seoul',
+        }),
+      });
     }
   }
 }

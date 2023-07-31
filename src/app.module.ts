@@ -20,6 +20,11 @@ import { UserModule } from './user/user.module';
 import { VideoModule } from './video/video.module';
 import { QuestionLikeModule } from './question-like/question-like.module';
 import { ReviewLikeModule } from './review-like/review-like.module';
+import { CartModule } from './cart/cart.module';
+import { CouponModule } from './coupon/coupon.module';
+import { CartCourseModule } from './cart_course/cart_course.module';
+import { OrderModule } from './order/order.module';
+import { OrderCourseModule } from './order_course/order_course.module';
 
 @Module({
   imports: [
@@ -48,6 +53,11 @@ import { ReviewLikeModule } from './review-like/review-like.module';
     QuestionCommentModule,
     QuestionLikeModule,
     ReviewLikeModule,
+    CartModule,
+    CouponModule,
+    CartCourseModule,
+    OrderModule,
+    OrderCourseModule,
   ],
   controllers: [],
   providers: [],
