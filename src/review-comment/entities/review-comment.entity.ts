@@ -11,7 +11,7 @@ import {
 } from 'typeorm';
 import { ReviewEntity } from '../../review/entities/review.entity';
 
-@Entity({ name: 'reviewsComments' })
+@Entity({ name: 'reviews_comments' })
 export class ReviewCommentEntity {
   @PrimaryGeneratedColumn('uuid')
   id: string;
@@ -28,16 +28,18 @@ export class ReviewCommentEntity {
   fk_review_id: string;
 
   @CreateDateColumn({ type: 'timestamptz' })
-  createdAt: Date;
+  created_at: Date;
 
   @UpdateDateColumn({ type: 'timestamptz' })
-  updatedAt: Date;
+  updated_at: Date;
 
   @ManyToOne(() => UserEntity, { onDelete: 'SET NULL' })
   @JoinColumn({ name: 'fk_user_id' })
   user: UserEntity;
 
-  @ManyToOne(() => ReviewEntity)
+  @ManyToOne(() => ReviewEntity, (review) => review.reviewComments, {
+    onDelete: 'SET NULL',
+  })
   @JoinColumn({ name: 'fk_review_id' })
   review: ReviewEntity;
 }

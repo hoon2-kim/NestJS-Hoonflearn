@@ -2,10 +2,11 @@ import { NotFoundException } from '@nestjs/common';
 import { ForbiddenException } from '@nestjs/common';
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { CourseUserService } from 'src/course_user/course-user.service';
 import { ReviewService } from 'src/review/review.service';
 import { Repository } from 'typeorm';
-import { CreateReviewCommentDto } from './dto/create-review-comment.dto';
-import { UpdateReviewCommentDto } from './dto/update-review-comment.dto';
+import { CreateReviewCommentDto } from './dtos/request/create-review-comment.dto';
+import { UpdateReviewCommentDto } from './dtos/request/update-review-comment.dto';
 import { ReviewCommentEntity } from './entities/review-comment.entity';
 
 @Injectable()
@@ -15,13 +16,15 @@ export class ReviewCommentService {
     private readonly reviewCommentRepository: Repository<ReviewCommentEntity>,
 
     private readonly reviewService: ReviewService,
+    private readonly courseUserService: CourseUserService,
   ) {}
 
   async create(
+    reviewId: string,
     createReviewCommentDto: CreateReviewCommentDto,
     userId: string,
   ): Promise<ReviewCommentEntity> {
-    const { reviewId, contents } = createReviewCommentDto;
+    const { contents } = createReviewCommentDto;
 
     const review = await this.reviewService.findOneByOptions({
       where: { id: reviewId },
@@ -31,7 +34,11 @@ export class ReviewCommentService {
       throw new NotFoundException('해당 리뷰가 존재하지 않습니다.');
     }
 
-    // TODO : 강의 구매한 사람만 리뷰댓글
+    // 강의 구매한 사람만 리뷰댓글
+    await this.courseUserService.validateBoughtCourseByUser(
+      userId,
+      review?.fk_course_id,
+    );
 
     const newComment = await this.reviewCommentRepository.save({
       contents,
@@ -43,10 +50,19 @@ export class ReviewCommentService {
   }
 
   async update(
+    reviewId: string,
     commentId: string,
     updateReviewCommentDto: UpdateReviewCommentDto,
     userId: string,
-  ) {
+  ): Promise<void> {
+    const review = await this.reviewService.findOneByOptions({
+      where: { id: reviewId },
+    });
+
+    if (!review) {
+      throw new NotFoundException('해당 리뷰가 존재하지 않습니다.');
+    }
+
     const comment = await this.reviewCommentRepository.findOne({
       where: { id: commentId },
     });
@@ -61,10 +77,22 @@ export class ReviewCommentService {
 
     Object.assign(comment, updateReviewCommentDto);
 
-    return await this.reviewCommentRepository.save(comment);
+    await this.reviewCommentRepository.save(comment);
   }
 
-  async delete(commentId: string, userId: string) {
+  async delete(
+    reviewId: string,
+    commentId: string,
+    userId: string,
+  ): Promise<boolean> {
+    const review = await this.reviewService.findOneByOptions({
+      where: { id: reviewId },
+    });
+
+    if (!review) {
+      throw new NotFoundException('해당 리뷰가 존재하지 않습니다.');
+    }
+
     const comment = await this.reviewCommentRepository.findOne({
       where: { id: commentId },
     });

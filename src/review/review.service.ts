@@ -3,13 +3,23 @@ import { ForbiddenException } from '@nestjs/common';
 import { BadRequestException } from '@nestjs/common';
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { PageMetaDto } from 'src/common/dtos/page-meta.dto';
+import { PageDto } from 'src/common/dtos/page.dto';
 import { CourseService } from 'src/course/course.service';
+import { CourseUserService } from 'src/course_user/course-user.service';
+import { InstructorReviewQueryDto } from 'src/instructor/dtos/query/instructor.query.dto';
+import { EInstructorReviewSortBy } from 'src/instructor/enums/instructor.enum';
 import { ReviewLikeService } from 'src/review-like/review-like.service';
-import { UserEntity } from 'src/user/entities/user.entity';
 import { FindOneOptions, Repository } from 'typeorm';
-import { CreateReviewDto } from './dtos/create-review.dto';
-import { UpdateReviewDto } from './dtos/update-review.dto';
+import { CreateReviewDto } from './dtos/request/create-review.dto';
+import { ReviewListQueryDto } from './dtos/query/review-list.query.dto';
+import { UpdateReviewDto } from './dtos/request/update-review.dto';
 import { ReviewEntity } from './entities/review.entity';
+import { EReviewMethod, EReviewSortBy } from './enums/review.enum';
+import {
+  ReviewResponseWithCommentDto,
+  ReviewResponseWithoutCommentDto,
+} from './dtos/response/review.response.dto';
 
 @Injectable()
 export class ReviewService {
@@ -19,9 +29,15 @@ export class ReviewService {
 
     private readonly courseService: CourseService,
     private readonly revivewLikeService: ReviewLikeService,
+    private readonly courseUserService: CourseUserService,
   ) {}
 
-  async findAllByCourse(courseId: string) {
+  async findAllByCourse(
+    courseId: string,
+    reviewListQueryDto: ReviewListQueryDto,
+  ): Promise<PageDto<ReviewResponseWithCommentDto>> {
+    const { skip, take, sort } = reviewListQueryDto;
+
     const course = await this.courseService.findOneByOptions({
       where: { id: courseId },
     });
@@ -30,14 +46,55 @@ export class ReviewService {
       throw new NotFoundException('해당 강의가 존재하지 않습니다.');
     }
 
-    const review = await this.reviewRepository.find({
-      where: { fk_course_id: courseId },
+    const query = this.reviewRepository
+      .createQueryBuilder('review')
+      .leftJoinAndSelect('review.user', 'user')
+      .leftJoinAndSelect('review.course', 'course')
+      .leftJoinAndSelect('review.reviewComments', 'comment')
+      .take(take)
+      .skip(skip);
+
+    switch (sort) {
+      case EReviewSortBy.Recent:
+        query.orderBy('review.created_at', 'DESC');
+        break;
+
+      case EReviewSortBy.Like:
+        query.orderBy('review.likeCount', 'DESC');
+        query.addOrderBy('review.created_at', 'DESC');
+        break;
+
+      case EReviewSortBy.HighRating:
+        query.orderBy('review.rating', 'DESC');
+        query.addOrderBy('review.created_at', 'DESC');
+        break;
+
+      case EReviewSortBy.LowRating:
+        query.orderBy('review.rating', 'ASC');
+        query.addOrderBy('review.created_at', 'DESC');
+        break;
+
+      default:
+        query.orderBy('review.created_at', 'DESC');
+        break;
+    }
+
+    const [reviews, count] = await query.getManyAndCount();
+
+    const pageMeta = new PageMetaDto({
+      pageOptionDto: reviewListQueryDto,
+      itemCount: count,
     });
 
-    return review;
+    return new PageDto(
+      reviews.map((r) => ReviewResponseWithCommentDto.from(r)),
+      pageMeta,
+    );
   }
 
-  async findOneByOptions(options: FindOneOptions<ReviewEntity>) {
+  async findOneByOptions(
+    options: FindOneOptions<ReviewEntity>,
+  ): Promise<ReviewEntity | null> {
     const review: ReviewEntity | null = await this.reviewRepository.findOne(
       options,
     );
@@ -45,7 +102,10 @@ export class ReviewService {
     return review;
   }
 
-  async create(createReviewDto: CreateReviewDto, user: UserEntity) {
+  async create(
+    createReviewDto: CreateReviewDto,
+    userId: string,
+  ): Promise<ReviewEntity> {
     // 트랜잭션 해야할까(나중에 동시성 테스트 해보자)
     const { courseId, rating, contents } = createReviewDto;
 
@@ -60,7 +120,7 @@ export class ReviewService {
     const isAlreadyReview = await this.findOneByOptions({
       where: {
         fk_course_id: courseId,
-        fk_user_id: user.id,
+        fk_user_id: userId,
       },
     });
 
@@ -69,25 +129,30 @@ export class ReviewService {
     }
 
     // 강의 구매 했는지
+    await this.courseUserService.validateBoughtCourseByUser(userId, courseId);
 
     // 별점
     const prevReviewCount = course.reviewCount;
     const averageCal =
       (course.averageRating * prevReviewCount + rating) / (prevReviewCount + 1);
 
-    await this.courseService.courseReviewRatingUpdate(course, averageCal);
+    await this.courseService.courseReviewRatingUpdate(
+      course,
+      averageCal,
+      EReviewMethod.Create,
+    );
 
     const result = await this.reviewRepository.save({
       contents,
       rating,
       fk_course_id: courseId,
-      fk_user_id: user.id,
+      fk_user_id: userId,
     });
 
     return result;
   }
 
-  async addLike(reviewId: string, userId: string) {
+  async addLike(reviewId: string, userId: string): Promise<void> {
     const review = await this.findOneByOptions({
       where: { id: reviewId },
     });
@@ -117,8 +182,8 @@ export class ReviewService {
   async update(
     reviewId: string,
     updateReviewDto: UpdateReviewDto,
-    user: UserEntity,
-  ) {
+    userId: string,
+  ): Promise<void> {
     const { rating } = updateReviewDto;
 
     const review = await this.findOneByOptions({
@@ -129,14 +194,13 @@ export class ReviewService {
       throw new NotFoundException('해당 리뷰가 존재하지 않습니다.');
     }
 
-    if (review.fk_user_id !== user.id) {
+    if (review.fk_user_id !== userId) {
       throw new ForbiddenException('리뷰를 작성한 본인이 아닙니다.');
     }
 
     if (rating) {
       const course = await this.courseService.findOneByOptions({
         where: { id: review.fk_course_id },
-        // 최적화를 위해 select 할까?
       });
 
       const newAverage =
@@ -144,15 +208,19 @@ export class ReviewService {
         review.rating +
         rating / course.reviewCount;
 
-      await this.courseService.courseReviewRatingUpdate(course, newAverage);
+      await this.courseService.courseReviewRatingUpdate(
+        course,
+        newAverage,
+        EReviewMethod.Update,
+      );
     }
 
     Object.assign(review, updateReviewDto);
 
-    return await this.reviewRepository.save(review);
+    await this.reviewRepository.save(review);
   }
 
-  async delete(reviewId: string, user: UserEntity) {
+  async delete(reviewId: string, userId: string): Promise<boolean> {
     const review = await this.findOneByOptions({
       where: { id: reviewId },
     });
@@ -161,7 +229,7 @@ export class ReviewService {
       throw new NotFoundException('해당 리뷰가 존재하지 않습니다.');
     }
 
-    if (review.fk_user_id !== user.id) {
+    if (review.fk_user_id !== userId) {
       throw new ForbiddenException('리뷰를 작성한 본인이 아닙니다.');
     }
 
@@ -174,14 +242,18 @@ export class ReviewService {
         course.reviewCount -
       1;
 
-    await this.courseService.courseReviewRatingUpdate(course, newAverage);
+    await this.courseService.courseReviewRatingUpdate(
+      course,
+      newAverage,
+      EReviewMethod.Delete,
+    );
 
     const result = await this.reviewRepository.delete({ id: reviewId });
 
     return result.affected ? true : false;
   }
 
-  async cancelLike(reviewId: string, userId: string) {
+  async cancelLike(reviewId: string, userId: string): Promise<void> {
     const review = await this.findOneByOptions({
       where: { id: reviewId },
     });
@@ -206,5 +278,75 @@ export class ReviewService {
     } else {
       return;
     }
+  }
+
+  async findReviewsByInstructorCourse(
+    courseIds: string[],
+    instructorReviewQueryDto: InstructorReviewQueryDto,
+    userId: string,
+  ): Promise<PageDto<ReviewResponseWithoutCommentDto>> {
+    const { courseId, sort, skip, take } = instructorReviewQueryDto;
+
+    const query = this.reviewRepository
+      .createQueryBuilder('review')
+      .leftJoinAndSelect('review.course', 'course')
+      .leftJoinAndSelect('review.user', 'user')
+      .take(take)
+      .skip(skip);
+
+    if (courseIds.length > 0) {
+      query.where('review.fk_course_id IN (:...courseIds)', { courseIds });
+    } else if (courseIds.length === 0) {
+      query.where('1 = 0');
+    }
+
+    if (courseId) {
+      query.andWhere('review.fk_course_id = :courseId', { courseId });
+    }
+
+    switch (sort) {
+      case EInstructorReviewSortBy.Recent:
+        query.orderBy('review.created_at', 'DESC');
+        break;
+
+      case EInstructorReviewSortBy.Like:
+        query
+          .orderBy('review.likeCount', 'DESC')
+          .addOrderBy('review.created_at', 'DESC');
+        break;
+
+      case EInstructorReviewSortBy.Comment_Recent:
+        query
+          .leftJoin(
+            'review.reviewComments',
+            'comment',
+            'comment.created_at =(SELECT MAX(created_at) FROM reviews_comments WHERE fk_review_id = review.id',
+          )
+          .andWhere('comment.fk_user_id = :userId', { userId })
+          .orderBy('comment.created_at', 'DESC');
+        break;
+
+      case EInstructorReviewSortBy.NotComment:
+        query
+          .leftJoin('review.reviewComments', 'comment')
+          .andWhere('comment.fk_user_id != :userId', { userId });
+        break;
+
+      default:
+        query.orderBy('review.created_at', 'DESC');
+        break;
+    }
+
+    const [reviews, count] = await query.getManyAndCount();
+
+    const pageMeta = new PageMetaDto({
+      pageOptionDto: instructorReviewQueryDto,
+      itemCount: count,
+    });
+
+    return new PageDto(
+      reviews.map((r) => ReviewResponseWithoutCommentDto.from(r)),
+      pageMeta,
+    );
   }
 }

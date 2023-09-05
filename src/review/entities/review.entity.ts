@@ -1,5 +1,6 @@
 import { Exclude } from 'class-transformer';
 import { CourseEntity } from 'src/course/entities/course.entity';
+import { ReviewCommentEntity } from 'src/review-comment/entities/review-comment.entity';
 import { UserEntity } from 'src/user/entities/user.entity';
 import {
   Column,
@@ -7,6 +8,7 @@ import {
   Entity,
   JoinColumn,
   ManyToOne,
+  OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
@@ -34,12 +36,12 @@ export class ReviewEntity {
   fk_course_id: string;
 
   @CreateDateColumn({ type: 'timestamptz' })
-  createdAt: Date;
+  created_at: Date;
 
   @UpdateDateColumn({ type: 'timestamptz' })
-  updatedAt: Date;
+  updated_at: Date;
 
-  @ManyToOne(() => UserEntity, (user) => user.reviews, { onDelete: 'CASCADE' })
+  @ManyToOne(() => UserEntity, (user) => user.reviews, { onDelete: 'SET NULL' })
   @JoinColumn({ name: 'fk_user_id' })
   user: UserEntity;
 
@@ -48,4 +50,7 @@ export class ReviewEntity {
   })
   @JoinColumn({ name: 'fk_course_id' })
   course: CourseEntity;
+
+  @OneToMany(() => ReviewCommentEntity, (reviewComment) => reviewComment.review)
+  reviewComments: ReviewCommentEntity[];
 }

@@ -25,10 +25,10 @@ export class ReviewLikeEntity {
   fk_user_id: string;
 
   @CreateDateColumn({ type: 'timestamptz' })
-  createdAt: Date;
+  created_at: Date;
 
   @UpdateDateColumn({ type: 'timestamptz' })
-  updatedAt: Date;
+  updated_at: Date;
 
   @ManyToOne(() => ReviewEntity, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'fk_review_id' })
