@@ -4,7 +4,12 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { CartEntity } from 'src/cart/entities/cart.entity';
 import { CourseService } from 'src/course/course.service';
-import { EntityManager, FindOneOptions, Repository } from 'typeorm';
+import {
+  DeleteResult,
+  EntityManager,
+  FindOneOptions,
+  Repository,
+} from 'typeorm';
 import { CartCourseEntity } from './entities/cart-course.entity';
 
 @Injectable()
@@ -16,7 +21,9 @@ export class CartCourseService {
     private readonly courseService: CourseService,
   ) {}
 
-  async findOneByOptions(options: FindOneOptions<CartCourseEntity>) {
+  async findOneByOptions(
+    options: FindOneOptions<CartCourseEntity>,
+  ): Promise<CartCourseEntity | null> {
     const cartCourse: null | CartCourseEntity =
       await this.cartCourseRepository.findOne(options);
 
@@ -52,11 +59,12 @@ export class CartCourseService {
     }
   }
 
+  // TODO : 리팩토링
   async deleteCourseInCart(
     courseId: string,
     cartId: string,
     transactionManager?: EntityManager,
-  ) {
+  ): Promise<DeleteResult> {
     if (transactionManager) {
       const existCourseInCart = await transactionManager.findOne(
         CartCourseEntity,

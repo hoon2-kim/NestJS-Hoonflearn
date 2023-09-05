@@ -2,6 +2,7 @@ import { CartEntity } from 'src/cart/entities/cart.entity';
 import { CourseEntity } from 'src/course/entities/course.entity';
 import {
   Column,
+  CreateDateColumn,
   Entity,
   JoinColumn,
   ManyToOne,
@@ -18,6 +19,9 @@ export class CartCourseEntity {
 
   @Column({ type: 'uuid' })
   fk_course_id: string;
+
+  @CreateDateColumn({ type: 'timestamptz' })
+  created_at: Date;
 
   @ManyToOne(() => CartEntity, (cart) => cart.cartsCourses, {
     onDelete: 'CASCADE',
