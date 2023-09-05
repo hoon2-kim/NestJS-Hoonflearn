@@ -8,7 +8,7 @@ import { DataSource, FindOneOptions, Repository } from 'typeorm';
 import { CreateUserDto } from './dtos/request/create-user.dto';
 import { UpdateUserDto } from './dtos/request/update-user.dto';
 import { UserEntity } from './entities/user.entity';
-import * as bcrypt from 'bcrypt';
+import * as bcryptjs from 'bcryptjs';
 import { AwsS3Service } from 'src/aws-s3/aws-s3.service';
 import {
   UserMyCourseQueryDto,
@@ -110,7 +110,7 @@ export class UserService {
       throw new BadRequestException('핸드폰 번호가 이미 존재합니다.');
     }
 
-    const hashedPassword = await bcrypt.hash(password, 10);
+    const hashedPassword = await bcryptjs.hash(password, 10);
 
     const result = this.userRepository.create({
       email,

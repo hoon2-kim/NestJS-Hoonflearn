@@ -6,7 +6,7 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import * as bcrypt from 'bcrypt';
+import * as bcryptjs from 'bcryptjs';
 import { LoginUserDto } from './dtos/request/login-user.dto';
 import { Response, Request } from 'express';
 import { UserService } from 'src/user/user.service';
@@ -31,7 +31,7 @@ export class AuthService {
       throw new UnauthorizedException('유저가 존재하지 않습니다.');
     }
 
-    const validatePassword = await bcrypt.compare(password, user.password);
+    const validatePassword = await bcryptjs.compare(password, user.password);
 
     // 비밀번호 확인
     if (!validatePassword) {
@@ -90,7 +90,7 @@ export class AuthService {
 
     const cookieRt = req?.cookies?.refreshToken;
 
-    const compareRt = await bcrypt.compare(cookieRt, user.hashedRt);
+    const compareRt = await bcryptjs.compare(cookieRt, user.hashedRt);
 
     if (!compareRt) {
       throw new ForbiddenException(
@@ -136,6 +136,6 @@ export class AuthService {
   }
 
   async hashData(data: string): Promise<string> {
-    return bcrypt.hash(data, 10);
+    return bcryptjs.hash(data, 10);
   }
 }
