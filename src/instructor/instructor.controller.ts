@@ -3,36 +3,86 @@ import {
   Get,
   Post,
   Body,
-  Patch,
-  Param,
   UseGuards,
   Res,
+  Query,
 } from '@nestjs/common';
 import { InstructorService } from './instructor.service';
-import { CreateInstructorDto } from './dtos/create-instructor.dto';
-import { UpdateInstructorDto } from './dtos/update-instructor.dto';
+import { CreateInstructorDto } from './dtos/request/create-instructor.dto';
 import { Roles } from 'src/auth/decorators/role-protected.decorator';
 import { AtGuard } from 'src/auth/guards/at.guard';
 import { RoleGuard } from 'src/auth/guards/role.guard';
 import { CurrentUser } from 'src/auth/decorators/current-user.decorator';
 import { Response } from 'express';
 import { IInstructorCreateResult } from './interfaces/instructor.interface';
-import { RoleType, UserEntity } from 'src/user/entities/user.entity';
+import { UserEntity } from 'src/user/entities/user.entity';
+import {
+  InstructorCourseQueryDto,
+  InstructorQuestionQueryDto,
+  InstructorReviewQueryDto,
+} from './dtos/query/instructor.query.dto';
+import { ApiTags } from '@nestjs/swagger';
+import { ERoleType } from 'src/user/enums/user.enum';
+import {
+  ApiGetMyCoursesByInstructorSwagger,
+  ApiGetQuestionsByMyCourseSwagger,
+  ApiGetReviewsByMyCourseSwagger,
+  ApiRegisterInstructorSwagger,
+} from './instructor.swagger';
+import { PageDto } from 'src/common/dtos/page.dto';
+import { CourseListByInstructorResponseDto } from 'src/course/dtos/response/course.response';
+import { QuestionListResponseDto } from 'src/question/dtos/response/question.response.dto';
+import { ReviewResponseWithoutCommentDto } from 'src/review/dtos/response/review.response.dto';
 
+@ApiTags('INSTRUCTOR')
 @Controller('instructors')
 export class InstructorController {
   constructor(private readonly instructorService: InstructorService) {}
 
-  @Get('/my-courses')
-  @Roles(RoleType.Instructor)
+  @ApiGetMyCoursesByInstructorSwagger('지식공유자의 강의들 조회')
+  @Get('/courses')
+  @Roles(ERoleType.Instructor)
   @UseGuards(AtGuard, RoleGuard)
-  findMyCourses(
-    @CurrentUser() user: UserEntity, //
-  ) {
-    return this.instructorService.findCourses(user);
+  async findMyCourses(
+    @Query() instructorCourseQueryDto: InstructorCourseQueryDto,
+    @CurrentUser() user: UserEntity,
+  ): Promise<PageDto<CourseListByInstructorResponseDto>> {
+    return this.instructorService.getMyCoursesByInstructor(
+      instructorCourseQueryDto,
+      user,
+    );
   }
 
-  @Post('register')
+  @ApiGetQuestionsByMyCourseSwagger('지식공유자가 만든 강의들의 질문들 조회')
+  @Get('/questions')
+  @Roles(ERoleType.Instructor)
+  @UseGuards(AtGuard, RoleGuard)
+  async getQuestionsMyCourses(
+    @Query() instructorQuestionQueryDto: InstructorQuestionQueryDto,
+    @CurrentUser() user: UserEntity,
+  ): Promise<PageDto<QuestionListResponseDto>> {
+    return this.instructorService.getQuestionsByMyCourses(
+      instructorQuestionQueryDto,
+      user,
+    );
+  }
+
+  @ApiGetReviewsByMyCourseSwagger('지식공유자가 만든 강의들의 리뷰들 조회')
+  @Get('/reviews')
+  @Roles(ERoleType.Instructor)
+  @UseGuards(AtGuard, RoleGuard)
+  async getReviewsMyCourses(
+    @Query() instructorReviewQueryDto: InstructorReviewQueryDto,
+    @CurrentUser() user: UserEntity,
+  ): Promise<PageDto<ReviewResponseWithoutCommentDto>> {
+    return this.instructorService.getReviewsByMyCourses(
+      instructorReviewQueryDto,
+      user,
+    );
+  }
+
+  @ApiRegisterInstructorSwagger('지식공유자 등록')
+  @Post('/register')
   @UseGuards(AtGuard)
   registerInstructor(
     @Body() createInstructorDto: CreateInstructorDto,
@@ -40,13 +90,5 @@ export class InstructorController {
     @Res({ passthrough: true }) res: Response,
   ): Promise<IInstructorCreateResult> {
     return this.instructorService.create(createInstructorDto, user, res);
-  }
-
-  @Patch('/:instructorId')
-  updateInstructor(
-    @Param('instructorId') instructorId: string,
-    @Body() updateInstructorDto: UpdateInstructorDto,
-  ) {
-    return this.instructorService.update(instructorId, updateInstructorDto);
   }
 }

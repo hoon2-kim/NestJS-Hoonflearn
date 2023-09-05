@@ -8,48 +8,33 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
-
-export enum FieldOfHopeType {
-  DevProgram = '개발/프로그래밍',
-  GameDev = '게임 개발',
-  Security = '보안',
-  DataScience = '데이터 사이언스',
-  CreativeDesign = '크리에이티브/디자인',
-  JobMarketing = '직무/마케팅',
-  AcademicForeignLanguage = '학문/외국어',
-  Career = '커리어',
-  Etc = '기타',
-}
+import { EFieldOfHopeType } from '../enums/instructor.enum';
 
 @Entity({ name: 'instructorsProfile' })
 export class InstructorProfileEntity {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  // 연락받을 이메일
-  @Column({ type: 'varchar', nullable: true })
+  @Column({ type: 'varchar', unique: true, comment: '연락받을 이메일' })
   contactEmail: string;
 
-  // 지식공유자 실명 또는 사업체명
-  @Column({ type: 'varchar', nullable: true })
+  @Column({ type: 'varchar', comment: '지식공유자 실명 또는 사업체명' })
   nameOrBusiness: string;
 
-  @Column({ type: 'enum', enum: FieldOfHopeType, nullable: true })
-  fieldOfHope: FieldOfHopeType;
+  @Column({ type: 'enum', enum: EFieldOfHopeType, comment: '희망하는 분야' })
+  fieldOfHope: EFieldOfHopeType;
 
-  // 나를 소개하는 글
-  @Column({ type: 'text', nullable: true })
+  @Column({ type: 'text', comment: '나를 소개하는 글' })
   aboutMe: string;
 
-  // 나를 표현할수있는 링크
-  @Column({ nullable: true })
+  @Column({ nullable: true, comment: '나를 표현할 수 있는 링크' })
   link?: string;
 
   @CreateDateColumn({ type: 'timestamptz' })
-  createdAt: Date;
+  created_at: Date;
 
   @UpdateDateColumn({ type: 'timestamptz' })
-  updatedAt: Date;
+  updated_at: Date;
 
   @OneToOne(() => UserEntity, { onDelete: 'CASCADE' })
   @JoinColumn()
