@@ -9,6 +9,7 @@ import {
   ManyToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
+import { ECouresUserType } from '../enums/course-user.enum';
 
 @Entity({ name: 'courses_users' })
 export class CourseUserEntity {
@@ -16,6 +17,9 @@ export class CourseUserEntity {
   id: string;
 
   // TODO : 추후 컬럼 추가
+
+  @Column({ enum: ECouresUserType })
+  type: ECouresUserType;
 
   @Exclude()
   @Column({ type: 'uuid' })
@@ -26,7 +30,7 @@ export class CourseUserEntity {
   fk_course_id: string;
 
   @CreateDateColumn()
-  createdAt: Date;
+  created_at: Date;
 
   @ManyToOne(() => UserEntity, (user) => user.coursesUsers, {
     onDelete: 'CASCADE',

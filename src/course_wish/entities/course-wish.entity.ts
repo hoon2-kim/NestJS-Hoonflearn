@@ -26,7 +26,7 @@ export class CourseWishEntity {
   fk_user_id: string;
 
   @CreateDateColumn({ type: 'timestamptz' })
-  createdAt: Date;
+  created_at: Date;
 
   @ManyToOne(() => CourseEntity, (course) => course.coursesWishs, {
     onDelete: 'CASCADE',
