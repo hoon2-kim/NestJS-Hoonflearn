@@ -18,7 +18,7 @@ export class VideoEntity {
   @Column({ type: 'varchar' })
   videoUrl: string;
 
-  @Column()
+  @Column({ type: 'int' })
   videoTime: number;
 
   @Exclude()
@@ -26,10 +26,10 @@ export class VideoEntity {
   fk_lesson_id: string;
 
   @CreateDateColumn({ type: 'timestamptz' })
-  createdAt: Date;
+  created_at: Date;
 
   @UpdateDateColumn({ type: 'timestamptz' })
-  updatedAt: Date;
+  updated_at: Date;
 
   @OneToOne(() => LessonEntity, (lesson) => lesson.video, {
     onDelete: 'CASCADE',

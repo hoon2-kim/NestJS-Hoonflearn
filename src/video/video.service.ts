@@ -5,7 +5,7 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { UserEntity } from 'src/user/entities/user.entity';
-import { DataSource, Repository } from 'typeorm';
+import { DataSource, EntityManager, Repository } from 'typeorm';
 import { VideoEntity } from './entities/video.entity';
 import getVideoDurationInSeconds from 'get-video-duration';
 import { CourseService } from 'src/course/course.service';
@@ -27,54 +27,37 @@ export class VideoService {
     private readonly dataSource: DataSource,
   ) {}
 
-  async upload(lessonId: string, file: Express.Multer.File, user: UserEntity) {
+  async upload(
+    lessonId: string,
+    file: Express.Multer.File,
+    user: UserEntity,
+  ): Promise<VideoEntity> {
     const queryRunner = this.dataSource.createQueryRunner();
     await queryRunner.connect();
     await queryRunner.startTransaction();
 
     try {
-      const existLesson = await this.lessonService.findOneByOptions(
-        {
-          where: { id: lessonId },
-        },
+      const lesson = await this.verifyExistLesson(
+        lessonId,
         queryRunner.manager,
       );
 
-      if (!existLesson) {
-        throw new NotFoundException('해당 수업이 존재하지 않습니다.');
-      }
+      await this.verifyExistVideo(lessonId, queryRunner.manager);
 
-      const existVideo = await queryRunner.manager.findOne(VideoEntity, {
-        where: { fk_lesson_id: lessonId },
-      });
-
-      if (existVideo) {
-        throw new BadRequestException('이미 영상이 업로드 되어있습니다.');
-      }
-
+      // courseId 가져오기
       const courseId =
         await this.lessonService.getCourseIdByLessonIdWithQueryBuilder(
           lessonId,
           queryRunner.manager,
         );
 
+      // 지식공유자 검증
       await this.courseService.validateInstructor(courseId, user.id);
 
+      // 업로드
       const folderName = `유저-${user.id}/강의-${courseId}/videos`;
 
       const s3upload = await this.awsS3Service.uploadFileToS3(folderName, file);
-
-      // const videoTime = await getVideoDurationInSeconds(s3upload).then(
-      //   (duration) => {
-      //     // const hours = Math.floor(duration / 3600);
-      //     // const minutes = Math.floor(duration / 60);
-      //     // const seconds = Math.floor(duration % 60);
-
-      //     // return Promise.resolve(`${hours}:${minutes}:${seconds}`);
-
-      //     return Promise.resolve(Math.floor(duration));
-      //   },
-      // );
 
       const videoTime = Math.floor(await getVideoDurationInSeconds(s3upload));
 
@@ -85,7 +68,7 @@ export class VideoService {
       });
 
       const section = await queryRunner.manager.findOne(SectionEntity, {
-        where: { id: existLesson.fk_section_id },
+        where: { id: lesson.fk_section_id },
       });
       await queryRunner.manager.update(
         SectionEntity,
@@ -115,7 +98,7 @@ export class VideoService {
     }
   }
 
-  async delete(videoId: string, user: UserEntity) {
+  async delete(videoId: string, user: UserEntity): Promise<boolean> {
     const queryRunner = this.dataSource.createQueryRunner();
     await queryRunner.connect();
     await queryRunner.startTransaction();
@@ -185,5 +168,33 @@ export class VideoService {
     } finally {
       await queryRunner.release();
     }
+  }
+
+  async verifyExistLesson(lessonId: string, transactionManager: EntityManager) {
+    const lesson = await this.lessonService.findOneByOptions(
+      { where: { id: lessonId } },
+      transactionManager,
+    );
+
+    if (!lesson) {
+      throw new NotFoundException('해당 수업이 존재하지 않습니다.');
+    }
+
+    return lesson;
+  }
+
+  async verifyExistVideo(
+    lessonId: string,
+    transactionManager: EntityManager,
+  ): Promise<VideoEntity> {
+    const video = await transactionManager.findOne(VideoEntity, {
+      where: { fk_lesson_id: lessonId },
+    });
+
+    if (video) {
+      throw new BadRequestException('이미 영상이 업로드 되었습니다.');
+    }
+
+    return video;
   }
 }
