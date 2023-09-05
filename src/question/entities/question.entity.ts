@@ -1,5 +1,6 @@
 import { Exclude } from 'class-transformer';
 import { CourseEntity } from 'src/course/entities/course.entity';
+import { QuestionCommentEntity } from 'src/question-comment/entities/question-comment.entity';
 import { UserEntity } from 'src/user/entities/user.entity';
 import {
   Column,
@@ -7,14 +8,11 @@ import {
   Entity,
   JoinColumn,
   ManyToOne,
+  OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
-
-export enum QuestionStatusType {
-  Resolved = 'Resolved',
-  UnResolved = 'UnResolved',
-}
+import { EQuestionStatus } from '../enums/question.enum';
 
 @Entity({ name: 'questions' })
 export class QuestionEntity {
@@ -29,22 +27,22 @@ export class QuestionEntity {
 
   @Column({
     type: 'enum',
-    enum: QuestionStatusType,
-    default: QuestionStatusType.UnResolved,
+    enum: EQuestionStatus,
+    default: EQuestionStatus.UnResolved,
   })
-  questionStatus: QuestionStatusType;
+  questionStatus: EQuestionStatus;
 
   @Column({ type: 'int', default: 0 })
   likeCount: number;
 
   @Column({ type: 'int', default: 0 })
-  commentCount: number;
-
-  @Column({ type: 'int', default: 0 })
   views: number;
 
+  @Column({ type: 'int', default: 0 })
+  commentCount: number;
+
   @Exclude()
-  @Column({ type: 'uuid' })
+  @Column({ type: 'uuid', nullable: true })
   fk_course_id: string;
 
   @Exclude()
@@ -52,16 +50,21 @@ export class QuestionEntity {
   fk_user_id: string;
 
   @CreateDateColumn({ type: 'timestamptz' })
-  createdAt: Date;
+  created_at: Date;
 
   @UpdateDateColumn({ type: 'timestamptz' })
-  updatedAt: Date;
+  updated_at: Date;
 
-  @ManyToOne(() => CourseEntity, { onDelete: 'CASCADE' })
+  @ManyToOne(() => CourseEntity, { onDelete: 'SET NULL', nullable: true })
   @JoinColumn({ name: 'fk_course_id' })
   course: CourseEntity;
 
-  @ManyToOne(() => UserEntity, { onDelete: 'CASCADE' })
+  @ManyToOne(() => UserEntity, (user) => user.questions, {
+    onDelete: 'SET NULL',
+  })
   @JoinColumn({ name: 'fk_user_id' })
   user: UserEntity;
+
+  @OneToMany(() => QuestionCommentEntity, (comment) => comment.question)
+  questionComments: QuestionCommentEntity[];
 }

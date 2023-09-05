@@ -4,8 +4,8 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { QuestionService } from 'src/question/question.service';
 import { Repository } from 'typeorm';
-import { CreateQuestionCommentDto } from './dto/create-question-comment.dto';
-import { UpdateQuestionCommentDto } from './dto/update-question-comment.dto';
+import { CreateQuestionCommentDto } from './dtos/request/create-question-comment.dto';
+import { UpdateQuestionCommentDto } from './dtos/request/update-question-comment.dto';
 import { QuestionCommentEntity } from './entities/question-comment.entity';
 
 @Injectable()
@@ -18,17 +18,18 @@ export class QuestionCommentService {
   ) {}
 
   async create(
+    questionId: string,
     createQuestionCommentDto: CreateQuestionCommentDto,
     userId: string,
-  ) {
-    const { questionId, contents } = createQuestionCommentDto;
+  ): Promise<QuestionCommentEntity> {
+    const { contents } = createQuestionCommentDto;
 
     const question = await this.questionService.findOneByOptions({
       where: { id: questionId },
     });
 
     if (!question) {
-      throw new NotFoundException('해당 리뷰가 존재하지 않습니다.');
+      throw new NotFoundException('해당 질문글이 존재하지 않습니다.');
     }
 
     const newComment = await this.questionCommentRepository.save({
@@ -41,16 +42,25 @@ export class QuestionCommentService {
   }
 
   async update(
+    questionId: string,
     commentId: string,
     updateQuestionCommentDto: UpdateQuestionCommentDto,
     userId: string,
-  ) {
+  ): Promise<void> {
+    const question = await this.questionService.findOneByOptions({
+      where: { id: questionId },
+    });
+
+    if (!question) {
+      throw new NotFoundException('해당 질문글이 존재하지 않습니다.');
+    }
+
     const comment = await this.questionCommentRepository.findOne({
       where: { id: commentId },
     });
 
     if (!comment) {
-      throw new NotFoundException('해당 리뷰댓글이 존재하지 않습니다.');
+      throw new NotFoundException('해당 질문글의 댓글이 존재하지 않습니다.');
     }
 
     if (comment.fk_user_id !== userId) {
@@ -59,16 +69,28 @@ export class QuestionCommentService {
 
     Object.assign(comment, updateQuestionCommentDto);
 
-    return await this.questionCommentRepository.save(comment);
+    await this.questionCommentRepository.save(comment);
   }
 
-  async delete(commentId: string, userId: string) {
+  async delete(
+    questionId: string,
+    commentId: string,
+    userId: string,
+  ): Promise<boolean> {
+    const question = await this.questionService.findOneByOptions({
+      where: { id: questionId },
+    });
+
+    if (!question) {
+      throw new NotFoundException('해당 질문글이 존재하지 않습니다.');
+    }
+
     const comment = await this.questionCommentRepository.findOne({
       where: { id: commentId },
     });
 
     if (!comment) {
-      throw new NotFoundException('해당 리뷰댓글이 존재하지 않습니다.');
+      throw new NotFoundException('해당 질문글의 댓글이 존재하지 않습니다.');
     }
 
     if (comment.fk_user_id !== userId) {

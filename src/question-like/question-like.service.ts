@@ -10,21 +10,23 @@ export class QuestionLikeService {
     private readonly questionLikeRepository: Repository<QuestionLikeEntity>,
   ) {}
 
-  async findOneByOptions(options: FindOneOptions<QuestionLikeEntity>) {
+  async findOneByOptions(
+    options: FindOneOptions<QuestionLikeEntity>,
+  ): Promise<QuestionLikeEntity | null> {
     const questionLike: QuestionLikeEntity | null =
       await this.questionLikeRepository.findOne(options);
 
     return questionLike;
   }
 
-  async addQuestionLike(questionId: string, userId: string) {
+  async addQuestionLike(questionId: string, userId: string): Promise<void> {
     await this.questionLikeRepository.save({
       fk_question_id: questionId,
       fk_user_id: userId,
     });
   }
 
-  async cancelQuestionLike(questionId: string, userId: string) {
+  async cancelQuestionLike(questionId: string, userId: string): Promise<void> {
     await this.questionLikeRepository.delete({
       fk_question_id: questionId,
       fk_user_id: userId,

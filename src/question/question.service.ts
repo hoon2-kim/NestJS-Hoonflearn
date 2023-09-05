@@ -2,13 +2,28 @@ import { NotFoundException } from '@nestjs/common';
 import { ForbiddenException } from '@nestjs/common';
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { PageMetaDto } from 'src/common/dtos/page-meta.dto';
+import { PageDto } from 'src/common/dtos/page.dto';
 import { CourseService } from 'src/course/course.service';
+import { CourseUserService } from 'src/course_user/course-user.service';
 import { QuestionLikeService } from 'src/question-like/question-like.service';
+import { UserQuestionQueryDto } from 'src/user/dtos/query/user.query.dto';
 import { FindOneOptions, Repository } from 'typeorm';
-import { CreateQuestionDto } from './dtos/create-question.dto';
-import { QuestionStatusDto } from './dtos/question-status.dto';
-import { UpdateQuestionDto } from './dtos/update-question.dto';
-import { QuestionEntity, QuestionStatusType } from './entities/question.entity';
+import { CreateQuestionDto } from './dtos/request/create-question.dto';
+import { QuestionListQueryDto } from './dtos/query/question-list.query.dto';
+import { QuestionStatusDto } from './dtos/request/question-status.dto';
+import { UpdateQuestionDto } from './dtos/request/update-question.dto';
+import { QuestionEntity } from './entities/question.entity';
+import { EQuestionSortBy, EQuestionStatus } from './enums/question.enum';
+import {
+  QuestionDetailResponseDto,
+  QuestionListResponseDto,
+} from './dtos/response/question.response.dto';
+import { InstructorQuestionQueryDto } from 'src/instructor/dtos/query/instructor.query.dto';
+import {
+  EInstructorQuestionSortBy,
+  EInstructorQuestionStatusBy,
+} from 'src/instructor/enums/instructor.enum';
 
 @Injectable()
 export class QuestionService {
@@ -18,49 +33,275 @@ export class QuestionService {
 
     private readonly courseService: CourseService,
     private readonly questionLikeService: QuestionLikeService,
+    private readonly courseUserService: CourseUserService,
   ) {}
 
-  async findAll() {
-    return `This action returns all question`;
+  async findAll(
+    questionListQueryDto: QuestionListQueryDto,
+  ): Promise<PageDto<QuestionListResponseDto>> {
+    const { skip, take, status, s, sort } = questionListQueryDto;
+
+    const query = this.questionRepository
+      .createQueryBuilder('question')
+      .leftJoinAndSelect('question.user', 'user')
+      .leftJoinAndSelect('question.course', 'course')
+      .take(take)
+      .skip(skip);
+
+    if (status) {
+      query.andWhere('question.questionStatus = :status', { status });
+    }
+
+    if (sort) {
+      if (sort === EQuestionSortBy.Comment) {
+        query.orderBy('question.commetCount', 'DESC');
+      } else if (sort === EQuestionSortBy.Like) {
+        query.orderBy('question.likeCount', 'DESC');
+        query.addOrderBy('question.created_at', 'DESC');
+      } else if (sort === EQuestionSortBy.Recent) {
+        query.orderBy('question.created_at', 'DESC');
+      } else if (sort === EQuestionSortBy.Old) {
+        query.orderBy('question.created_at', 'ASC');
+      }
+    } else {
+      query.orderBy('question.created_at', 'DESC');
+    }
+
+    if (s) {
+      query.andWhere('LOWER(question.title) LIKE LOWER(:title)', {
+        title: `%${s.toLowerCase()}%`,
+      });
+    }
+
+    const [result, count] = await query.getManyAndCount();
+
+    const pageMeta = new PageMetaDto({
+      pageOptionDto: questionListQueryDto,
+      itemCount: count,
+    });
+
+    return new PageDto(
+      result.map((r) => QuestionListResponseDto.from(r)),
+      pageMeta,
+    );
   }
 
-  async findAllByCourse(courseId: string) {
-    // const course = await this.courseService.findOneByOptions({
-    //   where: { id: courseId },
-    // });
+  async findAllByCourse(
+    courseId: string,
+    questionListQueryDto: QuestionListQueryDto,
+  ): Promise<PageDto<QuestionListResponseDto>> {
+    const course = await this.courseService.findOneByOptions({
+      where: { id: courseId },
+    });
 
-    // if (!course) {
-    //   throw new NotFoundException('해당 강의가 존재하지 않습니다.');
-    // }
+    if (!course) {
+      throw new NotFoundException('해당 강의가 존재하지 않습니다.');
+    }
 
+    const { skip, take, s } = questionListQueryDto;
+
+    const query = this.questionRepository
+      .createQueryBuilder('question')
+      .leftJoinAndSelect('question.course', 'course')
+      .leftJoinAndSelect('question.user', 'user')
+      .where('course.id = :courseId', { courseId })
+      .take(take)
+      .skip(skip)
+      .orderBy('question.created_at', 'DESC');
+
+    if (s) {
+      query.andWhere('LOWER(question.title) LIKE LOWER(:title)', {
+        title: `%${s.toLowerCase()}%`,
+      });
+    }
+
+    const [questions, count] = await query.getManyAndCount();
+
+    const pageMeta = new PageMetaDto({
+      pageOptionDto: questionListQueryDto,
+      itemCount: count,
+    });
+
+    return new PageDto(
+      questions.map((q) => QuestionListResponseDto.from(q)),
+      pageMeta,
+    );
+  }
+
+  async findOne(questionId: string): Promise<QuestionDetailResponseDto> {
     const question = await this.questionRepository
       .createQueryBuilder('question')
       .leftJoinAndSelect('question.course', 'course')
-      .where('course.id = :courseId', { courseId })
-      .select([
-        'question.id',
-        'question.title',
-        'question.commentCount',
-        'course.id',
-        'course.title',
-      ])
-      .getMany();
+      .leftJoinAndSelect('question.user', 'user')
+      .leftJoinAndSelect('question.questionComments', 'comment')
+      .leftJoinAndSelect('comment.user', 'commentUser')
+      .leftJoinAndSelect('comment.parentComment', 'parent')
+      .leftJoinAndSelect('comment.reComments', 're')
+      .leftJoinAndSelect('re.user', 'reUser')
+      .where('question.id = :questionId', { questionId })
+      .andWhere(
+        'comment.fk_question_id = :questionId AND comment.fk_question_comment_parentId IS NULL',
+        { questionId },
+      )
+      .orderBy('comment.created_at', 'DESC')
+      .addOrderBy('re.created_at', 'ASC')
+      .getOne();
 
-    return question;
+    if (!question) {
+      throw new NotFoundException('해당 질문글이 존재하지 않습니다.');
+    }
+
+    // 조회수
+    await this.questionRepository.update(
+      { id: questionId },
+      { views: question.views + 1 },
+    );
+
+    return QuestionDetailResponseDto.from(question);
   }
 
-  async findOne(questionId: string) {
-    return;
+  async findMyQuestions(
+    userQuestionQueryDto: UserQuestionQueryDto,
+    userId: string,
+  ): Promise<PageDto<QuestionListResponseDto>> {
+    const { take, skip, status } = userQuestionQueryDto;
+
+    const query = this.questionRepository
+      .createQueryBuilder('question')
+      .leftJoinAndSelect('question.user', 'user')
+      .leftJoinAndSelect('question.course', 'course')
+      .where('question.fk_user_id = :userId', { userId })
+      .orderBy('question.created_at', 'DESC')
+      .take(take)
+      .skip(skip);
+
+    switch (status) {
+      case EQuestionStatus.Resolved:
+        query.andWhere('question.questionStatus = :status', { status });
+        break;
+
+      case EQuestionStatus.UnResolved:
+        query.andWhere('question.questionStatus = :status', { status });
+        break;
+    }
+
+    const [questions, count] = await query.getManyAndCount();
+
+    const pageMeta = new PageMetaDto({
+      pageOptionDto: userQuestionQueryDto,
+      itemCount: count,
+    });
+
+    return new PageDto(
+      questions.map((q) => QuestionListResponseDto.from(q)),
+      pageMeta,
+    );
   }
 
-  async findOneByOptions(options: FindOneOptions<QuestionEntity>) {
+  async findQuestionsByInstructorCourse(
+    courseIds: string[],
+    instructorQuestionQueryDto: InstructorQuestionQueryDto,
+    userId: string,
+  ): Promise<PageDto<QuestionListResponseDto>> {
+    const { courseId, sort, status, skip, take } = instructorQuestionQueryDto;
+
+    const query = this.questionRepository
+      .createQueryBuilder('question')
+      .leftJoinAndSelect('question.course', 'course')
+      .leftJoinAndSelect('question.user', 'user')
+      .take(take)
+      .skip(skip);
+
+    if (courseIds.length > 0) {
+      query.where('question.fk_course_id IN (:...courseIds)', { courseIds });
+    } else if (courseIds.length === 0) {
+      // 강의를 안만든 강사의 경우 빈배열 반환
+      query.where('1 = 0');
+    }
+
+    if (courseId) {
+      query.andWhere('question.fk_course_id = :courseId', { courseId });
+    }
+
+    switch (sort) {
+      case EInstructorQuestionSortBy.Recent:
+        query.orderBy('question.created_at', 'DESC');
+        break;
+
+      case EInstructorQuestionSortBy.Old:
+        query.orderBy('question.created_at', 'ASC');
+        break;
+
+      case EInstructorQuestionSortBy.Like:
+        query
+          .orderBy('question.likeCount', 'DESC')
+          .addOrderBy('question.created_at', 'DESC');
+        break;
+
+      case EInstructorQuestionSortBy.Comment_Recent:
+        query
+          .leftJoin(
+            'question.questionComments',
+            'comment',
+            'comment.created_at = (SELECT MAX(created_at) FROM questions_comments WHERE fk_question_id = question.id)',
+            // MAX로 여러개의 답변을 달았어도 제일 최신꺼로 가져온다.
+          )
+          .andWhere('comment.fk_user_id = :userId', { userId })
+          .orderBy('comment.created_at', 'DESC');
+        break;
+
+      default:
+        query.orderBy('question.created_at', 'DESC');
+    }
+
+    switch (status) {
+      case EInstructorQuestionStatusBy.Resolved:
+        query.andWhere('question.questionStatus = :status', { status });
+        break;
+
+      case EInstructorQuestionStatusBy.NotResolved:
+        query.andWhere('question.questionStatus = :status', { status });
+        break;
+
+      case EInstructorQuestionStatusBy.Comment:
+        query
+          .leftJoin('question.questionComments', 'comment')
+          .andWhere('comment.fk_user_id = :userId', { userId });
+        break;
+
+      case EInstructorQuestionStatusBy.NotComment:
+        query
+          .leftJoin('question.questionComments', 'comment')
+          .andWhere('comment.fk_user_id != :userId', { userId });
+        break;
+    }
+
+    const [questions, count] = await query.getManyAndCount();
+
+    const pageMeta = new PageMetaDto({
+      pageOptionDto: instructorQuestionQueryDto,
+      itemCount: count,
+    });
+
+    return new PageDto(
+      questions.map((q) => QuestionListResponseDto.from(q)),
+      pageMeta,
+    );
+  }
+
+  async findOneByOptions(
+    options: FindOneOptions<QuestionEntity>,
+  ): Promise<QuestionEntity | null> {
     const question: QuestionEntity | null =
       await this.questionRepository.findOne(options);
 
     return question;
   }
 
-  async create(createQuestionDto: CreateQuestionDto, userId: string) {
+  async create(
+    createQuestionDto: CreateQuestionDto,
+    userId: string,
+  ): Promise<QuestionEntity> {
     const { courseId, ...qestion } = createQuestionDto;
 
     const course = await this.courseService.findOneByOptions({
@@ -72,6 +313,7 @@ export class QuestionService {
     }
 
     // 구매했는지
+    await this.courseUserService.validateBoughtCourseByUser(userId, courseId);
 
     const newQuestion = await this.questionRepository.save({
       ...qestion,
@@ -82,7 +324,7 @@ export class QuestionService {
     return newQuestion;
   }
 
-  async addLike(questionId: string, userId: string) {
+  async addLike(questionId: string, userId: string): Promise<void> {
     const question = await this.findOneByOptions({
       where: { id: questionId },
     });
@@ -104,7 +346,7 @@ export class QuestionService {
         { id: questionId },
         { likeCount: question.likeCount + 1 },
       );
-    } else {
+    } else if (isLike) {
       return;
     }
   }
@@ -113,7 +355,7 @@ export class QuestionService {
     questionId: string,
     updateQuestionDto: UpdateQuestionDto,
     userId: string,
-  ) {
+  ): Promise<void> {
     const question = await this.findOneByOptions({
       where: { id: questionId },
     });
@@ -128,14 +370,14 @@ export class QuestionService {
 
     Object.assign(question, updateQuestionDto);
 
-    return await this.questionRepository.save(question);
+    await this.questionRepository.save(question);
   }
 
   async status(
     questionId: string,
     questionStatusDto: QuestionStatusDto,
     userId: string,
-  ) {
+  ): Promise<void> {
     const { status } = questionStatusDto;
 
     const question = await this.findOneByOptions({
@@ -154,20 +396,20 @@ export class QuestionService {
       return;
     }
 
-    if (status === QuestionStatusType.Resolved) {
+    if (status === EQuestionStatus.Resolved) {
       await this.questionRepository.update(
         { id: questionId },
-        { questionStatus: QuestionStatusType.Resolved },
+        { questionStatus: EQuestionStatus.Resolved },
       );
-    } else if (status === QuestionStatusType.UnResolved) {
+    } else if (status === EQuestionStatus.UnResolved) {
       await this.questionRepository.update(
         { id: questionId },
-        { questionStatus: QuestionStatusType.UnResolved },
+        { questionStatus: EQuestionStatus.UnResolved },
       );
     }
   }
 
-  async delete(questionId: string, userId: string) {
+  async delete(questionId: string, userId: string): Promise<boolean> {
     const question = await this.findOneByOptions({
       where: { id: questionId },
     });
@@ -185,7 +427,7 @@ export class QuestionService {
     return result.affected ? true : false;
   }
 
-  async cancelLike(questionId: string, userId: string) {
+  async cancelLike(questionId: string, userId: string): Promise<void> {
     const question = await this.findOneByOptions({
       where: { id: questionId },
     });
@@ -207,8 +449,14 @@ export class QuestionService {
         { id: questionId },
         { likeCount: question.likeCount - 1 },
       );
-    } else {
+    } else if (!isLike) {
       return;
     }
+  }
+
+  async calculateQuestionCountByCourseId(courseId: string): Promise<number> {
+    return await this.questionRepository.count({
+      where: { fk_course_id: courseId },
+    });
   }
 }

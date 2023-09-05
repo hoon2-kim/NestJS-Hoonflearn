@@ -7,11 +7,12 @@ import {
   Entity,
   JoinColumn,
   ManyToOne,
+  OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
 
-@Entity({ name: 'questionsComments' })
+@Entity({ name: 'questions_comments' })
 export class QuestionCommentEntity {
   @PrimaryGeneratedColumn('uuid')
   id: string;
@@ -27,17 +28,37 @@ export class QuestionCommentEntity {
   @Column({ type: 'uuid' })
   fk_question_id: string;
 
+  @Exclude()
+  @Column({ type: 'uuid', nullable: true })
+  fk_question_comment_parentId: string;
+
   @CreateDateColumn({ type: 'timestamptz' })
-  createdAt: Date;
+  created_at: Date;
 
   @UpdateDateColumn({ type: 'timestamptz' })
-  updatedAt: Date;
+  updated_at: Date;
 
   @ManyToOne(() => UserEntity, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'fk_user_id' })
   user: UserEntity;
 
-  @ManyToOne(() => QuestionEntity, { onDelete: 'SET NULL' })
+  @ManyToOne(() => QuestionEntity, (question) => question.questionComments, {
+    onDelete: 'SET NULL',
+  })
   @JoinColumn({ name: 'fk_question_id' })
   question: QuestionEntity;
+
+  @ManyToOne(
+    () => QuestionCommentEntity,
+    (questionComment) => questionComment.reComments,
+    { onDelete: 'SET NULL', nullable: true },
+  )
+  @JoinColumn({ name: 'fk_question_comment_parentId' })
+  parentComment: QuestionCommentEntity;
+
+  @OneToMany(
+    () => QuestionCommentEntity,
+    (questionComment) => questionComment.parentComment,
+  )
+  reComments: QuestionCommentEntity[];
 }
