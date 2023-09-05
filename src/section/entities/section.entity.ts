@@ -21,20 +21,23 @@ export class SectionEntity {
   title: string;
 
   @Column({ type: 'varchar', nullable: true })
-  goal: string;
+  goal?: string;
 
   @Column({ type: 'int', default: 0 })
   totalSectionTime: number;
+
+  @Column({ type: 'int', default: 0 })
+  totalLessonBySectionCount: number;
 
   @Exclude()
   @Column({ type: 'uuid' })
   fk_course_id: string;
 
   @CreateDateColumn({ type: 'timestamptz' })
-  createdAt: Date;
+  created_at: Date;
 
   @UpdateDateColumn({ type: 'timestamptz' })
-  updatedAt: Date;
+  updated_at: Date;
 
   @ManyToOne(() => CourseEntity, (course) => course.sections, {
     onDelete: 'CASCADE',
