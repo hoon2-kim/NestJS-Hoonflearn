@@ -5,11 +5,24 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { DataSource, FindOneOptions, Repository } from 'typeorm';
-import { CreateUserDto } from './dtos/create-user.dto';
-import { UpdateUserDto } from './dtos/update-user.dto';
-import { RoleType, UserEntity } from './entities/user.entity';
+import { CreateUserDto } from './dtos/request/create-user.dto';
+import { UpdateUserDto } from './dtos/request/update-user.dto';
+import { UserEntity } from './entities/user.entity';
 import * as bcrypt from 'bcrypt';
 import { AwsS3Service } from 'src/aws-s3/aws-s3.service';
+import {
+  UserMyCourseQueryDto,
+  UserQuestionQueryDto,
+  UserWishQueryDto,
+} from './dtos/query/user.query.dto';
+import { CourseWishService } from 'src/course_wish/course_wish.service';
+import { QuestionService } from 'src/question/question.service';
+import { CourseUserService } from 'src/course_user/course-user.service';
+import { ERoleType } from './enums/user.enum';
+import { PageDto } from 'src/common/dtos/page.dto';
+import { CourseUserListResponseDto } from 'src/course_user/dtos/response/course-user.response.dto';
+import { CourseWishListResponseDto } from 'src/course_wish/dtos/response/course-wish.reponse.dto';
+import { QuestionListResponseDto } from 'src/question/dtos/response/question.response.dto';
 
 @Injectable()
 export class UserService {
@@ -19,48 +32,61 @@ export class UserService {
 
     private readonly dataSource: DataSource,
     private readonly awsS3Service: AwsS3Service,
+    private readonly courseWishService: CourseWishService,
+    private readonly questionService: QuestionService,
+    private readonly courseUserService: CourseUserService,
   ) {}
 
-  async findOneByOptions(option: FindOneOptions<UserEntity>) {
-    const user: UserEntity | null = await this.userRepository.findOne(option);
+  async findOneByOptions(
+    options: FindOneOptions<UserEntity>,
+  ): Promise<UserEntity | null> {
+    const user: UserEntity | null = await this.userRepository.findOne(options);
 
     return user;
   }
 
-  async findUserById(userId: string) {
-    const user = await this.userRepository.findOne({
+  async getProfile(userId: string): Promise<UserEntity> {
+    const profile = await this.findOneByOptions({
       where: { id: userId },
     });
-
-    if (!user) {
-      throw new NotFoundException('존재하지 않는 유저입니다.');
-    }
-
-    return user;
-  }
-
-  async findUserByEmail(userEmail: string) {
-    const user = await this.userRepository.findOne({
-      where: { email: userEmail },
-    });
-
-    if (!user) {
-      throw new NotFoundException('존재하지 않는 유저입니다.');
-    }
-
-    return user;
-  }
-
-  async getProfile(user: UserEntity) {
-    const profile = await this.findUserById(user.id);
 
     return profile;
   }
 
-  async create(createUserDto: CreateUserDto) {
+  async getMyQuestions(
+    userQuestionQueryDto: UserQuestionQueryDto,
+    userId: string,
+  ): Promise<PageDto<QuestionListResponseDto>> {
+    return await this.questionService.findMyQuestions(
+      userQuestionQueryDto,
+      userId,
+    );
+  }
+
+  async getWishCourses(
+    userWishQueryDto: UserWishQueryDto,
+    userId: string,
+  ): Promise<PageDto<CourseWishListResponseDto>> {
+    return await this.courseWishService.findWishCoursesByUser(
+      userWishQueryDto,
+      userId,
+    );
+  }
+
+  async getMyCourses(
+    userMyCourseQueryDto: UserMyCourseQueryDto,
+    userId: string,
+  ): Promise<PageDto<CourseUserListResponseDto>> {
+    return await this.courseUserService.findMyCourses(
+      userMyCourseQueryDto,
+      userId,
+    );
+  }
+
+  async create(createUserDto: CreateUserDto): Promise<UserEntity> {
     const { email, password, nickname, phone } = createUserDto;
 
-    const isExistEmail = await this.userRepository.findOne({
+    const isExistEmail = await this.findOneByOptions({
       where: { email },
     });
 
@@ -68,7 +94,7 @@ export class UserService {
       throw new BadRequestException('해당하는 이메일이 이미 존재합니다.');
     }
 
-    const isExistNickname = await this.userRepository.findOne({
+    const isExistNickname = await this.findOneByOptions({
       where: { nickname },
     });
 
@@ -76,7 +102,7 @@ export class UserService {
       throw new BadRequestException('닉네임이 이미 존재합니다.');
     }
 
-    const isPhone = await this.userRepository.findOne({
+    const isPhone = await this.findOneByOptions({
       where: { phone },
     });
 
@@ -98,10 +124,16 @@ export class UserService {
     return result;
   }
 
-  async update(userId: string, updateUserDto: UpdateUserDto) {
+  async update(userId: string, updateUserDto: UpdateUserDto): Promise<void> {
     const { nickname } = updateUserDto;
 
-    const user = await this.findUserById(userId);
+    const user = await this.findOneByOptions({
+      where: { id: userId },
+    });
+
+    if (!user) {
+      throw new NotFoundException('해당 유저가 존재하지 않습니다.');
+    }
 
     if (nickname && user.nickname !== nickname) {
       const isExistNickname = await this.userRepository.findOne({
@@ -115,13 +147,13 @@ export class UserService {
 
     Object.assign(user, updateUserDto);
 
-    return await this.userRepository.save(user);
+    await this.userRepository.save(user);
   }
 
-  async upload(user: UserEntity, file: Express.Multer.File) {
+  async upload(user: UserEntity, file: Express.Multer.File): Promise<string> {
     const queryRunner = this.dataSource.createQueryRunner();
     await queryRunner.connect();
-    await queryRunner.startTransaction('SERIALIZABLE');
+    await queryRunner.startTransaction();
 
     try {
       const userInfo = await queryRunner.manager.findOne(UserEntity, {
@@ -129,13 +161,14 @@ export class UserService {
       });
 
       if (userInfo.profileAvatar) {
-        const fileKey = userInfo.profileAvatar.match(/[^/]+$/)[0];
-        console.log(fileKey);
+        const url = userInfo.profileAvatar;
+        const parsedUrl = new URL(url);
+        const fileKey = decodeURIComponent(parsedUrl.pathname.substring(1));
 
         await this.awsS3Service.deleteS3Object(fileKey);
       }
 
-      const folderName = `${user.id}/프로필이미지`;
+      const folderName = `유저-${user.id}/프로필이미지`;
 
       const s3upload = await this.awsS3Service.uploadFileToS3(folderName, file);
 
@@ -156,10 +189,16 @@ export class UserService {
     }
   }
 
-  async delete(user: UserEntity) {
-    const userInfo = await this.findUserById(user.id);
+  async delete(userId: string): Promise<boolean> {
+    const user = await this.findOneByOptions({
+      where: { id: userId },
+    });
 
-    const result = await this.userRepository.delete({ id: userInfo.id });
+    if (!user) {
+      throw new NotFoundException('해당 유저가 존재하지 않습니다.');
+    }
+
+    const result = await this.userRepository.delete({ id: userId });
 
     return result.affected ? true : false;
   }
@@ -167,15 +206,15 @@ export class UserService {
   async updateRefreshToken(
     userId: string,
     rt: string,
-    roleType?: RoleType.Instructor,
-  ) {
+    roleType?: ERoleType.Instructor,
+  ): Promise<void> {
     await this.userRepository.update(
       { id: userId },
       { hashedRt: rt, role: roleType },
     );
   }
 
-  async removeRefreshToken(userId: string) {
+  async removeRefreshToken(userId: string): Promise<void> {
     await this.userRepository.update({ id: userId }, { hashedRt: null });
   }
 }

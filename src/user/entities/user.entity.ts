@@ -13,51 +13,45 @@ import { CourseEntity } from 'src/course/entities/course.entity';
 import { CourseWishEntity } from 'src/course_wish/entities/course-wish.entity';
 import { ReviewEntity } from 'src/review/entities/review.entity';
 import { CourseUserEntity } from 'src/course_user/entities/course-user.entity';
-
-export enum RoleType {
-  User = 'User',
-  Instructor = 'Instructor',
-}
+import { ERoleType } from '../enums/user.enum';
+import { QuestionEntity } from 'src/question/entities/question.entity';
 
 @Entity({ name: 'users' })
 export class UserEntity {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column({ type: 'varchar', unique: true, nullable: false })
+  @Column({ type: 'varchar', unique: true })
   email: string;
 
-  @Column({ type: 'varchar', nullable: false, unique: true })
+  @Column({ type: 'varchar' })
   nickname: string;
 
   @Exclude()
-  @Column({ type: 'varchar', nullable: false })
+  @Column({ type: 'varchar' })
   password: string;
 
   @Column({ type: 'text', nullable: true })
   description: string;
 
-  @Column({ type: 'varchar', nullable: false, unique: true })
+  @Column({ type: 'varchar' })
   phone: string;
 
   @Column({ type: 'varchar', nullable: true })
   profileAvatar: string;
 
-  @Column({ type: 'enum', enum: RoleType, default: RoleType.User })
-  role: RoleType;
-
-  @Column({ type: 'boolean', default: true })
-  isActive: boolean;
+  @Column({ type: 'enum', enum: ERoleType, default: ERoleType.User })
+  role: ERoleType;
 
   @Exclude()
   @Column({ type: 'varchar', default: null })
   hashedRt: string;
 
   @CreateDateColumn({ type: 'timestamptz' })
-  createdAt: Date;
+  created_at: Date;
 
   @UpdateDateColumn({ type: 'timestamptz' })
-  updatedAt: Date;
+  updated_at: Date;
 
   @OneToOne(
     () => InstructorProfileEntity,
@@ -76,4 +70,7 @@ export class UserEntity {
 
   @OneToMany(() => CourseUserEntity, (courseUser) => courseUser.user)
   coursesUsers: CourseUserEntity[];
+
+  @OneToMany(() => QuestionEntity, (question) => question.user)
+  questions: QuestionEntity[];
 }

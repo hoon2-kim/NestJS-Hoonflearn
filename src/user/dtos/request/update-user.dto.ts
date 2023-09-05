@@ -1,4 +1,4 @@
-import { OmitType, PartialType } from '@nestjs/swagger';
+import { ApiPropertyOptional, OmitType, PartialType } from '@nestjs/swagger';
 import { IsOptional } from 'class-validator';
 import { CreateUserDto } from './create-user.dto';
 
@@ -8,6 +8,7 @@ export class UpdateUserDto extends PartialType(
   @IsOptional()
   nickname?: string;
 
+  @ApiPropertyOptional({ description: '유저 자기소개 작성 or 수정' })
   @IsOptional()
   description?: string;
 }
