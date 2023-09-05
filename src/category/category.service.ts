@@ -4,10 +4,11 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { CategoryIdsDto } from 'src/course/dtos/create-course.dto';
+import { CategoryIdsDto } from 'src/course/dtos/request/create-course.dto';
 import { IsNull, QueryRunner, Repository } from 'typeorm';
-import { CreateCategoryDto } from './dtos/create-category.dto';
-import { UpdateCategoryDto } from './dtos/update-category.dto';
+import { CreateCategoryDto } from './dtos/request/create-category.dto';
+import { UpdateCategoryDto } from './dtos/request/update-category.dto';
+import { CategoryResponseDto } from './dtos/response/category.response.dto';
 import { CategoryEntity } from './entities/category.entity';
 
 @Injectable()
@@ -17,38 +18,35 @@ export class CategoryService {
     private readonly categoryRepository: Repository<CategoryEntity>,
   ) {}
 
-  async findAll() {
-    const parents = await this.categoryRepository.find({
+  async findAll(): Promise<CategoryResponseDto[]> {
+    const categories = await this.categoryRepository.find({
       where: {
         parent: IsNull(),
       },
+      relations: ['children'],
+      order: {
+        name: 'asc',
+        children: {
+          name: 'asc',
+        },
+      },
     });
 
-    for (const category of parents) {
-      const subCategories = await this.categoryRepository.find({
-        where: { parent: { id: category.id } },
-        order: { name: 'ASC' },
-      });
-      category.children = subCategories;
-    }
-
-    return parents;
+    return categories.map((c) => CategoryResponseDto.from(c));
   }
 
-  async findOneById(categoryId: string, withRelations = true) {
+  async findOneById(
+    categoryId: string,
+    withRelations = true,
+  ): Promise<CategoryResponseDto> {
     const queryBuilder = this.categoryRepository
       .createQueryBuilder('category')
       .where('category.id = :categoryId', { categoryId });
 
     if (withRelations) {
-      const hasParent = await this.categoryRepository
-        .createQueryBuilder('category')
-        .where('category.id = :categoryId', { categoryId })
-        .andWhere('category.parent IS NOT NULL')
-        .getOne();
-
-      if (!hasParent)
-        queryBuilder.leftJoinAndSelect('category.children', 'children');
+      queryBuilder
+        .leftJoinAndSelect('category.children', 'children')
+        .orderBy('children.name', 'ASC');
     }
 
     const category = await queryBuilder.getOne();
@@ -57,25 +55,38 @@ export class CategoryService {
       throw new NotFoundException('카테고리가 존재하지 않습니다.');
     }
 
-    return category;
+    return CategoryResponseDto.from(category);
   }
 
-  async createParent(createCategoryDto: CreateCategoryDto) {
+  async createParent(
+    createCategoryDto: CreateCategoryDto,
+  ): Promise<CategoryEntity> {
     const { name } = createCategoryDto;
 
-    await this.isCategoryName(name);
+    const isName = await this.isCategoryName(name);
+
+    if (isName) {
+      throw new BadRequestException('해당 카테고리 이름이 이미 존재합니다.');
+    }
 
     return await this.categoryRepository.save({
       name,
     });
   }
 
-  async createSub(categoryId: string, createCategoryDto: CreateCategoryDto) {
+  async createSub(
+    categoryId: string,
+    createCategoryDto: CreateCategoryDto,
+  ): Promise<CategoryEntity> {
     const { name } = createCategoryDto;
 
     await this.findOneById(categoryId, false);
 
-    await this.isCategoryName(name);
+    const isName = await this.isCategoryName(name);
+
+    if (isName) {
+      throw new BadRequestException('해당 카테고리 이름이 이미 존재합니다.');
+    }
 
     return await this.categoryRepository.save({
       name,
@@ -83,7 +94,10 @@ export class CategoryService {
     });
   }
 
-  async update(categoryId: string, updateCategoryDto: UpdateCategoryDto) {
+  async update(
+    categoryId: string,
+    updateCategoryDto: UpdateCategoryDto,
+  ): Promise<void> {
     const { name } = updateCategoryDto;
 
     const category = await this.findOneById(categoryId, false);
@@ -96,10 +110,10 @@ export class CategoryService {
 
     Object.assign(category, updateCategoryDto);
 
-    return await this.categoryRepository.save(category);
+    await this.categoryRepository.save(category);
   }
 
-  async delete(categoryId: string) {
+  async delete(categoryId: string): Promise<boolean> {
     await this.findOneById(categoryId, false);
 
     const result = await this.categoryRepository.delete({ id: categoryId });

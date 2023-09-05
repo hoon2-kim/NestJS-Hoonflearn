@@ -8,7 +8,6 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
-import { Exclude } from 'class-transformer';
 import { CategoryCourseEntity } from 'src/category_course/entities/category-course.entitiy';
 
 @Entity({ name: 'categories' })
@@ -20,10 +19,10 @@ export class CategoryEntity {
   name: string;
 
   @CreateDateColumn({ type: 'timestamptz' })
-  createdAt: Date;
+  created_at: Date;
 
   @UpdateDateColumn({ type: 'timestamptz' })
-  updatedAt: Date;
+  updated_at: Date;
 
   @ManyToOne(() => CategoryEntity, (category) => category.children, {
     onDelete: 'CASCADE',
@@ -32,7 +31,6 @@ export class CategoryEntity {
   @JoinColumn({ name: 'fk_parent_category_id' })
   parent: CategoryEntity;
 
-  @Exclude()
   @Column({ type: 'uuid', nullable: true })
   fk_parent_category_id: string;
 
