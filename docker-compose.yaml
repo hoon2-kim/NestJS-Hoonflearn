@@ -1,6 +1,23 @@
 version: '3.8'
 
 services:
+  app:
+    container_name: hoonflearn_server
+    build:
+      context: .
+      dockerfile: Dockerfile
+    env_file: .env
+    volumes:
+      - .:/usr/src/app
+      - /usr/src/app/node_modules
+    ports:
+      - ${SERVER_PORT}:${SERVER_PORT}
+    restart: always
+    networks:
+      - h_nestjs
+    depends_on:
+      - postgres
+
   postgres:
     container_name: hoonflearn_db
     image: postgres:latest
@@ -14,3 +31,11 @@ services:
       TZ: Asia/Seoul
     volumes:
       - ./postgres:/var/lib/postgresql/data
+    networks:
+      - h_nestjs
+
+volumes:
+  postgres:
+
+networks:
+  h_nestjs:
