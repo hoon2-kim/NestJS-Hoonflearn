@@ -7,10 +7,11 @@ import {
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
-import { LoginUserDto } from './dtos/login-user.dto';
+import { LoginUserDto } from './dtos/request/login-user.dto';
 import { Response, Request } from 'express';
 import { UserService } from 'src/user/user.service';
-import { RoleType } from 'src/user/entities/user.entity';
+import { IAuthLogin, IAuthRestore } from './interfaces/auth.interface';
+import { ERoleType } from 'src/user/enums/user.enum';
 
 @Injectable()
 export class AuthService {
@@ -19,10 +20,9 @@ export class AuthService {
     private readonly userService: UserService,
   ) {}
 
-  async login(loginUserDto: LoginUserDto, res: Response) {
+  async login(loginUserDto: LoginUserDto, res: Response): Promise<IAuthLogin> {
     const { email, password } = loginUserDto;
 
-    // 이메일 중복확인
     const user = await this.userService.findOneByOptions({
       where: { email },
     });
@@ -60,7 +60,7 @@ export class AuthService {
     };
   }
 
-  async logout(userId: string, res: Response) {
+  async logout(userId: string, res: Response): Promise<string> {
     try {
       // DB에 저장된 refreshToken = null
       await this.userService.removeRefreshToken(userId);
@@ -83,14 +83,12 @@ export class AuthService {
     }
   }
 
-  async restore(userId: string, req: Request) {
+  async restore(userId: string, req: Request): Promise<IAuthRestore> {
     const user = await this.userService.findOneByOptions({
       where: { id: userId },
     });
 
     const cookieRt = req?.cookies?.refreshToken;
-
-    console.log('a:', cookieRt, 'b:', user.hashedRt);
 
     const compareRt = await bcrypt.compare(cookieRt, user.hashedRt);
 
@@ -105,7 +103,7 @@ export class AuthService {
     return { access_token: newAt };
   }
 
-  getAccessToken(userId: string, userEmail: string, role: RoleType) {
+  getAccessToken(userId: string, userEmail: string, role: ERoleType): string {
     const accessToken = this.jwtService.sign(
       {
         id: userId,
@@ -121,7 +119,7 @@ export class AuthService {
     return accessToken;
   }
 
-  getRefreshToken(userId: string, userEmail: string, role: RoleType) {
+  getRefreshToken(userId: string, userEmail: string, role: ERoleType): string {
     const refreshToken = this.jwtService.sign(
       {
         id: userId,

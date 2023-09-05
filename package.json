@@ -32,12 +32,12 @@
     "aws-sdk": "^2.1398.0",
     "axios": "^1.4.0",
     "bcrypt": "^5.1.0",
+    "cache-manager": "^5.2.3",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.0",
     "cookie-parser": "^1.4.6",
     "dotenv": "^16.2.0",
     "get-video-duration": "^4.1.0",
-    "hbs": "^4.2.0",
     "passport": "^0.6.0",
     "passport-jwt": "^4.0.1",
     "pg": "^8.11.0",
@@ -80,6 +80,9 @@
       "json",
       "ts"
     ],
+    "moduleNameMapper": {
+      "^src/(.*)$": "<rootDir>/$1"
+    },
     "rootDir": "src",
     "testRegex": ".*\\.spec\\.ts$",
     "transform": {

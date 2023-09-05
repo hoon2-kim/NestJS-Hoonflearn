@@ -2,11 +2,13 @@ import {
   BadRequestException,
   CanActivate,
   ExecutionContext,
+  ForbiddenException,
   Injectable,
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { Observable } from 'rxjs';
-import { RoleType, UserEntity } from 'src/user/entities/user.entity';
+import { UserEntity } from 'src/user/entities/user.entity';
+import { ERoleType } from 'src/user/enums/user.enum';
 import { META_ROLE } from '../decorators/role-protected.decorator';
 
 @Injectable()
@@ -30,10 +32,14 @@ export class RoleGuard implements CanActivate {
       throw new BadRequestException('User not found');
     }
 
+    if (!validRole.includes(user.role)) {
+      throw new ForbiddenException('지식공유자만 가능합니다.');
+    }
+
     return this.matchRoles(validRole, user.role);
   }
 
-  matchRoles(roles: RoleType[], userRole: RoleType) {
+  matchRoles(roles: ERoleType[], userRole: ERoleType) {
     return roles.some((role) => role === userRole);
   }
 }

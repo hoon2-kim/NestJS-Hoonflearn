@@ -24,10 +24,17 @@ export class AwsS3Service {
   ): Promise<string> {
     try {
       const splitFolder = folder.split('/');
+      let key = null;
 
-      const key = `${splitFolder[0]}/${splitFolder[1]}/${
-        splitFolder[2]
-      }/${Date.now()}_${path.basename(file.originalname)}`.replace(/ /g, '');
+      if (splitFolder.length === 2) {
+        key = `${splitFolder[0]}/${
+          splitFolder[1]
+        }/${Date.now()}_${path.basename(file.originalname)}`.replace(/ /g, '');
+      } else {
+        key = `${splitFolder[0]}/${splitFolder[1]}/${
+          splitFolder[2]
+        }/${Date.now()}_${path.basename(file.originalname)}`.replace(/ /g, '');
+      }
 
       await this.aswS3
         .putObject({

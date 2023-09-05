@@ -24,10 +24,6 @@ export class JwtAtStrategy extends PassportStrategy(Strategy, 'access') {
       throw new UnauthorizedException('유저가 존재하지 않습니다.');
     }
 
-    if (!user.isActive) {
-      throw new UnauthorizedException('비활성화된 계정입니다.');
-    }
-
     return user;
   }
 }

@@ -7,7 +7,7 @@ import { CategoryCourseModule } from './category_course/category_course.module';
 import ormConfig from './config/orm.config';
 import ormConfigProd from './config/orm.config.prod';
 import { CourseModule } from './course/course.module';
-import { CourseUserModule } from './course_user/course_user.module';
+import { CourseUserModule } from './course_user/course-user.module';
 import { CourseWishModule } from './course_wish/course_wish.module';
 import { InstructorModule } from './instructor/instructor.module';
 import { LessonModule } from './lesson/lesson.module';
@@ -21,10 +21,10 @@ import { VideoModule } from './video/video.module';
 import { QuestionLikeModule } from './question-like/question-like.module';
 import { ReviewLikeModule } from './review-like/review-like.module';
 import { CartModule } from './cart/cart.module';
-import { CouponModule } from './coupon/coupon.module';
 import { CartCourseModule } from './cart_course/cart_course.module';
 import { OrderModule } from './order/order.module';
-import { OrderCourseModule } from './order_course/order_course.module';
+import { OrderCourseModule } from './order_course/order-course.module';
+import { VoucherModule } from './voucher/voucher.module';
 
 @Module({
   imports: [
@@ -54,10 +54,10 @@ import { OrderCourseModule } from './order_course/order_course.module';
     QuestionLikeModule,
     ReviewLikeModule,
     CartModule,
-    CouponModule,
     CartCourseModule,
     OrderModule,
     OrderCourseModule,
+    VoucherModule,
   ],
   controllers: [],
   providers: [],
