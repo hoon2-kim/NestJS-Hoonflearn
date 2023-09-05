@@ -31,15 +31,20 @@ export class LessonEntity {
   fk_section_id: string;
 
   @CreateDateColumn({ type: 'timestamptz' })
-  createdAt: Date;
+  created_at: Date;
 
   @UpdateDateColumn({ type: 'timestamptz' })
-  updatedAt: Date;
+  updated_at: Date;
 
-  @ManyToOne(() => SectionEntity, (section) => section.lessons)
+  @ManyToOne(() => SectionEntity, (section) => section.lessons, {
+    onDelete: 'CASCADE',
+  })
   @JoinColumn({ name: 'fk_section_id' })
   section: SectionEntity;
 
-  @OneToOne(() => VideoEntity, (video) => video.lesson)
+  @OneToOne(() => VideoEntity, (video) => video.lesson, {
+    nullable: true,
+    onDelete: 'CASCADE',
+  })
   video: VideoEntity;
 }
