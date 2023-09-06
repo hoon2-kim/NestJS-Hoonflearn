@@ -1,11 +1,10 @@
-FROM node:16-alpine AS dev
+FROM node:16 AS development
 
 # 명령이 실행될 위치
 WORKDIR /usr/src/app
 
-# 위의 위치로 package.json과 yarn.lock 파일을 복사
+# 위의 위치로 package*.json 파일을 복사
 COPY package*.json ./
-COPY yarn.lock ./
 
 # 의존성 설치
 RUN yarn install
@@ -13,28 +12,26 @@ RUN yarn install
 # 나머지 복사
 COPY . .
 
-# 포트 노출(문서화가 목적)
+RUN yarn build
+
+### PRODUCTION
+
+FROM node:16 as production
+
+# Set node env to prod
+ARG NODE_ENV=production
+ENV NODE_ENV=${NODE_ENV}
+
+WORKDIR /usr/src/app
+
+# Copy all from development stage
+COPY --from=development /usr/src/app/ .
+
 EXPOSE 8080
 
-CMD [ "yarn", "start:dev" ]
+# Run app
+CMD [ "node","dist/main" ]
 
-### 
-
-# FROM node:16 AS PROD
-
-# # 명령이 실행될 위치
-# WORKDIR /usr/src/app
-
-# # 위의 위치로 복사
-# COPY package*.json ./s
-# COPY yarn.lock ./
-
-# RUN yarn install
-
-# COPY . .
-
-# RUN yarn build
-
-# EXPOSE 8080
-
-# CMD [ "node", "dist/main.js" ]
+# Example Commands to buuild and run the dockerfile
+# docker build -t 이름 .
+# docker run 이름
