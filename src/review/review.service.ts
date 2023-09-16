@@ -152,33 +152,6 @@ export class ReviewService {
     return result;
   }
 
-  async addLike(reviewId: string, userId: string): Promise<void> {
-    const review = await this.findOneByOptions({
-      where: { id: reviewId },
-    });
-
-    if (!review) {
-      throw new NotFoundException('해당 리뷰글이 존재하지 않습니다.');
-    }
-
-    const isLike = await this.revivewLikeService.findOneByOptions({
-      where: {
-        fk_review_id: reviewId,
-        fk_user_id: userId,
-      },
-    });
-
-    if (!isLike) {
-      await this.revivewLikeService.addReviewLike(reviewId, userId);
-      await this.reviewRepository.update(
-        { id: reviewId },
-        { likeCount: review.likeCount + 1 },
-      );
-    } else {
-      return;
-    }
-  }
-
   async update(
     reviewId: string,
     updateReviewDto: UpdateReviewDto,
@@ -253,15 +226,27 @@ export class ReviewService {
     return result.affected ? true : false;
   }
 
-  async cancelLike(reviewId: string, userId: string): Promise<void> {
-    const review = await this.findOneByOptions({
-      where: { id: reviewId },
-    });
+  async addOrCancelLike(reviewId: string, userId: string): Promise<void> {
+    const [reviewLiked, review] = await Promise.all([
+      this.isLikeByUser(reviewId, userId),
+      this.findOneByOptions({ where: { id: reviewId } }),
+    ]);
 
     if (!review) {
       throw new NotFoundException('해당 리뷰글이 존재하지 않습니다.');
     }
 
+    await this.revivewLikeService.toggleReviewLikeStatus(
+      reviewId,
+      userId,
+      reviewLiked,
+    );
+  }
+
+  private async isLikeByUser(
+    reviewId: string,
+    userId: string,
+  ): Promise<boolean> {
     const isLike = await this.revivewLikeService.findOneByOptions({
       where: {
         fk_review_id: reviewId,
@@ -270,14 +255,10 @@ export class ReviewService {
     });
 
     if (isLike) {
-      await this.revivewLikeService.cancelReviewLike(reviewId, userId);
-      await this.reviewRepository.update(
-        { id: reviewId },
-        { likeCount: review.likeCount - 1 },
-      );
-    } else {
-      return;
+      return true;
     }
+
+    return false;
   }
 
   async findReviewsByInstructorCourse(

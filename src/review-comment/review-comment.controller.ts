@@ -26,7 +26,7 @@ export class ReviewCommentController {
 
   @ApiCreateReviewCommentSwagger('리뷰 댓글 생성(강의를 구매한 사람만 가능)')
   @Post()
-  async createReviewComment(
+  createReviewComment(
     @Param('reviewId') reviewId: string,
     @Body() createReviewCommentDto: CreateReviewCommentDto,
     @CurrentUser('id') userId: string,
@@ -40,7 +40,7 @@ export class ReviewCommentController {
 
   @ApiUpdateReviewCommentSwagger('리뷰 댓글 수정')
   @Patch('/:commentId')
-  async updateReviewCommet(
+  updateReviewCommet(
     @Param('reviewId') reviewId: string,
     @Param('commentId') commentId: string,
     @Body() updateReviewCommentDto: UpdateReviewCommentDto,
@@ -56,7 +56,7 @@ export class ReviewCommentController {
 
   @ApiDeleteReviewCommentSwagger('리뷰 댓글 삭제')
   @Delete('/:commentId')
-  async deleteReviewCommet(
+  deleteReviewCommet(
     @Param('reviewId') reviewId: string,
     @Param('commentId') commentId: string,
     @CurrentUser('id') userId: string,

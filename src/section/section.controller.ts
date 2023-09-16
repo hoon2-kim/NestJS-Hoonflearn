@@ -33,7 +33,7 @@ export class SectionController {
 
   @ApiCreateSectionSwagger('섹션 생성')
   @Post()
-  async createSection(
+  createSection(
     @Body() createSectionDto: CreateSectionDto,
     @CurrentUser() user: UserEntity,
   ): Promise<SectionEntity> {
@@ -42,7 +42,7 @@ export class SectionController {
 
   @ApiUpdateSectionSwagger('섹션 수정')
   @Patch('/:sectionId')
-  async updateSection(
+  updateSection(
     @Param('sectionId') sectionId: string,
     @Body() updateSectionDto: UpdateSectionDto,
     @CurrentUser() user: UserEntity,
@@ -52,7 +52,7 @@ export class SectionController {
 
   @ApiDeleteSectionSwagger('섹션 삭제')
   @Delete('/:sectionId')
-  async deleteSection(
+  deleteSection(
     @Param('sectionId') sectionId: string, //
     @CurrentUser() user: UserEntity,
   ): Promise<boolean> {

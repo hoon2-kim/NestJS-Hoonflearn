@@ -83,20 +83,7 @@ export const ApiLikeReviewSwagger = (summary: string) => {
   return applyDecorators(
     ApiOperation({ summary }),
     ApiBearerAuth('access_token'),
-    ApiOkResponse({ description: '리뷰 좋아요 성공 / 아무것도 반환 안함' }),
-    ApiNotFoundResponse({ description: '해당 리뷰가 존재하지 않는 경우' }),
-    ApiUnauthorizedResponse({ description: '로그인 하지 않은 경우' }),
-    ApiInternalServerErrorResponse({ description: '서버 오류' }),
-  );
-};
-
-export const ApiCancelLikeReviewSwagger = (summary: string) => {
-  return applyDecorators(
-    ApiOperation({ summary }),
-    ApiBearerAuth('access_token'),
-    ApiOkResponse({
-      description: '리뷰 좋아요 취소 성공 / 아무것도 반환 안함',
-    }),
+    ApiCreatedResponse({ description: '리뷰 좋아요 또는 좋아요 취소 성공' }),
     ApiNotFoundResponse({ description: '해당 리뷰가 존재하지 않는 경우' }),
     ApiUnauthorizedResponse({ description: '로그인 하지 않은 경우' }),
     ApiInternalServerErrorResponse({ description: '서버 오류' }),

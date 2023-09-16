@@ -17,7 +17,6 @@ import { CurrentUser } from 'src/auth/decorators/current-user.decorator';
 import { ReviewListQueryDto } from './dtos/query/review-list.query.dto';
 import { ApiTags } from '@nestjs/swagger';
 import {
-  ApiCancelLikeReviewSwagger,
   ApiCreateReviewSwagger,
   ApiDeleteReviewSwagger,
   ApiGetAllReviewsByCourseSwagger,
@@ -52,14 +51,14 @@ export class ReviewController {
     return this.reviewService.create(createReviewDto, userId);
   }
 
-  @ApiLikeReviewSwagger('리뷰 좋아요')
+  @ApiLikeReviewSwagger('리뷰 좋아요 / 좋아요 취소')
   @Post('/:reviewId/like')
   @UseGuards(AtGuard)
-  addReviewLike(
+  addOrCancelReviewLike(
     @Param('reviewId') reviewId: string,
     @CurrentUser('id') userId: string,
   ): Promise<void> {
-    return this.reviewService.addLike(reviewId, userId);
+    return this.reviewService.addOrCancelLike(reviewId, userId);
   }
 
   @ApiUpdateReviewSwagger('리뷰 수정')
@@ -81,15 +80,5 @@ export class ReviewController {
     @CurrentUser('id') userId: string,
   ): Promise<boolean> {
     return this.reviewService.delete(reviewId, userId);
-  }
-
-  @ApiCancelLikeReviewSwagger('리뷰 좋아요 취소')
-  @Delete('/:reviewId/like')
-  @UseGuards(AtGuard)
-  cancelReviewLike(
-    @Param('reviewId') reviewId: string,
-    @CurrentUser('id') userId: string,
-  ): Promise<void> {
-    return this.reviewService.cancelLike(reviewId, userId);
   }
 }
