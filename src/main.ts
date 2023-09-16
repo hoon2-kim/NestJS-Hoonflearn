@@ -4,24 +4,12 @@ import { AppModule } from './app.module';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import * as cookieParser from 'cookie-parser';
 import { ClassSerializerInterceptor, ValidationPipe } from '@nestjs/common';
-import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
-import {
-  ReviewResponseWithCommentDto,
-  ReviewResponseWithoutCommentDto,
-} from './review/dtos/response/review.response.dto';
-import {
-  CourseListByInstructorResponseDto,
-  CourseListResponseDto,
-} from './course/dtos/response/course.response';
-import { PageMetaDto } from './common/dtos/page-meta.dto';
-import { QuestionListResponseDto } from './question/dtos/response/question.response.dto';
-import { OrdersResponseDto } from './order/dtos/response/order.response.dto';
-import { CourseUserListResponseDto } from './course_user/dtos/response/course-user.response.dto';
-import { CourseWishListResponseDto } from './course_wish/dtos/response/course-wish.reponse.dto';
+import { setupSwagger } from './api-docs.swagger';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
 
+  app.setGlobalPrefix('api');
   app.enableCors({
     origin: true,
     credentials: true,
@@ -38,42 +26,8 @@ async function bootstrap() {
   app.useGlobalInterceptors(new ClassSerializerInterceptor(app.get(Reflector)));
   app.useGlobalFilters(new HttpExceptionFilter());
 
-  const config = new DocumentBuilder()
-    .setTitle('Hoonflearn-server')
-    .setDescription('NestJS-REST-API-개인 프로젝트')
-    .setVersion('1.0')
-    .addBearerAuth(
-      {
-        type: 'http',
-        bearerFormat: 'JWT',
-        scheme: 'Bearer',
-        name: 'JWT',
-        description: '로그인 후 JWT - AccessToken 입력',
-        in: 'header',
-      },
-      'access_token',
-    )
-    .addCookieAuth('refresh_token')
-    .build();
-  const document = SwaggerModule.createDocument(app, config, {
-    extraModels: [
-      PageMetaDto,
-      ReviewResponseWithCommentDto,
-      CourseListResponseDto,
-      CourseListByInstructorResponseDto,
-      QuestionListResponseDto,
-      ReviewResponseWithoutCommentDto,
-      OrdersResponseDto,
-      CourseUserListResponseDto,
-      CourseWishListResponseDto,
-    ],
-  });
-  SwaggerModule.setup('api-docs', app, document, {
-    swaggerOptions: {
-      persistAuthorization: true,
-      tagsSorter: 'alpha',
-    },
-  });
+  // swagger
+  setupSwagger(app);
 
   await app.listen(process.env.SERVER_PORT || 8080);
 }
