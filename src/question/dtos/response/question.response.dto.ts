@@ -10,6 +10,7 @@ import { EQuestionStatus } from '../../enums/question.enum';
 import {
   IQuestionListResponse,
   IQuestionDetailResponse,
+  ICourseDashboardQuestionResponse,
 } from '../../interfaces/question.interface';
 
 export class QuestionListResponseDto implements IQuestionListResponse {
@@ -22,8 +23,8 @@ export class QuestionListResponseDto implements IQuestionListResponse {
   @ApiProperty({ description: '질문글 댓글 수', type: 'number' })
   commentCount: number;
 
-  @ApiProperty({ description: '질문글 좋아요 수', type: 'number' })
-  likeCount: number;
+  @ApiProperty({ description: '질문글 추천+비추천 수', type: 'number' })
+  voteCount: number;
 
   @ApiProperty({
     description: '질문글 상태',
@@ -36,7 +37,7 @@ export class QuestionListResponseDto implements IQuestionListResponse {
   views: number;
 
   @ApiProperty({
-    description: '질문근 생성일',
+    description: '질문글 생성일',
     type: 'string',
     format: 'date-time',
   })
@@ -60,7 +61,7 @@ export class QuestionListResponseDto implements IQuestionListResponse {
       id,
       title,
       commentCount,
-      likeCount,
+      voteCount,
       questionStatus,
       views,
       created_at,
@@ -69,7 +70,7 @@ export class QuestionListResponseDto implements IQuestionListResponse {
     dto.id = id;
     dto.title = title;
     dto.commentCount = commentCount;
-    dto.likeCount = likeCount;
+    dto.voteCount = voteCount;
     dto.questionStatus = questionStatus;
     dto.views = views;
     dto.created_at = created_at;
@@ -93,8 +94,8 @@ export class QuestionDetailResponseDto implements IQuestionDetailResponse {
   @ApiProperty({ description: '질문글 댓글 수', type: 'number' })
   commentCount: number;
 
-  @ApiProperty({ description: '질문글 좋아요 수', type: 'number' })
-  likeCount: number;
+  @ApiProperty({ description: '질문글 추천+비추천 수', type: 'number' })
+  voteCount: number;
 
   @ApiProperty({
     description: '질문글 상태',
@@ -139,7 +140,7 @@ export class QuestionDetailResponseDto implements IQuestionDetailResponse {
       title,
       contents,
       commentCount,
-      likeCount,
+      voteCount,
       questionStatus,
       views,
       created_at,
@@ -149,7 +150,7 @@ export class QuestionDetailResponseDto implements IQuestionDetailResponse {
     dto.title = title;
     dto.contents = contents;
     dto.commentCount = commentCount;
-    dto.likeCount = likeCount;
+    dto.voteCount = voteCount;
     dto.questionStatus = questionStatus;
     dto.views = views;
     dto.created_at = created_at;
@@ -158,6 +159,34 @@ export class QuestionDetailResponseDto implements IQuestionDetailResponse {
     dto.comments = question.questionComments?.map((comment) =>
       QuestionCommentResponseDto.from(comment),
     );
+
+    return dto;
+  }
+}
+
+export class CourseDashBoardQuestionResponseDto
+  implements ICourseDashboardQuestionResponse
+{
+  @ApiProperty({ description: '질문글 ID', type: 'string' })
+  id: string;
+
+  @ApiProperty({ description: '질문글 제목', type: 'string' })
+  title: string;
+
+  @ApiProperty({
+    description: '질문글 생성일',
+    type: 'string',
+    format: 'date-time',
+  })
+  created_at: Date;
+
+  static from(question: QuestionEntity): CourseDashBoardQuestionResponseDto {
+    const dto = new CourseDashBoardQuestionResponseDto();
+    const { id, title, created_at } = question;
+
+    dto.id = id;
+    dto.title = title;
+    dto.created_at = created_at;
 
     return dto;
   }

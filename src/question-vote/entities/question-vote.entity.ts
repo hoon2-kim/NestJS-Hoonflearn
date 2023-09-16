@@ -1,6 +1,5 @@
 import { Exclude } from 'class-transformer';
 import { QuestionEntity } from 'src/question/entities/question.entity';
-import { ReviewEntity } from 'src/review/entities/review.entity';
 import { UserEntity } from 'src/user/entities/user.entity';
 import {
   Column,
@@ -11,9 +10,10 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
+import { EQuestionVoteType } from '../enums/question-vote.enum';
 
-@Entity({ name: 'question_like' })
-export class QuestionLikeEntity {
+@Entity({ name: 'question_vote' })
+export class QuestionVoteEntity {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
@@ -24,6 +24,9 @@ export class QuestionLikeEntity {
   @Exclude()
   @Column({ type: 'uuid' })
   fk_user_id: string;
+
+  @Column({ type: 'enum', enum: EQuestionVoteType })
+  voteType: EQuestionVoteType;
 
   @CreateDateColumn({ type: 'timestamptz' })
   created_at: Date;
