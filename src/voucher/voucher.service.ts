@@ -51,6 +51,11 @@ export class VoucherService {
     );
   }
 
+  /**
+   *
+   * @param courseId
+   * @param userId
+   */
   async delete(courseId: string, userId: string): Promise<boolean> {
     const courseUser = await this.couresUserService.findOneByOptions({
       where: { fk_course_id: courseId, fk_user_id: userId },

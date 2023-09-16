@@ -1,6 +1,7 @@
 import {
   Column,
   CreateDateColumn,
+  DeleteDateColumn,
   Entity,
   OneToMany,
   OneToOne,
@@ -52,6 +53,10 @@ export class UserEntity {
 
   @UpdateDateColumn({ type: 'timestamptz' })
   updated_at: Date;
+
+  @Exclude()
+  @DeleteDateColumn({ type: 'timestamptz' })
+  deleted_at: Date | null;
 
   @OneToOne(
     () => InstructorProfileEntity,

@@ -23,12 +23,15 @@ import { PageDto } from 'src/common/dtos/page.dto';
 import { CourseUserListResponseDto } from 'src/course_user/dtos/response/course-user.response.dto';
 import { CourseWishListResponseDto } from 'src/course_wish/dtos/response/course-wish.reponse.dto';
 import { QuestionListResponseDto } from 'src/question/dtos/response/question.response.dto';
+import { InstructorProfileEntity } from 'src/instructor/entities/instructor-profile.entity';
 
 @Injectable()
 export class UserService {
   constructor(
     @InjectRepository(UserEntity)
     private readonly userRepository: Repository<UserEntity>,
+    @InjectRepository(InstructorProfileEntity)
+    private readonly instructorProfileRepository: Repository<InstructorProfileEntity>,
 
     private readonly dataSource: DataSource,
     private readonly awsS3Service: AwsS3Service,
@@ -198,7 +201,19 @@ export class UserService {
       throw new NotFoundException('해당 유저가 존재하지 않습니다.');
     }
 
-    const result = await this.userRepository.delete({ id: userId });
+    const result = await this.userRepository.softDelete({ id: userId });
+
+    const instructorProfile = await this.instructorProfileRepository.findOne({
+      where: { fk_user_id: userId },
+    });
+
+    if (instructorProfile) {
+      await this.instructorProfileRepository.softDelete({
+        id: instructorProfile.id,
+      });
+    }
+
+    // TODO : 장바구니 삭제
 
     return result.affected ? true : false;
   }

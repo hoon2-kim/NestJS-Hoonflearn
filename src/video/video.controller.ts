@@ -35,7 +35,7 @@ export class VideoController {
       fileFilter: videoFileFilter,
     }),
   )
-  async uploadVideo(
+  uploadVideo(
     @Param('lessonId') lessonId: string,
     @UploadedFile() file: Express.Multer.File,
     @CurrentUser() user: UserEntity,
@@ -49,7 +49,7 @@ export class VideoController {
 
   @ApiDeleteVideoSwagger('영상 업로드 삭제')
   @Delete('/videos/:videoId')
-  async deleteVideo(
+  deleteVideo(
     @Param('videoId') videoId: string, //
     @CurrentUser() user: UserEntity,
   ): Promise<boolean> {

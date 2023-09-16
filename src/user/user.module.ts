@@ -7,10 +7,11 @@ import { AwsS3Module } from 'src/aws-s3/aws-s3.module';
 import { CourseWishModule } from 'src/course_wish/course_wish.module';
 import { QuestionModule } from 'src/question/question.module';
 import { CourseUserModule } from 'src/course_user/course-user.module';
+import { InstructorProfileEntity } from 'src/instructor/entities/instructor-profile.entity';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([UserEntity]),
+    TypeOrmModule.forFeature([UserEntity, InstructorProfileEntity]),
     AwsS3Module,
     CourseWishModule,
     QuestionModule,

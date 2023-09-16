@@ -47,16 +47,16 @@ export class UserController {
   @ApiProfileUserSwagger('유저 프로필 조회')
   @Get('/profile')
   @UseGuards(AtGuard)
-  async getMyProfile(
+  getMyProfile(
     @CurrentUser('id') userId: string, //
   ): Promise<UserEntity> {
-    return await this.userService.getProfile(userId);
+    return this.userService.getProfile(userId);
   }
 
   @ApiGetUserWishCoursesSwagger('유저의 찜한 강의 조회')
   @Get('/wishs')
   @UseGuards(AtGuard)
-  async getMyWishCourses(
+  getMyWishCourses(
     @Query() userWishQueryDto: UserWishQueryDto,
     @CurrentUser('id') userId: string,
   ): Promise<PageDto<CourseWishListResponseDto>> {
@@ -66,7 +66,7 @@ export class UserController {
   @ApiGetMyQuestionsSwagger('유저가 작성한 질문글 조회')
   @Get('/questions')
   @UseGuards(AtGuard)
-  async getMyQuestions(
+  getMyQuestions(
     @Query() userQuestionQueryDto: UserQuestionQueryDto,
     @CurrentUser('id') userId: string,
   ): Promise<PageDto<QuestionListResponseDto>> {
@@ -76,7 +76,7 @@ export class UserController {
   @ApiGetMyCoursesSwagger('유저가 수강하는 강의 조회')
   @Get('/courses')
   @UseGuards(AtGuard)
-  async getMyCourses(
+  getMyCourses(
     @Query() userMyCourseQueryDto: UserMyCourseQueryDto,
     @CurrentUser('id') userId: string,
   ): Promise<PageDto<CourseUserListResponseDto>> {
@@ -85,7 +85,7 @@ export class UserController {
 
   @ApiCreateUserSwagger('유저 회원가입')
   @Post('/signup')
-  async registerUser(
+  registerUser(
     @Body() createUserDto: CreateUserDto, //
   ): Promise<UserEntity> {
     return this.userService.create(createUserDto);
@@ -94,7 +94,7 @@ export class UserController {
   @ApiUpdateUserSwagger('유저 회원정보 수정')
   @Patch('/profile')
   @UseGuards(AtGuard)
-  async updateUserProfile(
+  updateUserProfile(
     @CurrentUser('id') userId: string,
     @Body() updateUserDto: UpdateUserDto,
   ): Promise<void> {
@@ -105,7 +105,7 @@ export class UserController {
   @Patch('/profile/avatar')
   @UseGuards(AtGuard)
   @UseInterceptors(FileInterceptor('avatar'))
-  async uploadUserAvatar(
+  uploadUserAvatar(
     @CurrentUser() user: UserEntity,
     @UploadedFile() file: Express.Multer.File,
   ): Promise<string> {
@@ -119,7 +119,7 @@ export class UserController {
   @ApiWithdrawalUserSwagger('유저 회원 탈퇴')
   @Delete('/withdrawal')
   @UseGuards(AtGuard)
-  async withdrawalUser(
+  withdrawalUser(
     @CurrentUser('id') userId: string, //
   ): Promise<boolean> {
     return this.userService.delete(userId);

@@ -2,6 +2,11 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { AwsS3Service } from 'src/aws-s3/aws-s3.service';
 import { UserService } from '../user.service';
 
+export const mockAwsS3Service = {
+  uploadFileToS3: jest.fn(),
+  deleteS3Object: jest.fn(),
+};
+
 describe('UserService', () => {
   let userService: UserService;
 
@@ -11,10 +16,7 @@ describe('UserService', () => {
         UserService,
         {
           provide: AwsS3Service,
-          useValue: {
-            uploadFileToS3: jest.fn(),
-            deleteS3Object: jest.fn(),
-          },
+          useValue: mockAwsS3Service,
         },
       ],
     }).compile();
