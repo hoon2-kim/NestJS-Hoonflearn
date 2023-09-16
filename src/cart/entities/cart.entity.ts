@@ -17,7 +17,7 @@ export class CartEntity {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Exclude({ toPlainOnly: true })
+  @Exclude()
   @Column({ name: 'fk_user_id' })
   fk_user_id: string;
 

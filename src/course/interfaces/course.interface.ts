@@ -1,4 +1,5 @@
 import { ICategoryCourseMainNameResponse } from 'src/category_course/interfaces/category-course.interface';
+import { ICourseDashboardQuestionResponse } from 'src/question/interfaces/question.interface';
 import { ISectionResponse } from 'src/section/interfaces/section.interface';
 import { ISimpleUserResponse } from 'src/user/interfaces/user.interface';
 import { ECourseLevelType } from '../enums/course.enum';
@@ -41,6 +42,11 @@ export interface ICourseListResponse {
   instructor: ISimpleUserResponse;
 }
 
+export interface ICourseDetailResponse {
+  course_info: ICourseDetailCourseInfoResponse;
+  curriculums: ISectionResponse[];
+}
+
 export interface ICourseDetailCourseInfoResponse {
   id: string;
   title: string;
@@ -56,18 +62,14 @@ export interface ICourseDetailCourseInfoResponse {
   reviewCount: number;
   wishCount: number;
   students: number;
+  totalVideosTime: number;
+  totalLessonCount: number;
   created_at: Date;
   instructor: ISimpleUserResponse;
   category_course: ICategoryCourseMainNameResponse[];
 }
 
-export interface ICourseDetailCourseCurriculum {
-  totalVideosTime: number;
-  totalLessonCount: number;
-  curriculums: ISectionResponse[];
-}
-
-export interface ICourseListByInstructor {
+export interface ICourseListByInstructorResponse {
   id: string;
   coverImage: string;
   title: string;
@@ -75,4 +77,9 @@ export interface ICourseListByInstructor {
   students: number;
   questionCount: number;
   // 상태
+}
+
+export interface ICourseDashboardResponse {
+  recent_question: ICourseDashboardQuestionResponse[];
+  curriculums: ISectionResponse[];
 }

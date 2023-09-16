@@ -60,50 +60,95 @@ export class CartCourseService {
   }
 
   // TODO : 리팩토링
+  // async deleteCourseInCart(
+  //   courseId: string,
+  //   cartId: string,
+  //   transactionManager?: EntityManager,
+  // ): Promise<DeleteResult> {
+  //   if (transactionManager) {
+  //     const existCourseInCart = await transactionManager.findOne(
+  //       CartCourseEntity,
+  //       {
+  //         where: {
+  //           fk_cart_id: cartId,
+  //           fk_course_id: courseId,
+  //         },
+  //       },
+  //     );
+
+  //     if (!existCourseInCart) {
+  //       throw new NotFoundException(
+  //         '장바구니에 해당 강의가 들어있지 않습니다.',
+  //       );
+  //     }
+
+  //     return await transactionManager.delete(CartCourseEntity, {
+  //       fk_course_id: courseId,
+  //       fk_cart_id: cartId,
+  //     });
+  //   } else {
+  //     const existCourseInCart = await this.findOneByOptions({
+  //       where: {
+  //         fk_cart_id: cartId,
+  //         fk_course_id: courseId,
+  //       },
+  //     });
+
+  //     if (!existCourseInCart) {
+  //       throw new NotFoundException(
+  //         '장바구니에 해당 강의가 들어있지 않습니다.',
+  //       );
+  //     }
+
+  //     return await this.cartCourseRepository.delete({
+  //       fk_course_id: courseId,
+  //       fk_cart_id: cartId,
+  //     });
+  //   }
+  // }
+
   async deleteCourseInCart(
-    courseId: string,
     cartId: string,
+    courseId: string,
     transactionManager?: EntityManager,
   ): Promise<DeleteResult> {
-    if (transactionManager) {
-      const existCourseInCart = await transactionManager.findOne(
-        CartCourseEntity,
-        {
-          where: {
-            fk_cart_id: cartId,
-            fk_course_id: courseId,
-          },
-        },
+    const courseInCart = await this.findCourseInCart(
+      cartId,
+      courseId,
+      transactionManager,
+    );
+
+    if (!courseInCart) {
+      throw new NotFoundException(
+        `장바구니에 해당 강의ID:${courseId}가 들어있지 않습니다.`,
       );
+    }
 
-      if (!existCourseInCart) {
-        throw new NotFoundException(
-          '장바구니에 해당 강의가 들어있지 않습니다.',
-        );
-      }
-
-      return await transactionManager.delete(CartCourseEntity, {
-        fk_course_id: courseId,
-        fk_cart_id: cartId,
-      });
-    } else {
-      const existCourseInCart = await this.findOneByOptions({
-        where: {
+    return transactionManager
+      ? await transactionManager.delete(CartCourseEntity, {
           fk_cart_id: cartId,
           fk_course_id: courseId,
-        },
-      });
+        })
+      : await this.cartCourseRepository.delete({
+          fk_cart_id: cartId,
+          fk_course_id: courseId,
+        });
+  }
 
-      if (!existCourseInCart) {
-        throw new NotFoundException(
-          '장바구니에 해당 강의가 들어있지 않습니다.',
-        );
-      }
-
-      return await this.cartCourseRepository.delete({
-        fk_course_id: courseId,
+  private async findCourseInCart(
+    cartId: string,
+    courseId: string,
+    transactionManager?: EntityManager,
+  ): Promise<CartCourseEntity | null> {
+    const queryOption = {
+      where: {
         fk_cart_id: cartId,
-      });
-    }
+        fk_course_id: courseId,
+      },
+    };
+
+    return transactionManager
+      ? await transactionManager.findOne(CartCourseEntity, queryOption)
+      : await this.findOneByOptions(queryOption);
   }
 }

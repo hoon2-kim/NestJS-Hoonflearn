@@ -5,14 +5,17 @@ import { CourseEntity } from 'src/course/entities/course.entity';
 import { ECourseLevelType } from 'src/course/enums/course.enum';
 import {
   ICartCourseResponse,
-  ICourseDetailCourseCurriculum,
+  ICourseDashboardResponse,
   ICourseDetailCourseInfoResponse,
+  ICourseDetailResponse,
   ICourseIdsResponse,
-  ICourseListByInstructor,
+  ICourseListByInstructorResponse,
   ICourseListResponse,
   IOrderDetailCourseResponse,
   ISimpleCourseResponse,
 } from 'src/course/interfaces/course.interface';
+import { CourseDashBoardQuestionResponseDto } from 'src/question/dtos/response/question.response.dto';
+import { ICourseDashboardQuestionResponse } from 'src/question/interfaces/question.interface';
 import { SectionResponseDto } from 'src/section/dtos/response/section.response.dto';
 import { ISectionResponse } from 'src/section/interfaces/section.interface';
 import { SimpleUserResponseDto } from 'src/user/dtos/response/user.response';
@@ -195,6 +198,12 @@ export class CourseDetailCourseInfoResponseDto
   @ApiProperty({ description: '강의 - 학생 수', type: 'number' })
   students: number;
 
+  @ApiProperty({ description: '강의의 총 수업 수', type: 'number' })
+  totalLessonCount: number;
+
+  @ApiProperty({ description: '강의의 총 영상 길이', type: 'number' })
+  totalVideosTime: number;
+
   @ApiProperty({
     description: '강의 - 생성일',
     type: 'string',
@@ -235,6 +244,8 @@ export class CourseDetailCourseInfoResponseDto
       created_at,
       instructor,
       categoriesCourses,
+      totalLessonCount,
+      totalVideosTime,
     } = course;
 
     dto.id = id;
@@ -251,6 +262,8 @@ export class CourseDetailCourseInfoResponseDto
     dto.reviewCount = reviewCount;
     dto.wishCount = wishCount;
     dto.students = students;
+    dto.totalLessonCount = totalLessonCount;
+    dto.totalVideosTime = totalVideosTime;
     dto.created_at = created_at;
     dto.instructor = SimpleUserResponseDto.from(instructor);
     dto.category_course = categoriesCourses.map((c) =>
@@ -261,14 +274,12 @@ export class CourseDetailCourseInfoResponseDto
   }
 }
 
-export class CourseDetailCurriculumResponseDto
-  implements ICourseDetailCourseCurriculum
-{
-  @ApiProperty({ description: '강의의 총 수업 수', type: 'number' })
-  totalLessonCount: number;
-
-  @ApiProperty({ description: '강의의 총 영상 길이', type: 'number' })
-  totalVideosTime: number;
+export class CourseDetailResponseDto implements ICourseDetailResponse {
+  @ApiProperty({
+    description: '강의 정보',
+    type: CourseDetailCourseInfoResponseDto,
+  })
+  course_info: ICourseDetailCourseInfoResponse;
 
   @ApiProperty({
     description: '강의의 커리큘럼',
@@ -277,20 +288,19 @@ export class CourseDetailCurriculumResponseDto
   })
   curriculums: ISectionResponse[];
 
-  static from(course: CourseEntity): CourseDetailCurriculumResponseDto {
-    const dto = new CourseDetailCurriculumResponseDto();
-    const { totalLessonCount, totalVideosTime, sections } = course;
+  static from(course: CourseEntity) {
+    const dto = new CourseDetailResponseDto();
+    const { sections } = course;
 
-    dto.totalLessonCount = totalLessonCount;
-    dto.totalVideosTime = totalVideosTime;
-    dto.curriculums = sections.map((s) => SectionResponseDto.from(s));
+    dto.course_info = CourseDetailCourseInfoResponseDto.from(course);
+    dto.curriculums = sections?.map((s) => SectionResponseDto.from(s));
 
     return dto;
   }
 }
 
 export class CourseListByInstructorResponseDto
-  implements ICourseListByInstructor
+  implements ICourseListByInstructorResponse
 {
   @ApiProperty({ description: '강의 ID', type: 'string' })
   id: string;
@@ -356,6 +366,34 @@ export class CartCourseResponseDto implements ICartCourseResponse {
     dto.coverImage = coverImage;
     dto.price = price;
     dto.instructor = SimpleUserResponseDto.from(instructor);
+
+    return dto;
+  }
+}
+
+export class CourseDashBoardResponseDto implements ICourseDashboardResponse {
+  @ApiProperty({
+    description: '강의의 최근 질문들',
+    type: CourseDashBoardQuestionResponseDto,
+    isArray: true,
+  })
+  recent_question: ICourseDashboardQuestionResponse[];
+
+  @ApiProperty({
+    description: '강의의 커리큘럼',
+    type: SectionResponseDto,
+    isArray: true,
+  })
+  curriculums: ISectionResponse[];
+
+  static from(course: CourseEntity): CourseDashBoardResponseDto {
+    const dto = new CourseDashBoardResponseDto();
+    const { sections, questions } = course;
+
+    dto.recent_question = questions?.map((q) =>
+      CourseDashBoardQuestionResponseDto.from(q),
+    );
+    dto.curriculums = sections?.map((s) => SectionResponseDto.from(s));
 
     return dto;
   }

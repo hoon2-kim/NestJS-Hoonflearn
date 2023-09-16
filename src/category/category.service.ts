@@ -5,7 +5,7 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { CategoryIdsDto } from 'src/course/dtos/request/create-course.dto';
-import { IsNull, QueryRunner, Repository } from 'typeorm';
+import { EntityManager, IsNull, Repository } from 'typeorm';
 import { CreateCategoryDto } from './dtos/request/create-category.dto';
 import { UpdateCategoryDto } from './dtos/request/update-category.dto';
 import { CategoryResponseDto } from './dtos/response/category.response.dto';
@@ -18,12 +18,18 @@ export class CategoryService {
     private readonly categoryRepository: Repository<CategoryEntity>,
   ) {}
 
-  async findAll(): Promise<CategoryResponseDto[]> {
+  async findAll(isRelation?: boolean): Promise<CategoryResponseDto[]> {
+    const relations = isRelation
+      ? {
+          children: true,
+        }
+      : null;
+
     const categories = await this.categoryRepository.find({
       where: {
         parent: IsNull(),
       },
-      relations: ['children'],
+      relations,
       order: {
         name: 'asc',
         children: {
@@ -52,7 +58,15 @@ export class CategoryService {
     const category = await queryBuilder.getOne();
 
     if (!category) {
-      throw new NotFoundException('카테고리가 존재하지 않습니다.');
+      throw new NotFoundException(
+        `카테고리:${categoryId} 가 존재하지 않습니다.`,
+      );
+    }
+
+    if (category.fk_parent_category_id !== null) {
+      throw new BadRequestException(
+        `해당 ID:${categoryId}는 메인 카테고리ID가 아닙니다.`,
+      );
     }
 
     return CategoryResponseDto.from(category);
@@ -66,7 +80,9 @@ export class CategoryService {
     const isName = await this.isCategoryName(name);
 
     if (isName) {
-      throw new BadRequestException('해당 카테고리 이름이 이미 존재합니다.');
+      throw new BadRequestException(
+        `해당 카테고리 이름:${name} 이(가) 이미 존재합니다.`,
+      );
     }
 
     return await this.categoryRepository.save({
@@ -85,7 +101,9 @@ export class CategoryService {
     const isName = await this.isCategoryName(name);
 
     if (isName) {
-      throw new BadRequestException('해당 카테고리 이름이 이미 존재합니다.');
+      throw new BadRequestException(
+        `해당 카테고리 이름:${name} 이(가) 이미 존재합니다.`,
+      );
     }
 
     return await this.categoryRepository.save({
@@ -105,7 +123,9 @@ export class CategoryService {
     const duplicateName = await this.isCategoryName(name);
 
     if (duplicateName && category.name !== name) {
-      throw new BadRequestException('해당 카테고리 이름이 이미 존재합니다.');
+      throw new BadRequestException(
+        `해당 카테고리 이름:${name} 이(가) 이미 존재합니다.`,
+      );
     }
 
     Object.assign(category, updateCategoryDto);
@@ -129,82 +149,125 @@ export class CategoryService {
     return isName;
   }
 
-  async validateCategoryWithTransaction(
+  // async validateCategoryOptionalTransaction(
+  //   selectedCategoryIds: CategoryIdsDto[],
+  //   transactionManager?: EntityManager,
+  // ): Promise<void> {
+  //   let parent = null;
+  //   let sub = null;
+
+  //   await Promise.all(
+  //     selectedCategoryIds.map(async (category) => {
+  //       transactionManager
+  //         ? (parent = await transactionManager.findOne(CategoryEntity, {
+  //             where: { id: category.parentCategoryId },
+  //           }))
+  //         : (parent = await this.categoryRepository.findOne({
+  //             where: { id: category.parentCategoryId },
+  //           }));
+
+  //       if (!parent) {
+  //         throw new NotFoundException(
+  //           `해당 카테고리ID:${category.parentCategoryId} 는 존재하지 않습니다.`,
+  //         );
+  //       }
+
+  //       if (parent.fk_parent_category_id !== null) {
+  //         throw new BadRequestException(
+  //           `해당 메인 카테고리ID:${category.parentCategoryId} 는 메인 카테고리가 아닙니다.`,
+  //         );
+  //       }
+
+  //       transactionManager
+  //         ? (sub = await transactionManager.findOne(CategoryEntity, {
+  //             where: { id: category.subCategoryId },
+  //           }))
+  //         : (sub = await this.categoryRepository.findOne({
+  //             where: { id: category.subCategoryId },
+  //           }));
+
+  //       if (!sub) {
+  //         throw new NotFoundException(
+  //           `해당 카테고리ID:${category.subCategoryId} 는 존재하지 않습니다.`,
+  //         );
+  //       }
+
+  //       if (sub.fk_parent_category_id === null) {
+  //         throw new BadRequestException(
+  //           `해당 카테고리ID:${category.subCategoryId} 는 메인 카테고리 입니다.`,
+  //         );
+  //       }
+  //     }),
+  //   );
+  // }
+  async validateCategoryOptionalTransaction(
     selectedCategoryIds: CategoryIdsDto[],
-    queryRunner: QueryRunner,
-  ): Promise<void> {
-    await Promise.all(
+    transactionManager?: EntityManager,
+  ) {
+    return Promise.all(
       selectedCategoryIds.map(async (category) => {
-        const parent = await queryRunner.manager.findOne(CategoryEntity, {
-          where: { id: category.parentCategoryId },
-        });
-
-        if (!parent) {
-          throw new NotFoundException(
-            '해당 부모 카테고리가 존재하지 않습니다.',
-          );
-        }
-
-        if (parent.fk_parent_category_id !== null) {
-          throw new BadRequestException(
-            '해당 카테고리ID는 부모 카테고리가 아닙니다.',
-          );
-        }
-
-        const sub = await queryRunner.manager.findOne(CategoryEntity, {
-          where: { id: category.subCategoryId },
-        });
-
-        if (!sub) {
-          throw new NotFoundException(
-            '해당 서브 카테고리가 존재하지 않습니다.',
-          );
-        }
-
-        if (sub.fk_parent_category_id === null) {
-          throw new BadRequestException(
-            '해당 카테고리ID는 부모 카테고리 입니다.',
-          );
-        }
+        await this.validateParentCategory(
+          category.parentCategoryId,
+          transactionManager,
+        );
+        await this.validateSubCategory(
+          category.subCategoryId,
+          transactionManager,
+        );
       }),
     );
   }
 
-  async validateCategory(selectedCategoryIds: CategoryIdsDto[]): Promise<void> {
-    await Promise.all(
-      selectedCategoryIds.map(async (category) => {
-        const parent = await this.categoryRepository.findOne({
-          where: { id: category.parentCategoryId },
-        });
+  private async validateParentCategory(
+    categoryId: string,
+    transactionManager?: EntityManager,
+  ) {
+    const parent = await this.findCategoryById(categoryId, transactionManager);
 
-        if (!parent) {
-          throw new NotFoundException(
-            '해당 부모 카테고리가 존재하지 않습니다.',
-          );
-        }
+    if (!parent) {
+      throw new NotFoundException(
+        `해당 카테고리ID:${categoryId} 는 존재하지 않습니다.`,
+      );
+    }
 
-        if (parent.fk_parent_category_id !== null) {
-          throw new BadRequestException(
-            '해당 카테고리ID는 부모 카테고리가 아닙니다.',
-          );
-        }
+    if (parent.fk_parent_category_id !== null) {
+      throw new BadRequestException(
+        `해당 메인 카테고리ID:${categoryId} 는 메인 카테고리가 아닙니다.`,
+      );
+    }
+  }
 
-        const sub = await this.categoryRepository.findOne({
-          where: { id: category.subCategoryId },
-        });
+  private async validateSubCategory(
+    categoryId: string,
+    transactionManager?: EntityManager,
+  ) {
+    const sub = await this.findCategoryById(categoryId, transactionManager);
 
-        if (!sub) {
-          throw new NotFoundException(
-            '해당 서브 카테고리가 존재하지 않습니다.',
-          );
-        }
+    if (!sub) {
+      throw new NotFoundException(
+        `해당 카테고리ID:${categoryId} 는 존재하지 않습니다.`,
+      );
+    }
 
-        if (sub.fk_parent_category_id === null) {
-          throw new BadRequestException(
-            '해당 카테고리ID는 부모 카테고리 입니다.',
-          );
-        }
-      }),
-    );
+    if (sub.fk_parent_category_id === null) {
+      throw new BadRequestException(
+        `해당 카테고리ID:${categoryId} 는 메인 카테고리 입니다.`,
+      );
+    }
+  }
+
+  private async findCategoryById(
+    categoryId: string,
+    transactionManager?: EntityManager,
+  ) {
+    if (transactionManager) {
+      return await transactionManager.findOne(CategoryEntity, {
+        where: { id: categoryId },
+      });
+    } else {
+      return await this.categoryRepository.findOne({
+        where: { id: categoryId },
+      });
+    }
   }
 }

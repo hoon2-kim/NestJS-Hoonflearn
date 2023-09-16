@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { PageMetaDto } from 'src/common/dtos/page-meta.dto';
 import { PageDto } from 'src/common/dtos/page.dto';
+import { CourseEntity } from 'src/course/entities/course.entity';
 import { ECourseChargeType } from 'src/course/enums/course.enum';
 import { UserWishQueryDto } from 'src/user/dtos/query/user.query.dto';
 import { EUserWishCourseSort } from 'src/user/enums/user.enum';
@@ -86,17 +87,36 @@ export class CourseWishService {
     );
   }
 
-  async addWish(courseId: string, userId: string): Promise<void> {
-    await this.courseWishRepository.save({
-      fk_course_id: courseId,
-      fk_user_id: userId,
-    });
-  }
+  async toggleCourseWishStatus(
+    courseId: string,
+    userId: string,
+    isWish: boolean,
+  ): Promise<void> {
+    await this.courseWishRepository.manager.connection.transaction(
+      async (manager) => {
+        if (isWish) {
+          await manager.delete(CourseWishEntity, {
+            fk_course_id: courseId,
+            fk_user_id: userId,
+          });
 
-  async cancelWish(courseId: string, userId: string): Promise<void> {
-    await this.courseWishRepository.delete({
-      fk_course_id: courseId,
-      fk_user_id: userId,
-    });
+          await manager.decrement(
+            CourseEntity,
+            { id: courseId },
+            'wishCount',
+            1,
+          );
+
+          return;
+        }
+
+        await manager.save(CourseWishEntity, {
+          fk_course_id: courseId,
+          fk_user_id: userId,
+        });
+
+        await manager.increment(CourseEntity, { id: courseId }, 'wishCount', 1);
+      },
+    );
   }
 }

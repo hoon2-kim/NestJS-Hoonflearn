@@ -36,7 +36,7 @@ export class CartController {
     return this.cartService.create(createCartDto, userId);
   }
 
-  // TODO : 선택삭제를 위한 DELETE 대신 POST 고려
+  /** 선택삭제를 위한 DELETE 대신 POST 고려 */
   @ApiDeleteCourseInCartSwagger('장바구니의 강의 삭제')
   @Delete('courses/:courseId')
   deleteCourseInCart(

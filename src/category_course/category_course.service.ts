@@ -4,6 +4,9 @@ import { CategoryIdsDto } from 'src/course/dtos/request/create-course.dto';
 import { EntityManager, Repository } from 'typeorm';
 import { CategoryCourseEntity } from './entities/category-course.entitiy';
 
+/**
+ * TODO : 동시성 테스트
+ */
 @Injectable()
 export class CategoryCourseService {
   constructor(
@@ -11,7 +14,7 @@ export class CategoryCourseService {
     private readonly categoryCourseRepository: Repository<CategoryCourseEntity>,
   ) {}
 
-  async saveCategoryCourseRepo(
+  async linkCourseToCategories(
     selectedCategoryIds: CategoryIdsDto[],
     courseId: string,
     transactionManager?: EntityManager,
@@ -32,5 +35,22 @@ export class CategoryCourseService {
     };
 
     await Promise.all(selectedCategoryIds.map(saveCategoryCourse));
+  }
+
+  async updateCourseToCategories(
+    selectedCategoryIds: CategoryIdsDto[],
+    courseId: string,
+  ): Promise<void> {
+    await this.categoryCourseRepository.manager.connection.transaction(
+      async (manager) => {
+        await manager.delete(CategoryCourseEntity, { fk_course_id: courseId });
+
+        await this.linkCourseToCategories(
+          selectedCategoryIds,
+          courseId,
+          manager,
+        );
+      },
+    );
   }
 }

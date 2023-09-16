@@ -26,43 +26,56 @@ import { ApiTags } from '@nestjs/swagger';
 import { ERoleType } from 'src/user/enums/user.enum';
 import { CoursePriceValidationPipe } from 'src/common/pipes/course-price.pipe';
 import {
-  ApiCancelWishCourseSwagger,
   ApiCreateCourseSwagger,
   ApiDeleteCourseSwagger,
-  ApiGetCourseCurriculumSwagger,
-  ApiGetCourseInfoSwagger,
+  ApiGetCourseDashBoardSwagger,
+  ApiGetCourseDetailSwagger,
   ApiGetCourseListSwagger,
+  ApiGetPurchaseStatusByUserSwagger,
   ApiUpdateCourseSwagger,
   ApiUploadCourseCoverImageSwagger,
   ApiWishCourseSwagger,
 } from './course.swagger';
 import {
-  CourseDetailCourseInfoResponseDto,
-  CourseDetailCurriculumResponseDto,
+  CourseDetailResponseDto,
   CourseListResponseDto,
 } from './dtos/response/course.response';
 import { PageDto } from 'src/common/dtos/page.dto';
 import { CourseEntity } from './entities/course.entity';
+import { PublicGuard } from 'src/auth/guards/public.guard';
+import { CurrentOptionalUser } from 'src/auth/decorators/current-optionalUser.decorator';
 
 @ApiTags('COURSE')
 @Controller('courses')
 export class CourseController {
   constructor(private readonly courseService: CourseService) {}
 
-  @ApiGetCourseInfoSwagger('강의 상세 조회(강의정보)')
-  @Get('/:courseId/course-info')
-  findOneCourseInfo(
+  @ApiGetCourseDetailSwagger('강의 상세 조회')
+  @Get('/:courseId')
+  findCourseDetail(
     @Param('courseId') courseId: string, //
-  ): Promise<CourseDetailCourseInfoResponseDto> {
-    return this.courseService.findInfo(courseId);
+  ): Promise<CourseDetailResponseDto> {
+    return this.courseService.findCourseDetail(courseId);
   }
 
-  @ApiGetCourseCurriculumSwagger('강의 상세 조회(커리큘럼)')
-  @Get('/:courseId/curriculums')
-  findCourseCurriculum(
-    @Param('courseId') courseId: string, //
-  ): Promise<CourseDetailCurriculumResponseDto> {
-    return this.courseService.findCurriculum(courseId);
+  @ApiGetPurchaseStatusByUserSwagger('강의 구매 여부 상태 반환')
+  @Get('/:courseId/purchase-status')
+  @UseGuards(PublicGuard)
+  getPurchaseStatusByUser(
+    @Param('courseId') courseId: string,
+    @CurrentOptionalUser('id') userId: string | null,
+  ): Promise<{ isPurchased: boolean }> {
+    return this.courseService.getStatusByUser(courseId, userId);
+  }
+
+  @ApiGetCourseDashBoardSwagger('강의 구매한 유저를 위한 대시보드')
+  @Get('/:courseId/dashboard')
+  @UseGuards(AtGuard)
+  getCourseDashBoard(
+    @Param('courseId') courseId: string,
+    @CurrentUser('id') userId: string,
+  ) {
+    return this.courseService.getDashBoard(courseId, userId);
   }
 
   @ApiGetCourseListSwagger('강의 전체 조회')
@@ -90,14 +103,14 @@ export class CourseController {
     return this.courseService.create(createCourseDto, user);
   }
 
-  @ApiWishCourseSwagger('강의 찜하기')
+  @ApiWishCourseSwagger('강의 찜하기 / 찜하기 취소')
   @Post('/:courseId/wish')
   @UseGuards(AtGuard)
   courseWishAdd(
     @Param('courseId') courseId: string,
-    @CurrentUser() user: UserEntity,
+    @CurrentUser('id') userId: string,
   ): Promise<void> {
-    return this.courseService.addWish(courseId, user);
+    return this.courseService.addOrCancelWish(courseId, userId);
   }
 
   @ApiUpdateCourseSwagger('강의 수정')
@@ -138,15 +151,5 @@ export class CourseController {
     @CurrentUser() user: UserEntity,
   ): Promise<boolean> {
     return this.courseService.delete(courseId, user);
-  }
-
-  @ApiCancelWishCourseSwagger('강의 찜하기 취소')
-  @Delete('/:courseId/wish')
-  @UseGuards(AtGuard)
-  courseWishCancel(
-    @Param('courseId') courseId: string,
-    @CurrentUser() user: UserEntity,
-  ): Promise<void> {
-    return this.courseService.cancelWish(courseId, user);
   }
 }

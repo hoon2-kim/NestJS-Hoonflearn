@@ -93,7 +93,7 @@ export class CourseUserService {
   async validateBoughtCourseByUser(
     userId: string,
     courseId: string,
-  ): Promise<CourseUserEntity> {
+  ): Promise<void> {
     const valid = await this.courseUserRepository.findOne({
       where: {
         fk_course_id: courseId,
@@ -104,8 +104,20 @@ export class CourseUserService {
     if (!valid) {
       throw new ForbiddenException('해당 강의를 구매하지 않으셨습니다.');
     }
+  }
 
-    return valid;
+  async checkBoughtCourseByUser(
+    userId: string,
+    courseId: string,
+  ): Promise<boolean> {
+    const check = await this.courseUserRepository.findOne({
+      where: {
+        fk_course_id: courseId,
+        fk_user_id: userId,
+      },
+    });
+
+    return !!check;
   }
 
   async findOneByOptions(

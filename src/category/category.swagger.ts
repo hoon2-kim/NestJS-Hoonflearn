@@ -12,7 +12,10 @@ import { CategoryEntity } from './entities/category.entity';
 
 export const ApiGetAllCategoriesSwagger = (summary: string) => {
   return applyDecorators(
-    ApiOperation({ summary }),
+    ApiOperation({
+      summary,
+      description: 'false일 경우 메인카테고리만, true면 서브까지',
+    }),
     ApiOkResponse({
       description: '조회 성공',
       type: CategoryResponseDto,
@@ -29,6 +32,7 @@ export const ApiGetCategorySwagger = (summary: string) => {
       description: '조회 성공',
       type: CategoryResponseDto,
     }),
+    ApiBadRequestResponse({ description: '서브 카테고리 ID를 넣은 경우' }),
     ApiNotFoundResponse({ description: '해당 카테고리가 존재하지 않을 경우' }),
     ApiInternalServerErrorResponse({ description: '서버 오류' }),
   );

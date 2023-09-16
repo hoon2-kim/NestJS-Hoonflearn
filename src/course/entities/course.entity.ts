@@ -3,6 +3,7 @@ import { CartCourseEntity } from 'src/cart_course/entities/cart-course.entity';
 import { CategoryCourseEntity } from 'src/category_course/entities/category-course.entitiy';
 import { CourseUserEntity } from 'src/course_user/entities/course-user.entity';
 import { CourseWishEntity } from 'src/course_wish/entities/course-wish.entity';
+import { QuestionEntity } from 'src/question/entities/question.entity';
 import { ReviewEntity } from 'src/review/entities/review.entity';
 import { SectionEntity } from 'src/section/entities/section.entity';
 import { UserEntity } from 'src/user/entities/user.entity';
@@ -110,4 +111,7 @@ export class CourseEntity {
 
   @OneToMany(() => CartCourseEntity, (cartCourse) => cartCourse.course)
   cartsCourses: CartCourseEntity[];
+
+  @OneToMany(() => QuestionEntity, (question) => question.course)
+  questions: QuestionEntity[];
 }

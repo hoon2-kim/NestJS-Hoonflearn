@@ -13,32 +13,54 @@ import {
 } from '@nestjs/swagger';
 import { PageMetaDto } from 'src/common/dtos/page-meta.dto';
 import {
-  CourseDetailCourseInfoResponseDto,
-  CourseDetailCurriculumResponseDto,
+  CourseDashBoardResponseDto,
+  CourseDetailResponseDto,
   CourseListResponseDto,
 } from './dtos/response/course.response';
 import { CourseEntity } from './entities/course.entity';
 
-export const ApiGetCourseInfoSwagger = (summary: string) => {
+export const ApiGetCourseDetailSwagger = (summary: string) => {
   return applyDecorators(
     ApiOperation({ summary }),
     ApiOkResponse({
       description: '조회 성공',
-      type: CourseDetailCourseInfoResponseDto,
+      type: CourseDetailResponseDto,
     }),
     ApiNotFoundResponse({ description: '해당 강의가 존재하지 않을 경우' }),
     ApiInternalServerErrorResponse({ description: '서버 오류' }),
   );
 };
 
-export const ApiGetCourseCurriculumSwagger = (summary: string) => {
+export const ApiGetPurchaseStatusByUserSwagger = (summary: string) => {
+  return applyDecorators(
+    ApiOperation({
+      summary,
+      description:
+        '비로그인 유저의 경우 무조건 false, 로그인 유저의 경우 검증을 통해 boolean값 반환',
+    }),
+    ApiOkResponse({
+      description: '조회 성공',
+      schema: {
+        type: 'object',
+        properties: {
+          isPurchased: { type: 'boolean' },
+        },
+      },
+    }),
+    ApiInternalServerErrorResponse({ description: '서버 오류' }),
+  );
+};
+
+export const ApiGetCourseDashBoardSwagger = (summary: string) => {
   return applyDecorators(
     ApiOperation({ summary }),
     ApiOkResponse({
       description: '조회 성공',
-      type: CourseDetailCurriculumResponseDto,
+      type: CourseDashBoardResponseDto,
     }),
     ApiNotFoundResponse({ description: '해당 강의가 존재하지 않을 경우' }),
+    ApiForbiddenResponse({ description: '해당 강의를 구매하지 않은 경우' }),
+    ApiUnauthorizedResponse({ description: '로그인하지 않은 경우' }),
     ApiInternalServerErrorResponse({ description: '서버 오류' }),
   );
 };
@@ -93,8 +115,8 @@ export const ApiCreateCourseSwagger = (summary: string) => {
 export const ApiWishCourseSwagger = (summary: string) => {
   return applyDecorators(
     ApiOperation({ summary }),
-    ApiOkResponse({
-      description: '찜하기 성공',
+    ApiCreatedResponse({
+      description: '찜하기 성공 또는 취소 성공',
     }),
     ApiNotFoundResponse({
       description: '해당 강의가 존재하지 않는 경우',
@@ -162,20 +184,6 @@ export const ApiDeleteCourseSwagger = (summary: string) => {
     ApiForbiddenResponse({
       description:
         '지식공유자가 아닌 경우 / 해당 강의를 만든 지식공유자가 아닌 경우',
-    }),
-    ApiUnauthorizedResponse({ description: '로그인하지 않은 경우' }),
-    ApiInternalServerErrorResponse({ description: '서버 오류' }),
-  );
-};
-
-export const ApiCancelWishCourseSwagger = (summary: string) => {
-  return applyDecorators(
-    ApiOperation({ summary }),
-    ApiOkResponse({
-      description: '찜하기 취소 성공',
-    }),
-    ApiNotFoundResponse({
-      description: '해당 강의가 존재하지 않는 경우',
     }),
     ApiUnauthorizedResponse({ description: '로그인하지 않은 경우' }),
     ApiInternalServerErrorResponse({ description: '서버 오류' }),

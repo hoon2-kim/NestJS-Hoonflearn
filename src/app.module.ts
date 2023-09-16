@@ -4,8 +4,6 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { AuthModule } from './auth/auth.module';
 import { CategoryModule } from './category/category.module';
 import { CategoryCourseModule } from './category_course/category_course.module';
-import ormConfig from './config/orm.config';
-import ormConfigProd from './config/orm.config.prod';
 import { CourseModule } from './course/course.module';
 import { CourseUserModule } from './course_user/course-user.module';
 import { CourseWishModule } from './course_wish/course_wish.module';
@@ -18,24 +16,26 @@ import { ReviewModule } from './review/review.module';
 import { SectionModule } from './section/section.module';
 import { UserModule } from './user/user.module';
 import { VideoModule } from './video/video.module';
-import { QuestionLikeModule } from './question-like/question-like.module';
+import { QuestionVoteModule } from './question-vote/question-vote.module';
 import { ReviewLikeModule } from './review-like/review-like.module';
 import { CartModule } from './cart/cart.module';
 import { CartCourseModule } from './cart_course/cart_course.module';
 import { OrderModule } from './order/order.module';
 import { OrderCourseModule } from './order_course/order-course.module';
 import { VoucherModule } from './voucher/voucher.module';
+import { EventEmitterModule } from '@nestjs/event-emitter';
+import { typeOrmModuleConfig } from './config/database';
+import { CacheModule } from './cache/cache.module';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
-      load: [ormConfig],
+      envFilePath:
+        process.env.NODE_ENV === 'development' ? '.env' : '.env.prod',
     }),
-    TypeOrmModule.forRootAsync({
-      useFactory:
-        process.env.NODE_ENV !== 'production' ? ormConfig : ormConfigProd,
-    }),
+    TypeOrmModule.forRootAsync(typeOrmModuleConfig),
+    EventEmitterModule.forRoot(),
     UserModule,
     AuthModule,
     CategoryModule,
@@ -51,13 +51,14 @@ import { VoucherModule } from './voucher/voucher.module';
     QuestionModule,
     ReviewCommentModule,
     QuestionCommentModule,
-    QuestionLikeModule,
+    QuestionVoteModule,
     ReviewLikeModule,
     CartModule,
     CartCourseModule,
     OrderModule,
     OrderCourseModule,
     VoucherModule,
+    CacheModule,
   ],
   controllers: [],
   providers: [],

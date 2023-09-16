@@ -30,10 +30,10 @@ export class CategoryController {
   @ApiGetAllCategoriesSwagger('모든 카테고리 조회')
   @Get()
   findAllCategories(): Promise<CategoryResponseDto[]> {
-    return this.categoryService.findAll();
+    return this.categoryService.findAll(false);
   }
 
-  @ApiGetCategorySwagger('카테고리 상세 조회')
+  @ApiGetCategorySwagger('카테고리 상세 조회(메인카테고리)')
   @Get('/:categoryId')
   findOneCategoryWithSub(
     @Param('categoryId') categoryId: string, //

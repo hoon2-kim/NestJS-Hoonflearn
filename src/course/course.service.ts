@@ -20,24 +20,29 @@ import { PageMetaDto } from 'src/common/dtos/page-meta.dto';
 import { PageDto } from 'src/common/dtos/page.dto';
 import { ECourseChargeType, ECourseSortBy } from './enums/course.enum';
 import {
-  CourseDetailCourseInfoResponseDto,
-  CourseDetailCurriculumResponseDto,
+  CourseDashBoardResponseDto,
+  CourseDetailResponseDto,
   CourseIdsReponseDto,
   CourseListResponseDto,
 } from './dtos/response/course.response';
 import { EReviewMethod } from 'src/review/enums/review.enum';
+import { CourseUserService } from 'src/course_user/course-user.service';
+import { QuestionEntity } from 'src/question/entities/question.entity';
 
 @Injectable()
 export class CourseService {
   constructor(
     @InjectRepository(CourseEntity)
     private readonly courseRepository: Repository<CourseEntity>,
+    @InjectRepository(QuestionEntity)
+    private readonly questionRepository: Repository<QuestionEntity>,
 
     private readonly categoryService: CategoryService,
     private readonly categoryCourseService: CategoryCourseService,
     private readonly courseWishService: CourseWishService,
     private readonly awsS3Service: AwsS3Service,
     private readonly dataSource: DataSource,
+    private readonly courseUserService: CourseUserService,
   ) {}
 
   async findOneByOptions(
@@ -69,10 +74,11 @@ export class CourseService {
       .skip(skip);
 
     if (mainCategoryId) {
-      query.innerJoin('course.categoriesCourses', 'categoryCourse');
-      query.andWhere('categoryCourse.fk_parent_category_id = :mainCategoryId', {
-        mainCategoryId,
-      });
+      query
+        .innerJoin('course.categoriesCourses', 'categoryCourse')
+        .andWhere('categoryCourse.fk_parent_category_id = :mainCategoryId', {
+          mainCategoryId,
+        });
 
       if (subCategoryId) {
         query.andWhere('categoryCourse.fk_sub_category_id = :subCategoryId', {
@@ -91,15 +97,24 @@ export class CourseService {
       });
     }
 
-    switch (charge) {
-      case ECourseChargeType.Free:
-        query.andWhere('course.price = :price', { price: 0 });
-        break;
+    const CHARGE_MAPPING = {
+      [ECourseChargeType.Free]: () =>
+        query.andWhere('course.price = :price', { price: 0 }),
+      [ECourseChargeType.Paid]: () =>
+        query.andWhere('course.price <> :price', { price: 0 }),
+    };
 
-      case ECourseChargeType.Paid:
-        query.andWhere('course.price <> :price', { price: 0 });
-        break;
-    }
+    CHARGE_MAPPING[charge]?.();
+
+    // switch (charge) {
+    //   case ECourseChargeType.Free:
+    //     query.andWhere('course.price = :price', { price: 0 });
+    //     break;
+
+    //   case ECourseChargeType.Paid:
+    //     query.andWhere('course.price <> :price', { price: 0 });
+    //     break;
+    // }
 
     switch (sort) {
       case ECourseSortBy.Wish:
@@ -145,7 +160,7 @@ export class CourseService {
     );
   }
 
-  async findInfo(courseId: string): Promise<CourseDetailCourseInfoResponseDto> {
+  async findCourseDetail(courseId: string): Promise<CourseDetailResponseDto> {
     const course = await this.courseRepository
       .createQueryBuilder('course')
       .leftJoinAndSelect('course.instructor', 'instructor')
@@ -156,20 +171,34 @@ export class CourseService {
       )
       .leftJoinAndSelect('categories.parentCategory', 'pCategory')
       .leftJoinAndSelect('categories.subCategory', 'sCategory')
+      .leftJoinAndSelect('course.sections', 'section')
+      .leftJoinAndSelect('section.lessons', 'lesson')
+      .leftJoinAndSelect('lesson.video', 'video')
       .where('course.id = :courseId', { courseId })
+      .orderBy('section.created_at', 'ASC')
+      .addOrderBy('lesson.created_at', 'ASC')
       .getOne();
 
     if (!course) {
       throw new NotFoundException('해당 강의가 존재하지 않습니다.');
     }
 
-    return CourseDetailCourseInfoResponseDto.from(course);
+    return CourseDetailResponseDto.from(course);
   }
 
-  async findCurriculum(
+  async getStatusByUser(
     courseId: string,
-  ): Promise<CourseDetailCurriculumResponseDto> {
-    const curriculum = await this.courseRepository
+    userId: string | null,
+  ): Promise<{ isPurchased: boolean }> {
+    const isPurchased = userId
+      ? await this.courseUserService.checkBoughtCourseByUser(userId, courseId)
+      : false;
+
+    return { isPurchased };
+  }
+
+  async getDashBoard(courseId: string, userId: string) {
+    const course = await this.courseRepository
       .createQueryBuilder('course')
       .leftJoinAndSelect('course.sections', 'section')
       .leftJoinAndSelect('section.lessons', 'lesson')
@@ -179,11 +208,22 @@ export class CourseService {
       .addOrderBy('lesson.created_at', 'ASC')
       .getOne();
 
-    if (!curriculum) {
+    if (!course) {
       throw new NotFoundException('해당 강의가 존재하지 않습니다.');
     }
 
-    return CourseDetailCurriculumResponseDto.from(curriculum);
+    const questions = await this.questionRepository
+      .createQueryBuilder('question')
+      .where('question.fk_course_id = :courseId', { courseId })
+      .orderBy('question.created_at', 'DESC')
+      .limit(10)
+      .getMany();
+
+    course.questions = questions;
+
+    await this.courseUserService.validateBoughtCourseByUser(userId, courseId);
+
+    return CourseDashBoardResponseDto.from(course);
   }
 
   async create(
@@ -206,9 +246,9 @@ export class CourseService {
       }
 
       // 카테고리 검증
-      await this.categoryService.validateCategoryWithTransaction(
+      await this.categoryService.validateCategoryOptionalTransaction(
         selectedCategoryIds,
-        queryRunner,
+        queryRunner.manager,
       );
 
       const course = queryRunner.manager.create(CourseEntity, {
@@ -219,7 +259,8 @@ export class CourseService {
 
       const result = await queryRunner.manager.save(CourseEntity, course);
 
-      await this.categoryCourseService.saveCategoryCourseRepo(
+      /** 강의 - 카테고리 중간테이블 저장 */
+      await this.categoryCourseService.linkCourseToCategories(
         selectedCategoryIds,
         result.id,
         queryRunner.manager,
@@ -266,9 +307,11 @@ export class CourseService {
     }
 
     if (selectedCategoryIds) {
-      await this.categoryService.validateCategory(selectedCategoryIds);
+      await this.categoryService.validateCategoryOptionalTransaction(
+        selectedCategoryIds,
+      );
 
-      await this.categoryCourseService.saveCategoryCourseRepo(
+      await this.categoryCourseService.updateCourseToCategories(
         selectedCategoryIds,
         existCourse.id,
       );
@@ -332,58 +375,41 @@ export class CourseService {
     }
   }
 
-  async addWish(courseId: string, user: UserEntity): Promise<void> {
-    const existCourse = await this.findOneByOptions({
-      where: { id: courseId },
-    });
+  async addOrCancelWish(courseId: string, userId: string): Promise<void> {
+    const [wishLiked, course] = await Promise.all([
+      this.isWishByUser(courseId, userId),
+      this.findOneByOptions({ where: { id: courseId } }),
+    ]);
 
-    if (!existCourse) {
-      throw new NotFoundException('해당 강의가 존재하지 않습니다.');
-    }
-
-    const isWished = await this.courseWishService.findOneByOptions({
-      where: {
-        fk_course_id: courseId,
-        fk_user_id: user.id,
-      },
-    });
-
-    if (!isWished) {
-      await this.courseWishService.addWish(courseId, user.id);
-      await this.courseRepository.update(
-        { id: courseId },
-        { wishCount: existCourse.wishCount + 1 },
+    if (!course) {
+      throw new NotFoundException(
+        `해당 강의ID:${courseId}가 존재하지 않습니다.`,
       );
-    } else {
-      return;
     }
+
+    await this.courseWishService.toggleCourseWishStatus(
+      courseId,
+      userId,
+      wishLiked,
+    );
   }
 
-  async cancelWish(courseId: string, user: UserEntity): Promise<void> {
-    const existCourse = await this.findOneByOptions({
-      where: { id: courseId },
-    });
-
-    if (!existCourse) {
-      throw new NotFoundException('해당 강의가 존재하지 않습니다.');
-    }
-
-    const isWished = await this.courseWishService.findOneByOptions({
+  private async isWishByUser(
+    courseId: string,
+    userId: string,
+  ): Promise<boolean> {
+    const isWish = await this.courseWishService.findOneByOptions({
       where: {
         fk_course_id: courseId,
-        fk_user_id: user.id,
+        fk_user_id: userId,
       },
     });
 
-    if (isWished) {
-      await this.courseWishService.cancelWish(courseId, user.id);
-      await this.courseRepository.update(
-        { id: courseId },
-        { wishCount: existCourse.wishCount - 1 },
-      );
-    } else {
-      return;
+    if (isWish) {
+      return true;
     }
+
+    return false;
   }
 
   async delete(courseId: string, user: UserEntity): Promise<boolean> {
