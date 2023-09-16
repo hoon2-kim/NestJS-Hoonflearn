@@ -27,7 +27,7 @@ export class InstructorQuestionQueryDto extends PageOptionDto {
   @ApiPropertyOptional({
     enum: EInstructorQuestionSortBy,
     enumName: 'EInstructorQuestionSortBy',
-    description: '최신순/최근답변순/좋아요순/오래된순',
+    description: '최신순/최근답변순/투표(추천)많은순/오래된순',
   })
   @IsOptional()
   @IsEnum(EInstructorQuestionSortBy)

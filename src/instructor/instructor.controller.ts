@@ -43,7 +43,7 @@ export class InstructorController {
   @Get('/courses')
   @Roles(ERoleType.Instructor)
   @UseGuards(AtGuard, RoleGuard)
-  async findMyCourses(
+  findMyCourses(
     @Query() instructorCourseQueryDto: InstructorCourseQueryDto,
     @CurrentUser() user: UserEntity,
   ): Promise<PageDto<CourseListByInstructorResponseDto>> {
@@ -57,7 +57,7 @@ export class InstructorController {
   @Get('/questions')
   @Roles(ERoleType.Instructor)
   @UseGuards(AtGuard, RoleGuard)
-  async getQuestionsMyCourses(
+  getQuestionsMyCourses(
     @Query() instructorQuestionQueryDto: InstructorQuestionQueryDto,
     @CurrentUser() user: UserEntity,
   ): Promise<PageDto<QuestionListResponseDto>> {
@@ -71,7 +71,7 @@ export class InstructorController {
   @Get('/reviews')
   @Roles(ERoleType.Instructor)
   @UseGuards(AtGuard, RoleGuard)
-  async getReviewsMyCourses(
+  getReviewsMyCourses(
     @Query() instructorReviewQueryDto: InstructorReviewQueryDto,
     @CurrentUser() user: UserEntity,
   ): Promise<PageDto<ReviewResponseWithoutCommentDto>> {

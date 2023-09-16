@@ -8,7 +8,7 @@ export enum EInstructorQuestionStatusBy {
 export enum EInstructorQuestionSortBy {
   Recent = 'recent',
   Comment_Recent = 'comment_recent',
-  Like = 'like',
+  Vote = 'vote',
   Old = 'old',
 }
 

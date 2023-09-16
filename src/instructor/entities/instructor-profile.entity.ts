@@ -1,7 +1,9 @@
+import { Exclude } from 'class-transformer';
 import { UserEntity } from 'src/user/entities/user.entity';
 import {
   Column,
   CreateDateColumn,
+  DeleteDateColumn,
   Entity,
   JoinColumn,
   OneToOne,
@@ -30,13 +32,20 @@ export class InstructorProfileEntity {
   @Column({ nullable: true, comment: '나를 표현할 수 있는 링크' })
   link?: string;
 
+  @Exclude()
+  @Column({ type: 'uuid' })
+  fk_user_id: string;
+
   @CreateDateColumn({ type: 'timestamptz' })
   created_at: Date;
 
   @UpdateDateColumn({ type: 'timestamptz' })
   updated_at: Date;
 
-  @OneToOne(() => UserEntity, { onDelete: 'CASCADE' })
-  @JoinColumn()
+  @DeleteDateColumn({ type: 'timestamptz' })
+  deleted_at: Date | null;
+
+  @OneToOne(() => UserEntity)
+  @JoinColumn({ name: 'fk_user_id' })
   user: UserEntity;
 }

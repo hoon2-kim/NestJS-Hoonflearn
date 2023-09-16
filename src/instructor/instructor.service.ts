@@ -141,6 +141,7 @@ export class InstructorService {
 
     const isExistEmail = await this.instructorRepository.findOne({
       where: { contactEmail },
+      withDeleted: true,
     });
 
     if (isExistEmail) {
@@ -149,6 +150,7 @@ export class InstructorService {
 
     const isExistNameOrBusiness = await this.instructorRepository.findOne({
       where: { nameOrBusiness },
+      withDeleted: true,
     });
 
     if (isExistNameOrBusiness) {
@@ -184,13 +186,6 @@ export class InstructorService {
       rtHash,
       ERoleType.Instructor,
     );
-
-    // await this.userRepository
-    //   .createQueryBuilder('user')
-    //   .update(UserEntity)
-    //   .where('id = :userId', { userId: user.id })
-    //   .set({ role: RoleType.Instructor, hashedRt: rtHash })
-    //   .execute();
 
     res.cookie('refreshToken', newRt, {
       httpOnly: true,
