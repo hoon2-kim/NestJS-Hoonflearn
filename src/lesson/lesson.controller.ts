@@ -2,6 +2,7 @@ import {
   Body,
   Controller,
   Delete,
+  Get,
   Param,
   Patch,
   Post,
@@ -16,23 +17,35 @@ import { UserEntity } from 'src/user/entities/user.entity';
 import { ERoleType } from 'src/user/enums/user.enum';
 import { CreateLessonDto } from './dtos/request/create-lesson.dto';
 import { UpdateLessonDto } from './dtos/request/update-lesson.dto';
+import { LessonResponseDto } from './dtos/response/lesson.response.dto';
 import { LessonEntity } from './entities/lesson.entity';
 import { LessonService } from './lesson.service';
 import {
   ApiCreateLessonSwagger,
   ApiDeleteLessonSwagger,
   ApiUpdateLessonSwagger,
+  ApiViewLessonSwagger,
 } from './lesson.swagger';
 
 @ApiTags('LESSON')
-@Roles(ERoleType.Instructor)
-@UseGuards(AtGuard, RoleGuard)
 @Controller('lessons')
 export class LessonController {
   constructor(private readonly lessonService: LessonService) {}
 
+  @ApiViewLessonSwagger('해당 강의를 구매한 유저의 수업 보기')
+  @Get('/:lessonId')
+  @UseGuards(AtGuard)
+  viewLesson(
+    @Param('lessonId') lessonId: string,
+    @CurrentUser('id') userId: string,
+  ): Promise<LessonResponseDto> {
+    return this.lessonService.viewLesson(lessonId, userId);
+  }
+
   @ApiCreateLessonSwagger('수업 생성')
   @Post()
+  @Roles(ERoleType.Instructor)
+  @UseGuards(AtGuard, RoleGuard)
   createLesson(
     @Body() createLessonDto: CreateLessonDto,
     @CurrentUser() user: UserEntity,
@@ -42,6 +55,8 @@ export class LessonController {
 
   @ApiUpdateLessonSwagger('수업 수정')
   @Patch('/:lessonId')
+  @Roles(ERoleType.Instructor)
+  @UseGuards(AtGuard, RoleGuard)
   updateLesson(
     @Param('lessonId') lessonId: string,
     @Body() updateLessonDto: UpdateLessonDto,
@@ -52,6 +67,8 @@ export class LessonController {
 
   @ApiDeleteLessonSwagger('수업 삭제')
   @Delete('/:lessonId')
+  @Roles(ERoleType.Instructor)
+  @UseGuards(AtGuard, RoleGuard)
   deleteLesson(
     @Param('lessonId') lessonId: string, //
     @CurrentUser() user: UserEntity,

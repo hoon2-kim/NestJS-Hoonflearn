@@ -7,7 +7,7 @@ export interface IQuestionListResponse {
   id: string;
   title: string;
   questionStatus: EQuestionStatus;
-  likeCount: number;
+  voteCount: number;
   commentCount: number;
   views: number;
   created_at: Date;
@@ -20,11 +20,17 @@ export interface IQuestionDetailResponse {
   title: string;
   contents: string;
   questionStatus: EQuestionStatus;
-  likeCount: number;
+  voteCount: number;
   commentCount: number;
   views: number;
   created_at: Date;
   user: ISimpleUserResponse;
   course: ISimpleCourseResponse;
   comments: IQuestionCommentResponse[];
+}
+
+export interface ICourseDashboardQuestionResponse {
+  id: string;
+  title: string;
+  created_at: Date;
 }

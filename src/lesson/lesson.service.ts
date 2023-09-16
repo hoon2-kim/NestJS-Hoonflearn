@@ -1,11 +1,13 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { CourseService } from 'src/course/course.service';
+import { CourseUserService } from 'src/course_user/course-user.service';
 import { SectionService } from 'src/section/section.service';
 import { UserEntity } from 'src/user/entities/user.entity';
 import { EntityManager, FindOneOptions, Repository } from 'typeorm';
 import { CreateLessonDto } from './dtos/request/create-lesson.dto';
 import { UpdateLessonDto } from './dtos/request/update-lesson.dto';
+import { LessonResponseDto } from './dtos/response/lesson.response.dto';
 import { LessonEntity } from './entities/lesson.entity';
 
 @Injectable()
@@ -16,6 +18,7 @@ export class LessonService {
 
     private readonly sectionService: SectionService,
     private readonly courseService: CourseService,
+    private readonly courseUserService: CourseUserService,
   ) {}
 
   async findOneByOptions(
@@ -28,13 +31,30 @@ export class LessonService {
       ? (lesson = await transactionManager.findOne(LessonEntity, options))
       : (lesson = await this.lessonRepository.findOne(options));
 
-    // if (transactionManager) {
-    //   lesson = await transactionManager.findOne(LessonEntity, options);
-    // } else {
-    //   lesson = await this.lessonRepository.findOne(options);
-    // }
-
     return lesson;
+  }
+
+  async viewLesson(
+    lessonId: string,
+    userId: string,
+  ): Promise<LessonResponseDto> {
+    const lesson = await this.findOneByOptions({
+      where: { id: lessonId },
+      relations: {
+        video: true,
+      },
+    });
+
+    if (!lesson) {
+      throw new NotFoundException('해당 수업이 존재하지 않습니다.');
+    }
+
+    const courseId = await this.getCourseIdByLessonIdWithQueryBuilder(lessonId);
+
+    // 보안(강의를 구매한 유저 또는 해당 강의의 지식공유자는 접근 가능)
+    await this.courseUserService.validateBoughtCourseByUser(userId, courseId);
+
+    return LessonResponseDto.from(lesson);
   }
 
   async create(

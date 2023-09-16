@@ -5,7 +5,6 @@ import {
   Body,
   Param,
   UseGuards,
-  Render,
   Query,
 } from '@nestjs/common';
 import { OrderService } from './order.service';
@@ -13,7 +12,7 @@ import { CreateOrderDto } from './dtos/request/create-order.dto';
 import { AtGuard } from 'src/auth/guards/at.guard';
 import { CurrentUser } from 'src/auth/decorators/current-user.decorator';
 import { OrderListQueryDto } from './dtos/query/order-list.query.dto';
-import { ApiExcludeEndpoint, ApiTags } from '@nestjs/swagger';
+import { ApiTags } from '@nestjs/swagger';
 import {
   ApiCompleteOrderSwagger,
   ApiGetMyOrderDetailSwagger,
@@ -34,7 +33,7 @@ export class OrderController {
   @ApiGetMyOrdersSwagger('내 주문내역 조회')
   @Get()
   @UseGuards(AtGuard)
-  async findMyOrders(
+  findMyOrders(
     @Query() orderListQueryDto: OrderListQueryDto,
     @CurrentUser('id') userId: string,
   ): Promise<PageDto<OrdersResponseDto>> {
@@ -44,7 +43,7 @@ export class OrderController {
   @ApiGetMyOrderDetailSwagger('주문내역 상세 조회')
   @Get('/:orderId/detail')
   @UseGuards(AtGuard)
-  async findMyOrderDetail(
+  findMyOrderDetail(
     @Param('orderId') orderId: string,
     @CurrentUser('id') userId: string,
   ): Promise<OrderDetailResponseDto> {
@@ -54,7 +53,7 @@ export class OrderController {
   @ApiCompleteOrderSwagger('주문 완료')
   @Post('complete')
   @UseGuards(AtGuard)
-  async createOrder(
+  createOrder(
     @Body() createOrderDto: CreateOrderDto,
     @CurrentUser('id') userId: string,
   ): Promise<OrderEntity> {
