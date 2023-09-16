@@ -83,11 +83,13 @@ export const ApiCreateQuestionSwagger = (summary: string) => {
   );
 };
 
-export const ApiLikeQuestionSwagger = (summary: string) => {
+export const ApiVoteQuestionSwagger = (summary: string) => {
   return applyDecorators(
     ApiOperation({ summary }),
     ApiBearerAuth('access_token'),
-    ApiOkResponse({ description: '좋아요 성공 / 아무것도 반환 안함' }),
+    ApiCreatedResponse({
+      description: '투표(추천,비추천) 또는 투표 취소 성공',
+    }),
     ApiNotFoundResponse({ description: '해당 질문글이 존재하지 않을 경우' }),
     ApiUnauthorizedResponse({ description: '로그인 하지 않은 경우' }),
     ApiInternalServerErrorResponse({ description: '서버 오류' }),
@@ -131,17 +133,6 @@ export const ApiDeleteQuestionSwagger = (summary: string) => {
     ApiForbiddenResponse({
       description: '해당 질문글을 작성한 본인이 아닌 경우',
     }),
-    ApiUnauthorizedResponse({ description: '로그인 하지 않은 경우' }),
-    ApiInternalServerErrorResponse({ description: '서버 오류' }),
-  );
-};
-
-export const ApiCancelLikeQuestionSwagger = (summary: string) => {
-  return applyDecorators(
-    ApiOperation({ summary }),
-    ApiBearerAuth('access_token'),
-    ApiOkResponse({ description: '좋아요 취소 성공 / 아무것도 반환 안함' }),
-    ApiNotFoundResponse({ description: '해당 질문글이 존재하지 않을 경우' }),
     ApiUnauthorizedResponse({ description: '로그인 하지 않은 경우' }),
     ApiInternalServerErrorResponse({ description: '서버 오류' }),
   );

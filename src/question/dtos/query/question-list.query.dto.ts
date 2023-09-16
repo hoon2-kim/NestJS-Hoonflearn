@@ -21,7 +21,7 @@ export class QuestionListQueryDto extends PageOptionDto {
   @ApiPropertyOptional({
     enum: EQuestionSortBy,
     enumName: 'EQuestionSortBy',
-    description: '댓글많은순/좋아요순/최신순/오래된순',
+    description: '댓글많은순/투표(추천)많은순/최신순/오래된순',
   })
   @IsOptional()
   @IsEnum(EQuestionSortBy)

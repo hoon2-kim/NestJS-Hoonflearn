@@ -5,7 +5,7 @@ export enum EQuestionStatus {
 
 export enum EQuestionSortBy {
   Comment = 'comment',
-  Like = 'like',
+  Vote = 'vote',
   Recent = 'recent',
   Old = 'old',
 }

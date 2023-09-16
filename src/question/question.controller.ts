@@ -19,13 +19,12 @@ import { QuestionStatusDto } from './dtos/request/question-status.dto';
 import { QuestionListQueryDto } from './dtos/query/question-list.query.dto';
 import { ApiTags } from '@nestjs/swagger';
 import {
-  ApiCancelLikeQuestionSwagger,
   ApiCreateQuestionSwagger,
   ApiDeleteQuestionSwagger,
   ApiGetAllQuestionsSwagger,
   ApiGetQuestionsByCourseSwagger,
   ApiGetQuestionSwagger,
-  ApiLikeQuestionSwagger,
+  ApiVoteQuestionSwagger,
   ApiReactionQuestionSwagger,
   ApiUpdateQuestionSwagger,
 } from './question.swagger';
@@ -35,6 +34,7 @@ import {
   QuestionListResponseDto,
 } from './dtos/response/question.response.dto';
 import { QuestionEntity } from './entities/question.entity';
+import { QuestionVoteDto } from './dtos/request/question-vote.dto';
 
 @ApiTags('QUESTION')
 @Controller('questions')
@@ -43,10 +43,10 @@ export class QuestionController {
 
   @ApiGetAllQuestionsSwagger('모든 질문글 조회')
   @Get()
-  async findAllQuestions(
+  findAllQuestions(
     @Query() questionListQueryDto: QuestionListQueryDto, //
   ): Promise<PageDto<QuestionListResponseDto>> {
-    return await this.questionService.findAll(questionListQueryDto);
+    return this.questionService.findAll(questionListQueryDto);
   }
 
   @ApiGetQuestionsByCourseSwagger('해당 강의의 모든 질문글 조회')
@@ -76,14 +76,19 @@ export class QuestionController {
     return this.questionService.create(createQuestionDto, userId);
   }
 
-  @ApiLikeQuestionSwagger('질문글 좋아요')
-  @Post('/:questionId/like')
+  @ApiVoteQuestionSwagger('질문글 투표(추천/비추천) 또는 투표 취소')
+  @Post('/:questionId/vote')
   @UseGuards(AtGuard)
-  addLikeReview(
+  updateQuestionVoteStatus(
     @Param('questionId') questionId: string,
     @CurrentUser('id') userId: string,
+    @Body() questionVoteDto: QuestionVoteDto,
   ): Promise<void> {
-    return this.questionService.addLike(questionId, userId);
+    return this.questionService.updateVoteStatus(
+      questionId,
+      userId,
+      questionVoteDto,
+    );
   }
 
   @ApiUpdateQuestionSwagger('질문글 수정')
@@ -115,15 +120,5 @@ export class QuestionController {
     @CurrentUser('id') userId: string,
   ): Promise<boolean> {
     return this.questionService.delete(questionId, userId);
-  }
-
-  @ApiCancelLikeQuestionSwagger('질문글 좋아요 취소')
-  @Delete('/:questionId/like')
-  @UseGuards(AtGuard)
-  cancelLikeReview(
-    @Param('questionId') questionId: string,
-    @CurrentUser('id') userId: string,
-  ): Promise<void> {
-    return this.questionService.cancelLike(questionId, userId);
   }
 }

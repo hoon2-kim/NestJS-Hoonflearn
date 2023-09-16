@@ -33,7 +33,7 @@ export class QuestionEntity {
   questionStatus: EQuestionStatus;
 
   @Column({ type: 'int', default: 0 })
-  likeCount: number;
+  voteCount: number;
 
   @Column({ type: 'int', default: 0 })
   views: number;
@@ -55,7 +55,10 @@ export class QuestionEntity {
   @UpdateDateColumn({ type: 'timestamptz' })
   updated_at: Date;
 
-  @ManyToOne(() => CourseEntity, { onDelete: 'SET NULL', nullable: true })
+  @ManyToOne(() => CourseEntity, (course) => course.questions, {
+    onDelete: 'SET NULL',
+    nullable: true,
+  })
   @JoinColumn({ name: 'fk_course_id' })
   course: CourseEntity;
 

@@ -6,7 +6,7 @@ import { PageMetaDto } from 'src/common/dtos/page-meta.dto';
 import { PageDto } from 'src/common/dtos/page.dto';
 import { CourseService } from 'src/course/course.service';
 import { CourseUserService } from 'src/course_user/course-user.service';
-import { QuestionLikeService } from 'src/question-like/question-like.service';
+import { QuestionVoteService } from 'src/question-vote/question-vote.service';
 import { UserQuestionQueryDto } from 'src/user/dtos/query/user.query.dto';
 import { FindOneOptions, Repository } from 'typeorm';
 import { CreateQuestionDto } from './dtos/request/create-question.dto';
@@ -24,6 +24,11 @@ import {
   EInstructorQuestionSortBy,
   EInstructorQuestionStatusBy,
 } from 'src/instructor/enums/instructor.enum';
+import { EventEmitter2 } from '@nestjs/event-emitter';
+import { QuestionHitEvent } from './events/question-hit.event';
+import { QUESTION_HIT_EVENT } from './listeners/question-hit.listener';
+import { QuestionVoteDto } from './dtos/request/question-vote.dto';
+import { EQuestionVoteDtoType } from 'src/question-vote/enums/question-vote.enum';
 
 @Injectable()
 export class QuestionService {
@@ -32,8 +37,9 @@ export class QuestionService {
     private readonly questionRepository: Repository<QuestionEntity>,
 
     private readonly courseService: CourseService,
-    private readonly questionLikeService: QuestionLikeService,
+    private readonly questionVoteService: QuestionVoteService,
     private readonly courseUserService: CourseUserService,
+    private readonly eventEmitter: EventEmitter2,
   ) {}
 
   async findAll(
@@ -55,8 +61,8 @@ export class QuestionService {
     if (sort) {
       if (sort === EQuestionSortBy.Comment) {
         query.orderBy('question.commetCount', 'DESC');
-      } else if (sort === EQuestionSortBy.Like) {
-        query.orderBy('question.likeCount', 'DESC');
+      } else if (sort === EQuestionSortBy.Vote) {
+        query.orderBy('question.voteCount', 'DESC');
         query.addOrderBy('question.created_at', 'DESC');
       } else if (sort === EQuestionSortBy.Recent) {
         query.orderBy('question.created_at', 'DESC');
@@ -139,7 +145,7 @@ export class QuestionService {
       .leftJoinAndSelect('comment.reComments', 're')
       .leftJoinAndSelect('re.user', 'reUser')
       .where('question.id = :questionId', { questionId })
-      .andWhere(
+      .orWhere(
         'comment.fk_question_id = :questionId AND comment.fk_question_comment_parentId IS NULL',
         { questionId },
       )
@@ -148,13 +154,15 @@ export class QuestionService {
       .getOne();
 
     if (!question) {
-      throw new NotFoundException('해당 질문글이 존재하지 않습니다.');
+      throw new NotFoundException(
+        `해당 ${questionId}의 질문글이 존재하지 않습니다.`,
+      );
     }
 
-    // 조회수
-    await this.questionRepository.update(
-      { id: questionId },
-      { views: question.views + 1 },
+    // 조회수 이벤트
+    this.eventEmitter.emit(
+      QUESTION_HIT_EVENT,
+      new QuestionHitEvent(questionId),
     );
 
     return QuestionDetailResponseDto.from(question);
@@ -232,9 +240,9 @@ export class QuestionService {
         query.orderBy('question.created_at', 'ASC');
         break;
 
-      case EInstructorQuestionSortBy.Like:
+      case EInstructorQuestionSortBy.Vote:
         query
-          .orderBy('question.likeCount', 'DESC')
+          .orderBy('question.voteCount', 'DESC')
           .addOrderBy('question.created_at', 'DESC');
         break;
 
@@ -324,33 +332,6 @@ export class QuestionService {
     return newQuestion;
   }
 
-  async addLike(questionId: string, userId: string): Promise<void> {
-    const question = await this.findOneByOptions({
-      where: { id: questionId },
-    });
-
-    if (!question) {
-      throw new NotFoundException('해당 질문글이 존재하지 않습니다.');
-    }
-
-    const isLike = await this.questionLikeService.findOneByOptions({
-      where: {
-        fk_question_id: questionId,
-        fk_user_id: userId,
-      },
-    });
-
-    if (!isLike) {
-      await this.questionLikeService.addQuestionLike(questionId, userId);
-      await this.questionRepository.update(
-        { id: questionId },
-        { likeCount: question.likeCount + 1 },
-      );
-    } else if (isLike) {
-      return;
-    }
-  }
-
   async update(
     questionId: string,
     updateQuestionDto: UpdateQuestionDto,
@@ -427,36 +408,25 @@ export class QuestionService {
     return result.affected ? true : false;
   }
 
-  async cancelLike(questionId: string, userId: string): Promise<void> {
-    const question = await this.findOneByOptions({
-      where: { id: questionId },
+  async calculateQuestionCountByCourseId(courseId: string): Promise<number> {
+    return await this.questionRepository.count({
+      where: { fk_course_id: courseId },
     });
+  }
+
+  async updateVoteStatus(
+    questionId: string,
+    userId: string,
+    questionVoteDto: QuestionVoteDto,
+  ) {
+    const { vote } = questionVoteDto;
+
+    const question = await this.findOneByOptions({ where: { id: questionId } });
 
     if (!question) {
       throw new NotFoundException('해당 질문글이 존재하지 않습니다.');
     }
 
-    const isLike = await this.questionLikeService.findOneByOptions({
-      where: {
-        fk_question_id: questionId,
-        fk_user_id: userId,
-      },
-    });
-
-    if (isLike) {
-      await this.questionLikeService.cancelQuestionLike(questionId, userId);
-      await this.questionRepository.update(
-        { id: questionId },
-        { likeCount: question.likeCount - 1 },
-      );
-    } else if (!isLike) {
-      return;
-    }
-  }
-
-  async calculateQuestionCountByCourseId(courseId: string): Promise<number> {
-    return await this.questionRepository.count({
-      where: { fk_course_id: courseId },
-    });
+    await this.questionVoteService.handleVoteUpdate(questionId, userId, vote);
   }
 }
