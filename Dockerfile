@@ -32,6 +32,6 @@ EXPOSE 8080
 # Run app
 CMD [ "node","dist/main" ]
 
-# Example Commands to buuild and run the dockerfile
+# Example Commands to buuild and run the dockerfile (without docker-compose)
 # docker build -t 이름 .
 # docker run 이름

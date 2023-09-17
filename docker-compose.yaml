@@ -10,12 +10,12 @@ services:
       target: development
     env_file: .env
     volumes:
-      - .:/usr/src/app
-      - /usr/src/app/node_modules # 컨테이너 내부의 node_modules 보호
+      - .:/usr/src/app # 호스트와 컨테이너의 파일 공유 - 핫 리로딩을 위해서(개발 단계)
+      - /usr/src/app/node_modules # 호스트와 컨테이너 node_modules 격리(운영체제나 환경이 다를 수 있으므로)
     # 개발 환경에서만
     command: yarn start:dev
     ports:
-      - ${SERVER_PORT}:${SERVER_PORT}
+      - 8080:8080
     restart: always
     depends_on:
       - postgres
@@ -34,5 +34,13 @@ services:
     volumes:
       - ./postgres:/var/lib/postgresql/data
 
-volumes:
-  postgres:
+  redis:
+    container_name: hoonflearn_redis
+    image: redis
+    ports:
+      - 6379:6379
+    env_file: .env
+    volumes:
+      - ./redis/data:/data
+# volumes:
+#   postgres:
