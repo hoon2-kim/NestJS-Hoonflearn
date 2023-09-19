@@ -1,14 +1,22 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { AwsS3Service } from 'src/aws-s3/aws-s3.service';
 import { CourseService } from 'src/course/course.service';
+import { CourseEntity } from 'src/course/entities/course.entity';
 import { CourseUserService } from 'src/course_user/course-user.service';
+import { SectionEntity } from 'src/section/entities/section.entity';
 import { SectionService } from 'src/section/section.service';
-import { UserEntity } from 'src/user/entities/user.entity';
-import { EntityManager, FindOneOptions, Repository } from 'typeorm';
+import {
+  DeleteResult,
+  EntityManager,
+  FindOneOptions,
+  Repository,
+} from 'typeorm';
 import { CreateLessonDto } from './dtos/request/create-lesson.dto';
 import { UpdateLessonDto } from './dtos/request/update-lesson.dto';
 import { LessonResponseDto } from './dtos/response/lesson.response.dto';
 import { LessonEntity } from './entities/lesson.entity';
+import { ELessonAction } from './enums/lesson.enum';
 
 @Injectable()
 export class LessonService {
@@ -19,6 +27,7 @@ export class LessonService {
     private readonly sectionService: SectionService,
     private readonly courseService: CourseService,
     private readonly courseUserService: CourseUserService,
+    private readonly awsS3Service: AwsS3Service,
   ) {}
 
   async findOneByOptions(
@@ -51,7 +60,7 @@ export class LessonService {
 
     const courseId = await this.getCourseIdByLessonIdWithQueryBuilder(lessonId);
 
-    // 보안(강의를 구매한 유저 또는 해당 강의의 지식공유자는 접근 가능)
+    // 보안(강의를 구매한 유저만 접근 가능) , TODO : 강의를 만든 지식공유자는 접근가능하게 하기
     await this.courseUserService.validateBoughtCourseByUser(userId, courseId);
 
     return LessonResponseDto.from(lesson);
@@ -59,7 +68,7 @@ export class LessonService {
 
   async create(
     createLessonDto: CreateLessonDto,
-    user: UserEntity,
+    userId: string,
   ): Promise<LessonEntity> {
     const { sectionId } = createLessonDto;
 
@@ -71,23 +80,30 @@ export class LessonService {
       throw new NotFoundException('해당 섹션이 존재하지 않습니다.');
     }
 
-    const courseId =
-      await this.sectionService.getCourseIdBySectionIdWithQueryBuilder(
+    const courseId = section.fk_course_id;
+
+    await this.courseService.validateInstructor(courseId, userId);
+
+    let lesson: LessonEntity;
+
+    await this.lessonRepository.manager.transaction(async (manager) => {
+      lesson = await manager.save(LessonEntity, {
+        ...createLessonDto,
+        fk_section_id: sectionId,
+      });
+
+      await this.sectionService.updateLessonCountInSection(
         sectionId,
+        ELessonAction.Create,
+        manager,
       );
 
-    await this.courseService.validateInstructor(courseId, user.id);
-
-    const lesson = await this.lessonRepository.save({
-      ...createLessonDto,
-      fk_section_id: sectionId,
+      await this.courseService.updateTotalLessonCountInCourse(
+        section?.fk_course_id,
+        ELessonAction.Create,
+        manager,
+      );
     });
-
-    await this.sectionService.updateLessonCountInSection(sectionId, true);
-    await this.courseService.updateTotalLessonCountInCourse(
-      section.fk_course_id,
-      true,
-    );
 
     return lesson;
   }
@@ -95,7 +111,7 @@ export class LessonService {
   async update(
     lessonId: string,
     updateLessonDto: UpdateLessonDto,
-    user: UserEntity,
+    userId: string,
   ): Promise<void> {
     const lesson = await this.findOneByOptions({
       where: { id: lessonId },
@@ -107,16 +123,17 @@ export class LessonService {
 
     const courseId = await this.getCourseIdByLessonIdWithQueryBuilder(lessonId);
 
-    await this.courseService.validateInstructor(courseId, user.id);
+    await this.courseService.validateInstructor(courseId, userId);
 
     Object.assign(lesson, updateLessonDto);
 
     await this.lessonRepository.save(lesson);
   }
 
-  async delete(lessonId: string, user: UserEntity): Promise<boolean> {
+  async delete(lessonId: string, userId: string): Promise<boolean> {
     const lesson = await this.findOneByOptions({
       where: { id: lessonId },
+      relations: ['video'],
     });
 
     if (!lesson) {
@@ -125,21 +142,44 @@ export class LessonService {
 
     const courseId = await this.getCourseIdByLessonIdWithQueryBuilder(lessonId);
 
-    await this.courseService.validateInstructor(courseId, user.id);
+    await this.courseService.validateInstructor(courseId, userId);
 
-    const updateLessonCount =
+    let result: DeleteResult;
+
+    await this.lessonRepository.manager.transaction(async (manager) => {
       await this.sectionService.updateLessonCountInSection(
         lesson.fk_section_id,
-        false,
+        ELessonAction.Delete,
+        manager,
       );
-    await this.courseService.updateTotalLessonCountInCourse(
-      updateLessonCount.fk_course_id,
-      false,
-    );
+      await this.courseService.updateTotalLessonCountInCourse(
+        courseId,
+        ELessonAction.Delete,
+        manager,
+      );
 
-    const result = await this.lessonRepository.delete({ id: lessonId });
+      if (lesson.video) {
+        const url = lesson.video.videoUrl;
+        const parsedUrl = new URL(url);
+        const fileKey = decodeURIComponent(parsedUrl.pathname.substring(1));
 
-    //TODO : 영상 삭제
+        await this.awsS3Service.deleteS3Object(fileKey);
+        await manager.decrement(
+          SectionEntity,
+          { id: lesson.fk_section_id },
+          'totalSectionTime',
+          lesson.video.videoTime,
+        );
+        await manager.decrement(
+          CourseEntity,
+          { id: courseId },
+          'totalVideosTime',
+          lesson.video.videoTime,
+        );
+      }
+
+      result = await manager.delete(LessonEntity, { id: lessonId });
+    });
 
     return result.affected ? true : false;
   }
@@ -163,6 +203,6 @@ export class LessonService {
 
     const lesson = await queryBuilder.getOne();
 
-    return lesson?.section?.fk_course_id;
+    return lesson.section.fk_course_id;
   }
 }

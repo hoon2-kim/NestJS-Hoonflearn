@@ -78,16 +78,20 @@ export class CourseUserService {
   async saveFreeCourseUserRepo(
     courseId: string,
     userId: string,
+    manager: EntityManager,
   ): Promise<CourseUserEntity> {
-    return await this.courseUserRepository.save({
+    return await manager.save(CourseUserEntity, {
       fk_course_id: courseId,
       fk_user_id: userId,
       type: ECouresUserType.Free,
     });
   }
 
-  async cancelFreeCourseUserRepo(courseUserId: string): Promise<DeleteResult> {
-    return await this.courseUserRepository.delete({ id: courseUserId });
+  async cancelFreeCourseUserRepo(
+    courseUserId: string,
+    manager: EntityManager,
+  ): Promise<DeleteResult> {
+    return await manager.delete(CourseUserEntity, { id: courseUserId });
   }
 
   async validateBoughtCourseByUser(

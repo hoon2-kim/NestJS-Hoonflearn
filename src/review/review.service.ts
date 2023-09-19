@@ -106,7 +106,6 @@ export class ReviewService {
     createReviewDto: CreateReviewDto,
     userId: string,
   ): Promise<ReviewEntity> {
-    // 트랜잭션 해야할까(나중에 동시성 테스트 해보자)
     const { courseId, rating, contents } = createReviewDto;
 
     const course = await this.courseService.findOneByOptions({
@@ -131,25 +130,29 @@ export class ReviewService {
     // 강의 구매 했는지
     await this.courseUserService.validateBoughtCourseByUser(userId, courseId);
 
-    // 별점
-    const prevReviewCount = course.reviewCount;
-    const averageCal =
-      (course.averageRating * prevReviewCount + rating) / (prevReviewCount + 1);
+    return await this.reviewRepository.manager.transaction(async (manager) => {
+      // 별점
+      const prevReviewCount = course.reviewCount;
+      const averageCal =
+        (course.averageRating * prevReviewCount + rating) /
+        (prevReviewCount + 1);
 
-    await this.courseService.courseReviewRatingUpdate(
-      course,
-      averageCal,
-      EReviewMethod.Create,
-    );
+      await this.courseService.courseReviewRatingUpdate(
+        course,
+        averageCal,
+        EReviewMethod.Create,
+        manager,
+      );
 
-    const result = await this.reviewRepository.save({
-      contents,
-      rating,
-      fk_course_id: courseId,
-      fk_user_id: userId,
+      const result = await manager.save(ReviewEntity, {
+        contents,
+        rating,
+        fk_course_id: courseId,
+        fk_user_id: userId,
+      });
+
+      return result;
     });
-
-    return result;
   }
 
   async update(
@@ -210,20 +213,23 @@ export class ReviewService {
       where: { id: review.fk_course_id },
     });
 
-    const newAverage =
-      (course.averageRating * course.reviewCount - review.rating) /
-        course.reviewCount -
-      1;
+    return await this.reviewRepository.manager.transaction(async (manager) => {
+      const newAverage =
+        (course.averageRating * course.reviewCount - review.rating) /
+          course.reviewCount -
+        1;
 
-    await this.courseService.courseReviewRatingUpdate(
-      course,
-      newAverage,
-      EReviewMethod.Delete,
-    );
+      await this.courseService.courseReviewRatingUpdate(
+        course,
+        newAverage,
+        EReviewMethod.Delete,
+        manager,
+      );
 
-    const result = await this.reviewRepository.delete({ id: reviewId });
+      const result = await manager.delete(ReviewEntity, { id: reviewId });
 
-    return result.affected ? true : false;
+      return result.affected ? true : false;
+    });
   }
 
   async addOrCancelLike(reviewId: string, userId: string): Promise<void> {

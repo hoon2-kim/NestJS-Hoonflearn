@@ -41,16 +41,10 @@ export class CategoryCourseService {
     selectedCategoryIds: CategoryIdsDto[],
     courseId: string,
   ): Promise<void> {
-    await this.categoryCourseRepository.manager.connection.transaction(
-      async (manager) => {
-        await manager.delete(CategoryCourseEntity, { fk_course_id: courseId });
+    await this.categoryCourseRepository.manager.transaction(async (manager) => {
+      await manager.delete(CategoryCourseEntity, { fk_course_id: courseId });
 
-        await this.linkCourseToCategories(
-          selectedCategoryIds,
-          courseId,
-          manager,
-        );
-      },
-    );
+      await this.linkCourseToCategories(selectedCategoryIds, courseId, manager);
+    });
   }
 }

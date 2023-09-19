@@ -103,7 +103,7 @@ export class QuestionController {
   }
 
   @ApiReactionQuestionSwagger('질문글의 해결/미해결 상태 바꾸기')
-  @Put('/:questionId/status')
+  @Patch('/:questionId/status')
   @UseGuards(AtGuard)
   reactionQuestionStatus(
     @Param('questionId') questionId: string,

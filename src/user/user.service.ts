@@ -153,14 +153,14 @@ export class UserService {
     await this.userRepository.save(user);
   }
 
-  async upload(user: UserEntity, file: Express.Multer.File): Promise<string> {
+  async upload(userId: string, file: Express.Multer.File): Promise<string> {
     const queryRunner = this.dataSource.createQueryRunner();
     await queryRunner.connect();
     await queryRunner.startTransaction();
 
     try {
       const userInfo = await queryRunner.manager.findOne(UserEntity, {
-        where: { id: user.id },
+        where: { id: userId },
       });
 
       if (userInfo.profileAvatar) {
@@ -171,13 +171,13 @@ export class UserService {
         await this.awsS3Service.deleteS3Object(fileKey);
       }
 
-      const folderName = `유저-${user.id}/프로필이미지`;
+      const folderName = `유저-${userId}/프로필이미지`;
 
       const s3upload = await this.awsS3Service.uploadFileToS3(folderName, file);
 
       await queryRunner.manager.update(
         UserEntity,
-        { id: user.id },
+        { id: userId },
         { profileAvatar: s3upload },
       );
 

@@ -5,12 +5,14 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { CartEntity } from './entities/cart.entity';
 import { CartCourseModule } from 'src/cart_course/cart_course.module';
 import { CourseModule } from 'src/course/course.module';
+import { CourseUserModule } from 'src/course_user/course-user.module';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([CartEntity]),
     CartCourseModule,
     CourseModule,
+    CourseUserModule,
   ],
   controllers: [CartController],
   providers: [CartService],

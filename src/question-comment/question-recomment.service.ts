@@ -18,13 +18,14 @@ export class QuestionRecommentService {
   ) {}
 
   async create(
+    commentId: string,
     createQuestionReCommentDto: CreateQuestionReCommentDto,
     userId: string,
   ): Promise<QuestionCommentEntity> {
-    const { parentId, contents } = createQuestionReCommentDto;
+    const { contents } = createQuestionReCommentDto;
 
     const isExistComment = await this.questionCommentRepository.findOne({
-      where: { id: parentId },
+      where: { id: commentId },
     });
 
     if (!isExistComment) {
@@ -36,7 +37,7 @@ export class QuestionRecommentService {
     const result = await this.questionCommentRepository.save({
       contents,
       fk_question_id: isExistComment.fk_question_id,
-      fk_question_comment_parentId: parentId,
+      fk_question_comment_parentId: commentId,
       fk_user_id: userId,
     });
 

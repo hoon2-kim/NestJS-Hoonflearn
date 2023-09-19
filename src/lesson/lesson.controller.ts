@@ -13,7 +13,6 @@ import { CurrentUser } from 'src/auth/decorators/current-user.decorator';
 import { Roles } from 'src/auth/decorators/role-protected.decorator';
 import { AtGuard } from 'src/auth/guards/at.guard';
 import { RoleGuard } from 'src/auth/guards/role.guard';
-import { UserEntity } from 'src/user/entities/user.entity';
 import { ERoleType } from 'src/user/enums/user.enum';
 import { CreateLessonDto } from './dtos/request/create-lesson.dto';
 import { UpdateLessonDto } from './dtos/request/update-lesson.dto';
@@ -48,9 +47,9 @@ export class LessonController {
   @UseGuards(AtGuard, RoleGuard)
   createLesson(
     @Body() createLessonDto: CreateLessonDto,
-    @CurrentUser() user: UserEntity,
+    @CurrentUser('id') userId: string,
   ): Promise<LessonEntity> {
-    return this.lessonService.create(createLessonDto, user);
+    return this.lessonService.create(createLessonDto, userId);
   }
 
   @ApiUpdateLessonSwagger('수업 수정')
@@ -60,9 +59,9 @@ export class LessonController {
   updateLesson(
     @Param('lessonId') lessonId: string,
     @Body() updateLessonDto: UpdateLessonDto,
-    @CurrentUser() user: UserEntity,
+    @CurrentUser('id') userId: string,
   ): Promise<void> {
-    return this.lessonService.update(lessonId, updateLessonDto, user);
+    return this.lessonService.update(lessonId, updateLessonDto, userId);
   }
 
   @ApiDeleteLessonSwagger('수업 삭제')
@@ -71,8 +70,8 @@ export class LessonController {
   @UseGuards(AtGuard, RoleGuard)
   deleteLesson(
     @Param('lessonId') lessonId: string, //
-    @CurrentUser() user: UserEntity,
+    @CurrentUser('id') userId: string,
   ): Promise<boolean> {
-    return this.lessonService.delete(lessonId, user);
+    return this.lessonService.delete(lessonId, userId);
   }
 }

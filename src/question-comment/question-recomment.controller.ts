@@ -22,7 +22,7 @@ import { QuestionRecommentService } from './question-recomment.service';
 
 @ApiTags('QUESTION-RE_COMMENT')
 @UseGuards(AtGuard)
-@Controller('re-comments')
+@Controller('')
 export class QuestionRecommentController {
   constructor(
     private readonly questionRecommentService: QuestionRecommentService,
@@ -31,19 +31,21 @@ export class QuestionRecommentController {
   @ApiCreateQuestionReCommentSwagger(
     '질문글 댓글의 대댓글 생성(대댓글까지만 가능)',
   )
-  @Post()
+  @Post('/comments/:commentId/re-comment')
   createQuestionReComment(
+    @Param('comentId') commentId: string,
     @Body() createQuestionReCommentDto: CreateQuestionReCommentDto,
     @CurrentUser('id') userId: string,
   ): Promise<QuestionCommentEntity> {
     return this.questionRecommentService.create(
+      commentId,
       createQuestionReCommentDto,
       userId,
     );
   }
 
   @ApiUpdateQuestionReCommentSwagger('대댓글 수정')
-  @Patch('/:reCommentId')
+  @Patch('/re-comment/:reCommentId')
   updateQuestionReComment(
     @Param('reCommentId') reCommentId: string,
     @Body() updateQuestionReCommentDto: UpdateQuestionReCommentDto,
@@ -57,7 +59,7 @@ export class QuestionRecommentController {
   }
 
   @ApiDeleteQuestionReCommentSwagger('대댓글 삭제')
-  @Delete('/:reCommentId')
+  @Delete('/re-comment/:reCommentId')
   deleteQuestionReComment(
     @Param('reCommentId') reCommentId: string,
     @CurrentUser('id') userId: string,

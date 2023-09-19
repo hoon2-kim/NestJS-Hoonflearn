@@ -6,6 +6,7 @@ import { LessonEntity } from './entities/lesson.entity';
 import { CourseModule } from '../course/course.module';
 import { SectionModule } from 'src/section/section.module';
 import { CourseUserModule } from 'src/course_user/course-user.module';
+import { AwsS3Module } from 'src/aws-s3/aws-s3.module';
 
 @Module({
   imports: [
@@ -13,6 +14,7 @@ import { CourseUserModule } from 'src/course_user/course-user.module';
     SectionModule,
     CourseModule,
     CourseUserModule,
+    AwsS3Module,
   ],
   controllers: [LessonController],
   providers: [LessonService],

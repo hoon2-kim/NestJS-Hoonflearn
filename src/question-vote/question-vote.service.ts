@@ -68,21 +68,19 @@ export class QuestionVoteService {
     newVote: EQuestionVoteDtoType,
     changeVoteCount: number,
   ) {
-    await this.questionVoteRepository.manager.connection.transaction(
-      async (manager) => {
-        await manager.update(
-          QuestionVoteEntity,
-          { fk_question_id: qestionId, fk_user_id: userId },
-          { voteType: newVote as unknown as EQuestionVoteType },
-        );
-        await manager.increment(
-          QuestionEntity,
-          { id: qestionId },
-          'voteCount',
-          changeVoteCount,
-        );
-      },
-    );
+    await this.questionVoteRepository.manager.transaction(async (manager) => {
+      await manager.update(
+        QuestionVoteEntity,
+        { fk_question_id: qestionId, fk_user_id: userId },
+        { voteType: newVote as unknown as EQuestionVoteType },
+      );
+      await manager.increment(
+        QuestionEntity,
+        { id: qestionId },
+        'voteCount',
+        changeVoteCount,
+      );
+    });
   }
 
   async addVote(
@@ -91,21 +89,19 @@ export class QuestionVoteService {
     newVote: EQuestionVoteDtoType,
     changeVoteCount: number,
   ) {
-    await this.questionVoteRepository.manager.connection.transaction(
-      async (manager) => {
-        await manager.save(QuestionVoteEntity, {
-          fk_question_id: qestionId,
-          fk_user_id: userId,
-          voteType: newVote as unknown as EQuestionVoteType,
-        });
-        await manager.increment(
-          QuestionEntity,
-          { id: qestionId },
-          'voteCount',
-          changeVoteCount,
-        );
-      },
-    );
+    await this.questionVoteRepository.manager.transaction(async (manager) => {
+      await manager.save(QuestionVoteEntity, {
+        fk_question_id: qestionId,
+        fk_user_id: userId,
+        voteType: newVote as unknown as EQuestionVoteType,
+      });
+      await manager.increment(
+        QuestionEntity,
+        { id: qestionId },
+        'voteCount',
+        changeVoteCount,
+      );
+    });
   }
 
   async deleteVote(
@@ -117,29 +113,27 @@ export class QuestionVoteService {
       return;
     }
 
-    await this.questionVoteRepository.manager.connection.transaction(
-      async (manager) => {
-        await manager.delete(QuestionVoteEntity, {
-          fk_question_id: qestionId,
-          fk_user_id: userId,
-        });
+    await this.questionVoteRepository.manager.transaction(async (manager) => {
+      await manager.delete(QuestionVoteEntity, {
+        fk_question_id: qestionId,
+        fk_user_id: userId,
+      });
 
-        if (currentVote === EQuestionVoteType.UPVOTE) {
-          await manager.decrement(
-            QuestionEntity,
-            { id: qestionId },
-            'voteCount',
-            1,
-          );
-        } else if (currentVote === EQuestionVoteType.DOWNVOTE) {
-          await manager.increment(
-            QuestionEntity,
-            { id: qestionId },
-            'voteCount',
-            1,
-          );
-        }
-      },
-    );
+      if (currentVote === EQuestionVoteType.UPVOTE) {
+        await manager.decrement(
+          QuestionEntity,
+          { id: qestionId },
+          'voteCount',
+          1,
+        );
+      } else if (currentVote === EQuestionVoteType.DOWNVOTE) {
+        await manager.increment(
+          QuestionEntity,
+          { id: qestionId },
+          'voteCount',
+          1,
+        );
+      }
+    });
   }
 }

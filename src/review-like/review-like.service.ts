@@ -26,31 +26,24 @@ export class ReviewLikeService {
     isLike: boolean,
   ): Promise<void> {
     // 콜백기반의 트랜잭션 처리 - 간단한 트랜잭션 로직에 사용
-    await this.reviewLikeRepository.manager.connection.transaction(
-      async (manager) => {
-        if (isLike) {
-          await manager.delete(ReviewLikeEntity, {
-            fk_review_id: reviewId,
-            fk_user_id: userId,
-          });
-
-          await manager.decrement(
-            ReviewEntity,
-            { id: reviewId },
-            'likeCount',
-            1,
-          );
-
-          return;
-        }
-
-        await manager.save(ReviewLikeEntity, {
+    await this.reviewLikeRepository.manager.transaction(async (manager) => {
+      if (isLike) {
+        await manager.delete(ReviewLikeEntity, {
           fk_review_id: reviewId,
           fk_user_id: userId,
         });
 
-        await manager.increment(ReviewEntity, { id: reviewId }, 'likeCount', 1);
-      },
-    );
+        await manager.decrement(ReviewEntity, { id: reviewId }, 'likeCount', 1);
+
+        return;
+      }
+
+      await manager.save(ReviewLikeEntity, {
+        fk_review_id: reviewId,
+        fk_user_id: userId,
+      });
+
+      await manager.increment(ReviewEntity, { id: reviewId }, 'likeCount', 1);
+    });
   }
 }

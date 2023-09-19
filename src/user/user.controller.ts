@@ -38,6 +38,7 @@ import { CourseWishListResponseDto } from 'src/course_wish/dtos/response/course-
 import { PageDto } from 'src/common/dtos/page.dto';
 import { QuestionListResponseDto } from 'src/question/dtos/response/question.response.dto';
 import { CourseUserListResponseDto } from 'src/course_user/dtos/response/course-user.response.dto';
+import { imageFileFilter } from 'src/common/helpers/fileFilter.helper';
 
 @ApiTags('USER')
 @Controller('users')
@@ -104,16 +105,21 @@ export class UserController {
   @ApiUploadUserAvataSwagger('유저 프로필 이미지 업로드')
   @Patch('/profile/avatar')
   @UseGuards(AtGuard)
-  @UseInterceptors(FileInterceptor('avatar'))
+  @UseInterceptors(
+    FileInterceptor('avatar', {
+      limits: { fileSize: 1024 * 1024 },
+      fileFilter: imageFileFilter,
+    }),
+  )
   uploadUserAvatar(
-    @CurrentUser() user: UserEntity,
+    @CurrentUser('id') userId: string,
     @UploadedFile() file: Express.Multer.File,
   ): Promise<string> {
     if (!file) {
       throw new BadRequestException('파일이 없습니다.');
     }
 
-    return this.userService.upload(user, file);
+    return this.userService.upload(userId, file);
   }
 
   @ApiWithdrawalUserSwagger('유저 회원 탈퇴')

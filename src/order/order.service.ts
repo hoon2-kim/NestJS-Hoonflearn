@@ -16,12 +16,13 @@ import { CreateOrderDto } from './dtos/request/create-order.dto';
 import { OrderListQueryDto } from './dtos/query/order-list.query.dto';
 import { OrderEntity } from './entities/order.entity';
 import { IamportService } from './iamport.service';
-import { EOrderStatus } from './enums/order.enum';
+import { EOrderAction, EOrderStatus } from './enums/order.enum';
 import { ICoursesTotalPrice } from 'src/course/interfaces/course.interface';
 import {
   OrderDetailResponseDto,
   OrdersResponseDto,
 } from './dtos/response/order.response.dto';
+import { CourseService } from 'src/course/course.service';
 
 @Injectable()
 export class OrderService {
@@ -34,6 +35,7 @@ export class OrderService {
     private readonly orderCourseService: OrderCourseService,
     private readonly cartService: CartService,
     private readonly courseUserService: CourseUserService,
+    private readonly courseService: CourseService,
   ) {}
 
   async findOrders(
@@ -126,8 +128,8 @@ export class OrderService {
       }
 
       const orderName = await this.generateOrderName(
-        validateCourses[0]?.title,
-        validateCourses?.length,
+        validateCourses[0].title,
+        validateCourses.length,
       );
 
       // 주문정보 저장
@@ -154,6 +156,13 @@ export class OrderService {
       await this.courseUserService.saveCourseUserRepo(
         courseIds,
         userId,
+        queryRunner.manager,
+      );
+
+      // 학생수 업데이트
+      await this.courseService.updateCourseStudents(
+        courseIds,
+        EOrderAction.Create,
         queryRunner.manager,
       );
 

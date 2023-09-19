@@ -92,31 +92,24 @@ export class CourseWishService {
     userId: string,
     isWish: boolean,
   ): Promise<void> {
-    await this.courseWishRepository.manager.connection.transaction(
-      async (manager) => {
-        if (isWish) {
-          await manager.delete(CourseWishEntity, {
-            fk_course_id: courseId,
-            fk_user_id: userId,
-          });
-
-          await manager.decrement(
-            CourseEntity,
-            { id: courseId },
-            'wishCount',
-            1,
-          );
-
-          return;
-        }
-
-        await manager.save(CourseWishEntity, {
+    await this.courseWishRepository.manager.transaction(async (manager) => {
+      if (isWish) {
+        await manager.delete(CourseWishEntity, {
           fk_course_id: courseId,
           fk_user_id: userId,
         });
 
-        await manager.increment(CourseEntity, { id: courseId }, 'wishCount', 1);
-      },
-    );
+        await manager.decrement(CourseEntity, { id: courseId }, 'wishCount', 1);
+
+        return;
+      }
+
+      await manager.save(CourseWishEntity, {
+        fk_course_id: courseId,
+        fk_user_id: userId,
+      });
+
+      await manager.increment(CourseEntity, { id: courseId }, 'wishCount', 1);
+    });
   }
 }

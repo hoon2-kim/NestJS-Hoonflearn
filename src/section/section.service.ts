@@ -1,12 +1,15 @@
-import { ForbiddenException } from '@nestjs/common';
+import { BadRequestException, ForbiddenException } from '@nestjs/common';
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { CourseService } from 'src/course/course.service';
+import { ELessonAction } from 'src/lesson/enums/lesson.enum';
 import { UserEntity } from 'src/user/entities/user.entity';
-import { FindOneOptions, Repository } from 'typeorm';
+import { EntityManager, FindOneOptions, Repository } from 'typeorm';
 import { CreateSectionDto } from './dtos/request/create-section.dto';
 import { UpdateSectionDto } from './dtos/request/update-section.dto';
 import { SectionEntity } from './entities/section.entity';
+
+const LESSON_UPDATE_VALUE_INSECTION = 1;
 
 @Injectable()
 export class SectionService {
@@ -90,40 +93,32 @@ export class SectionService {
     return result.affected ? true : false;
   }
 
-  async getCourseIdBySectionIdWithQueryBuilder(
-    sectionId: string,
-  ): Promise<string> {
-    const section = await this.sectionRepository
-      .createQueryBuilder('section')
-      .where('section.id = :sectionId', { sectionId })
-      .select(['section.id', 'section.fk_course_id'])
-      .getOne();
-
-    return section?.fk_course_id;
-  }
-
   async updateLessonCountInSection(
     sectionId: string,
-    isCreate: boolean,
-  ): Promise<SectionEntity> {
-    const section = await this.findOneByOptions({
-      where: { id: sectionId },
-    });
-
-    if (!section) {
-      throw new NotFoundException('섹션이 존재하지 않습니다.');
-    }
-
-    isCreate
-      ? await this.sectionRepository.update(
+    action: ELessonAction,
+    manager: EntityManager,
+  ): Promise<void> {
+    switch (action) {
+      case ELessonAction.Create:
+        await manager.increment(
+          SectionEntity,
           { id: sectionId },
-          { totalLessonBySectionCount: section.totalLessonBySectionCount + 1 },
-        )
-      : await this.sectionRepository.update(
-          { id: sectionId },
-          { totalLessonBySectionCount: section.totalLessonBySectionCount - 1 },
+          'totalLessonBySectionCount',
+          LESSON_UPDATE_VALUE_INSECTION,
         );
+        break;
 
-    return section;
+      case ELessonAction.Delete:
+        await manager.decrement(
+          SectionEntity,
+          { id: sectionId },
+          'totalLessonBySectionCount',
+          LESSON_UPDATE_VALUE_INSECTION,
+        );
+        break;
+
+      default:
+        throw new BadRequestException('잘못된 enum값이 들어왔습니다.');
+    }
   }
 }

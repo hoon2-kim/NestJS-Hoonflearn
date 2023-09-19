@@ -28,6 +28,11 @@ import {
 import { EReviewMethod } from 'src/review/enums/review.enum';
 import { CourseUserService } from 'src/course_user/course-user.service';
 import { QuestionEntity } from 'src/question/entities/question.entity';
+import { ELessonAction } from 'src/lesson/enums/lesson.enum';
+import { EOrderAction } from 'src/order/enums/order.enum';
+
+const LESSON_UPDATE_VALUE_INCOURSE = 1;
+const COURSE_STUDENTS_VALUE = 1;
 
 @Injectable()
 export class CourseService {
@@ -190,6 +195,8 @@ export class CourseService {
     courseId: string,
     userId: string | null,
   ): Promise<{ isPurchased: boolean }> {
+    console.log(userId);
+
     const isPurchased = userId
       ? await this.courseUserService.checkBoughtCourseByUser(userId, courseId)
       : false;
@@ -484,6 +491,7 @@ export class CourseService {
     course: CourseEntity,
     rating: number,
     method: EReviewMethod,
+    manager?: EntityManager,
   ): Promise<void> {
     let updateValue = {};
 
@@ -507,9 +515,14 @@ export class CourseService {
           averageRating: rating,
         };
         break;
+
+      default:
+        throw new BadRequestException('잘못된 enum값이 넘어왔습니다.');
     }
 
-    await this.courseRepository.update({ id: course.id }, updateValue);
+    manager
+      ? await manager.update(CourseEntity, { id: course.id }, updateValue)
+      : await this.courseRepository.update({ id: course.id }, updateValue);
   }
 
   async getCourseIdsByInstructor(userId: string): Promise<CourseIdsReponseDto> {
@@ -522,7 +535,8 @@ export class CourseService {
 
   async updateTotalLessonCountInCourse(
     courseId: string,
-    isCreate: boolean,
+    action: ELessonAction,
+    manager: EntityManager,
   ): Promise<void> {
     const course = await this.findOneByOptions({ where: { id: courseId } });
 
@@ -530,15 +544,28 @@ export class CourseService {
       throw new NotFoundException('강의가 존재하지 않습니다.');
     }
 
-    isCreate
-      ? await this.courseRepository.update(
+    switch (action) {
+      case ELessonAction.Create:
+        await manager.increment(
+          CourseEntity,
           { id: courseId },
-          { totalLessonCount: course.totalLessonCount + 1 },
-        )
-      : await this.courseRepository.update(
-          { id: courseId },
-          { totalLessonCount: course.totalLessonCount - 1 },
+          'totalLessonCount',
+          LESSON_UPDATE_VALUE_INCOURSE,
         );
+        break;
+
+      case ELessonAction.Delete:
+        await manager.decrement(
+          CourseEntity,
+          { id: courseId },
+          'totalLessonCount',
+          LESSON_UPDATE_VALUE_INCOURSE,
+        );
+        break;
+
+      default:
+        throw new BadRequestException('잘못된 enum값이 들어왔습니다.');
+    }
   }
 
   async calculateCoursePriceInCart(courseIds: string[]): Promise<number> {
@@ -549,5 +576,40 @@ export class CourseService {
       .getRawOne();
 
     return Number(result.total);
+  }
+
+  async updateCourseStudents(
+    courseIds: string[],
+    action: EOrderAction,
+    manager: EntityManager,
+  ): Promise<void> {
+    await Promise.all(
+      courseIds.map(async (c) => {
+        switch (action) {
+          case EOrderAction.Create:
+            await manager.increment(
+              CourseEntity,
+              { id: c },
+              'students',
+              COURSE_STUDENTS_VALUE,
+            );
+            break;
+
+          case EOrderAction.Delete:
+            await manager.decrement(
+              CourseEntity,
+              { id: c },
+              'students',
+              COURSE_STUDENTS_VALUE,
+            );
+            break;
+
+          default:
+            throw new BadRequestException(
+              `잘못된 enum값:${action}이 들어왔습니다.`,
+            );
+        }
+      }),
+    );
   }
 }

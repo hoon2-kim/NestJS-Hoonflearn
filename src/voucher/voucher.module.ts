@@ -3,9 +3,15 @@ import { VoucherService } from './voucher.service';
 import { VoucherController } from './voucher.controller';
 import { CourseUserModule } from 'src/course_user/course-user.module';
 import { CourseModule } from 'src/course/course.module';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { CourseUserEntity } from 'src/course_user/entities/course-user.entity';
 
 @Module({
-  imports: [CourseUserModule, CourseModule],
+  imports: [
+    TypeOrmModule.forFeature([CourseUserEntity]),
+    CourseUserModule,
+    CourseModule,
+  ],
   controllers: [VoucherController],
   providers: [VoucherService],
 })

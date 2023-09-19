@@ -7,6 +7,7 @@ import { IamportService } from './iamport.service';
 import { OrderCourseModule } from 'src/order_course/order-course.module';
 import { CartModule } from 'src/cart/cart.module';
 import { CourseUserModule } from 'src/course_user/course-user.module';
+import { CourseModule } from 'src/course/course.module';
 
 @Module({
   imports: [
@@ -14,6 +15,7 @@ import { CourseUserModule } from 'src/course_user/course-user.module';
     OrderCourseModule,
     CartModule,
     CourseUserModule,
+    CourseModule,
   ],
   controllers: [OrderController],
   providers: [OrderService, IamportService],

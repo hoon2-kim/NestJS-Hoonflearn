@@ -37,12 +37,20 @@ export class VideoService {
     await queryRunner.startTransaction();
 
     try {
-      const lesson = await this.verifyExistLesson(
-        lessonId,
+      const lesson = await this.lessonService.findOneByOptions(
+        { where: { id: lessonId }, relations: ['video'] },
         queryRunner.manager,
       );
 
-      await this.verifyExistVideo(lessonId, queryRunner.manager);
+      if (!lesson) {
+        throw new NotFoundException(
+          `해당 수업ID:${lessonId}가 존재하지 않습니다.`,
+        );
+      }
+
+      if (lesson.video) {
+        throw new BadRequestException('이미 영상이 업로드 되었습니다.');
+      }
 
       // courseId 가져오기
       const courseId =
@@ -66,6 +74,8 @@ export class VideoService {
         videoTime,
         fk_lesson_id: lessonId,
       });
+
+      console.log(videoTime);
 
       const section = await queryRunner.manager.findOne(SectionEntity, {
         where: { id: lesson.fk_section_id },
@@ -140,12 +150,12 @@ export class VideoService {
       const section = await queryRunner.manager.findOne(SectionEntity, {
         where: { id: existVideo.lesson.fk_section_id },
       });
-      await queryRunner.manager.update(
+
+      await queryRunner.manager.decrement(
         SectionEntity,
         { id: section.id },
-        {
-          totalSectionTime: (section.totalSectionTime -= existVideo.videoTime),
-        },
+        'totalSectionTime',
+        existVideo.videoTime,
       );
 
       const course = await queryRunner.manager.findOne(CourseEntity, {
@@ -153,10 +163,11 @@ export class VideoService {
         select: ['id', 'totalVideosTime'],
       });
 
-      await queryRunner.manager.update(
+      await queryRunner.manager.decrement(
         CourseEntity,
         { id: course.id },
-        { totalVideosTime: (course.totalVideosTime -= existVideo.videoTime) },
+        'totalVideosTime',
+        existVideo.videoTime,
       );
 
       await queryRunner.commitTransaction();
@@ -168,33 +179,5 @@ export class VideoService {
     } finally {
       await queryRunner.release();
     }
-  }
-
-  async verifyExistLesson(lessonId: string, transactionManager: EntityManager) {
-    const lesson = await this.lessonService.findOneByOptions(
-      { where: { id: lessonId } },
-      transactionManager,
-    );
-
-    if (!lesson) {
-      throw new NotFoundException('해당 수업이 존재하지 않습니다.');
-    }
-
-    return lesson;
-  }
-
-  async verifyExistVideo(
-    lessonId: string,
-    transactionManager: EntityManager,
-  ): Promise<VideoEntity> {
-    const video = await transactionManager.findOne(VideoEntity, {
-      where: { fk_lesson_id: lessonId },
-    });
-
-    if (video) {
-      throw new BadRequestException('이미 영상이 업로드 되었습니다.');
-    }
-
-    return video;
   }
 }

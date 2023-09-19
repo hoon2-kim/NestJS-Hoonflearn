@@ -15,14 +15,14 @@ import { QuestionCommentEntity } from './entities/question-comment.entity';
 
 @ApiTags('QUESTION-COMMENT')
 @UseGuards(AtGuard)
-@Controller('questions/:questionId/comments')
+@Controller('')
 export class QuestionCommentController {
   constructor(
     private readonly questionCommentService: QuestionCommentService,
   ) {}
 
   @ApiCreateQuestionCommentSwagger('질문글 댓글 생성')
-  @Post()
+  @Post('/questions/:questionId/comments')
   createQuestionComment(
     @Param('questionId') questionId: string,
     @Body() createQuestionCommentDto: CreateQuestionCommentDto,
@@ -36,7 +36,7 @@ export class QuestionCommentController {
   }
 
   @ApiUpdateQuestionCommentSwagger('질문글 댓글 수정')
-  @Patch('/:commentId')
+  @Patch('/comments/:commentId')
   updateQuestionComment(
     @Param('questionId') questionId: string,
     @Param('commentId') commentId: string,
@@ -52,7 +52,7 @@ export class QuestionCommentController {
   }
 
   @ApiDeleteQuestionCommentSwagger('질문글 댓글 삭제')
-  @Delete('/:commentId')
+  @Delete('/comments/:commentId')
   deleteQuestionComment(
     @Param('questionId') questionId: string,
     @Param('commentId') commentId: string,

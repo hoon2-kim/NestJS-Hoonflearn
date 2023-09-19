@@ -38,7 +38,7 @@ export const ApiInsertCourseInCartSwagger = (summary: string) => {
     }),
     ApiBadRequestResponse({
       description:
-        '해당 강의가 존재하지 않는 경우 / 이미 장바구니에 해당 강의를 넣은 경우 / 무료인 강의를 넣을 경우',
+        '해당 강의가 존재하지 않는 경우 / 이미 장바구니에 해당 강의를 넣은 경우 / 무료인 강의를 넣을 경우 / 이미 구매한 경우',
     }),
     ApiUnauthorizedResponse({ description: '로그인을 하지 않은 경우' }),
     ApiInternalServerErrorResponse({ description: '서버 오류' }),

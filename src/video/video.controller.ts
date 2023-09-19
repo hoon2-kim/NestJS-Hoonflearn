@@ -17,7 +17,7 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { CurrentUser } from 'src/auth/decorators/current-user.decorator';
 import { ApiTags } from '@nestjs/swagger';
 import { ERoleType } from 'src/user/enums/user.enum';
-import { videoFileFilter } from 'src/common/helpers/video-fileFilter.helper';
+import { videoFileFilter } from 'src/common/helpers/fileFilter.helper';
 import { ApiDeleteVideoSwagger, ApiUploadVideoSwagger } from './video.swagger';
 
 @ApiTags('VIDEO')

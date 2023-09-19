@@ -7,6 +7,7 @@ import { CartEntity } from './entities/cart.entity';
 import { CourseService } from 'src/course/course.service';
 import { NotFoundException } from '@nestjs/common';
 import { CartResponseDto } from './dtos/response/cart.response.dto';
+import { CourseUserService } from 'src/course_user/course-user.service';
 
 @Injectable()
 export class CartService {
@@ -16,6 +17,7 @@ export class CartService {
 
     private readonly cartCourseService: CartCourseService,
     private readonly courseService: CourseService,
+    private readonly courseUserService: CourseUserService,
   ) {}
 
   async findOneByOptions(
@@ -75,6 +77,15 @@ export class CartService {
       );
     }
 
+    const isBoughtCourse = await this.courseUserService.checkBoughtCourseByUser(
+      userId,
+      courseId,
+    );
+
+    if (isBoughtCourse) {
+      throw new BadRequestException('이미 구매하신 강의입니다.');
+    }
+
     await this.cartCourseService.insertCourseInCart(courseId, cart);
 
     return cart;
@@ -90,8 +101,8 @@ export class CartService {
     }
 
     const result = await this.cartCourseService.deleteCourseInCart(
-      courseId,
       cart.id,
+      courseId,
     );
 
     return result.affected ? true : false;
@@ -113,8 +124,8 @@ export class CartService {
     await Promise.all(
       courseIds.map(async (courseId) => {
         return await this.cartCourseService.deleteCourseInCart(
-          courseId,
           cart.id,
+          courseId,
           transactionManager,
         );
       }),
