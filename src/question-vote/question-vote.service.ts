@@ -1,12 +1,19 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { QuestionEntity } from 'src/question/entities/question.entity';
+import { QuestionEntity } from '@src/question/entities/question.entity';
 import { FindOneOptions, Repository } from 'typeorm';
-import { QuestionVoteEntity } from './entities/question-vote.entity';
+import { QuestionVoteEntity } from '@src/question-vote/entities/question-vote.entity';
 import {
   EQuestionVoteDtoType,
   EQuestionVoteType,
-} from './enums/question-vote.enum';
+} from '@src/question-vote/enums/question-vote.enum';
+
+const UPVOTE_CHANGE_VOTE_P_VALUE = 2;
+const DOWNVOTE_CHANGE_VOTE_M_VALUE = -2;
+const UPVOTE_ADD_VOTE_P_VALUE = 1;
+const DOWNVOTE_ADD_VOTE_M_VALUE = -1;
+const NONE_VOTE_P_VALUE = 1;
+const NONE_VOTE_M_VALUE = -1;
 
 @Injectable()
 export class QuestionVoteService {
@@ -24,7 +31,123 @@ export class QuestionVoteService {
     return questionVote;
   }
 
-  async getCurrentVote(questionId: string, userId: string) {
+  async handleVoteUpdate(
+    questionId: string,
+    userId: string,
+    vote: EQuestionVoteDtoType,
+  ): Promise<void> {
+    const currentVote = await this.getCurrentVote(questionId, userId);
+
+    /** 투표 취소 */
+    if (vote === EQuestionVoteDtoType.NONE) {
+      return await this.deleteVote(questionId, userId, currentVote);
+    }
+
+    /** enum 타입 변환 */
+    const convertEnum = this.convertDtoTypeToEntityType(vote);
+
+    if (currentVote === convertEnum) {
+      return;
+    }
+
+    /** 이미 투표했고 다른 투표로 바꾸는지 여부 */
+    const isVoteChangeNeed = !!currentVote && currentVote !== convertEnum;
+
+    const calculateValue = this.calculateVoteValue(
+      convertEnum,
+      isVoteChangeNeed,
+    );
+
+    return await this.upsertVote(
+      questionId,
+      userId,
+      convertEnum,
+      calculateValue,
+      isVoteChangeNeed,
+    );
+  }
+
+  private async upsertVote(
+    questionId: string,
+    userId: string,
+    voteType: EQuestionVoteType,
+    value: number,
+    isChange: boolean,
+  ): Promise<void> {
+    await this.questionVoteRepository.manager.transaction(async (manager) => {
+      if (isChange) {
+        await manager.update(
+          QuestionVoteEntity,
+          { fk_question_id: questionId, fk_user_id: userId },
+          { voteType },
+        );
+      } else {
+        await manager.save(QuestionVoteEntity, {
+          fk_question_id: questionId,
+          fk_user_id: userId,
+          voteType,
+        });
+      }
+
+      await manager.increment(
+        QuestionEntity,
+        { id: questionId },
+        'voteCount',
+        value,
+      );
+    });
+  }
+
+  // 리팩토링
+  private calculateVoteValue(
+    voteType: EQuestionVoteType,
+    isChange: boolean,
+  ): number {
+    const voteValueMapping = {
+      [EQuestionVoteType.UPVOTE]: isChange
+        ? UPVOTE_CHANGE_VOTE_P_VALUE
+        : UPVOTE_ADD_VOTE_P_VALUE,
+      [EQuestionVoteType.DOWNVOTE]: isChange
+        ? DOWNVOTE_CHANGE_VOTE_M_VALUE
+        : DOWNVOTE_ADD_VOTE_M_VALUE,
+    };
+
+    return voteValueMapping[voteType];
+  }
+
+  private async deleteVote(
+    questionId: string,
+    userId: string,
+    currentVote: EQuestionVoteType,
+  ): Promise<void> {
+    if (!currentVote) {
+      return;
+    }
+
+    const value =
+      currentVote === EQuestionVoteType.UPVOTE
+        ? NONE_VOTE_M_VALUE
+        : NONE_VOTE_P_VALUE;
+
+    await this.questionVoteRepository.manager.transaction(async (manager) => {
+      await manager.delete(QuestionVoteEntity, {
+        fk_question_id: questionId,
+        fk_user_id: userId,
+      });
+
+      await manager.increment(
+        QuestionEntity,
+        { id: questionId },
+        'voteCount',
+        value,
+      );
+    });
+  }
+
+  async getCurrentVote(
+    questionId: string,
+    userId: string,
+  ): Promise<EQuestionVoteType | null> {
     const vote = await this.questionVoteRepository.findOne({
       where: {
         fk_question_id: questionId,
@@ -35,105 +158,18 @@ export class QuestionVoteService {
     return vote ? vote.voteType : null;
   }
 
-  async handleVoteUpdate(
-    questionId: string,
-    userId: string,
-    vote: EQuestionVoteDtoType,
-  ) {
-    const currentVote = await this.getCurrentVote(questionId, userId);
-
-    switch (vote) {
-      /** UPVOTE를 한 경우 */
+  private convertDtoTypeToEntityType(
+    dtoType: EQuestionVoteDtoType,
+  ): EQuestionVoteType {
+    switch (dtoType) {
       case EQuestionVoteDtoType.UPVOTE:
-        return currentVote === EQuestionVoteType.DOWNVOTE
-          ? this.changeVote(questionId, userId, vote, 2)
-          : this.addVote(questionId, userId, vote, 1);
+        return EQuestionVoteType.UPVOTE;
 
       case EQuestionVoteDtoType.DOWNVOTE:
-        return currentVote === EQuestionVoteType.UPVOTE
-          ? this.changeVote(questionId, userId, vote, -2)
-          : this.addVote(questionId, userId, vote, -1);
-
-      case EQuestionVoteDtoType.NONE:
-        return this.deleteVote(questionId, userId, currentVote);
+        return EQuestionVoteType.DOWNVOTE;
 
       default:
-        throw new BadRequestException('잘못된 투표 형식입니다.');
+        throw new BadRequestException('잘못된 enum값이 들어왔습니다.');
     }
-  }
-
-  async changeVote(
-    qestionId: string,
-    userId: string,
-    newVote: EQuestionVoteDtoType,
-    changeVoteCount: number,
-  ) {
-    await this.questionVoteRepository.manager.transaction(async (manager) => {
-      await manager.update(
-        QuestionVoteEntity,
-        { fk_question_id: qestionId, fk_user_id: userId },
-        { voteType: newVote as unknown as EQuestionVoteType },
-      );
-      await manager.increment(
-        QuestionEntity,
-        { id: qestionId },
-        'voteCount',
-        changeVoteCount,
-      );
-    });
-  }
-
-  async addVote(
-    qestionId: string,
-    userId: string,
-    newVote: EQuestionVoteDtoType,
-    changeVoteCount: number,
-  ) {
-    await this.questionVoteRepository.manager.transaction(async (manager) => {
-      await manager.save(QuestionVoteEntity, {
-        fk_question_id: qestionId,
-        fk_user_id: userId,
-        voteType: newVote as unknown as EQuestionVoteType,
-      });
-      await manager.increment(
-        QuestionEntity,
-        { id: qestionId },
-        'voteCount',
-        changeVoteCount,
-      );
-    });
-  }
-
-  async deleteVote(
-    qestionId: string,
-    userId: string,
-    currentVote: EQuestionVoteType,
-  ) {
-    if (!currentVote) {
-      return;
-    }
-
-    await this.questionVoteRepository.manager.transaction(async (manager) => {
-      await manager.delete(QuestionVoteEntity, {
-        fk_question_id: qestionId,
-        fk_user_id: userId,
-      });
-
-      if (currentVote === EQuestionVoteType.UPVOTE) {
-        await manager.decrement(
-          QuestionEntity,
-          { id: qestionId },
-          'voteCount',
-          1,
-        );
-      } else if (currentVote === EQuestionVoteType.DOWNVOTE) {
-        await manager.increment(
-          QuestionEntity,
-          { id: qestionId },
-          'voteCount',
-          1,
-        );
-      }
-    });
   }
 }
