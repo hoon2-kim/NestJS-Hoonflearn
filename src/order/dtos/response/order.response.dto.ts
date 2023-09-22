@@ -1,12 +1,12 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { OrderEntity } from 'src/order/entities/order.entity';
-import { EOrderStatus } from 'src/order/enums/order.enum';
+import { OrderEntity } from '@src/order/entities/order.entity';
+import { EOrderStatus } from '@src/order/enums/order.enum';
 import {
   IOrderDetailResponse,
   IOrdersResponse,
-} from 'src/order/interfaces/order.interface';
-import { OrderCourseResponseDto } from 'src/order_course/dtos/response/order-course.response.dto';
-import { IOrderCourseResponse } from 'src/order_course/interfaces/order-course.interface';
+} from '@src/order/interfaces/order.interface';
+import { OrderCourseResponseDto } from '@src/order_course/dtos/response/order-course.response.dto';
+import { IOrderCourseResponse } from '@src/order_course/interfaces/order-course.interface';
 
 export class OrdersResponseDto implements IOrdersResponse {
   @ApiProperty({ description: '주문 ID', type: 'string' })

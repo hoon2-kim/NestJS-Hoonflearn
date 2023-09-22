@@ -10,7 +10,7 @@ import {
   ApiOperation,
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
-import { QuestionCommentEntity } from './entities/question-comment.entity';
+import { QuestionCommentEntity } from '@src/question-comment/entities/question-comment.entity';
 
 export const ApiCreateQuestionCommentSwagger = (summary: string) => {
   return applyDecorators(

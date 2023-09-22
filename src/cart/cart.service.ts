@@ -1,13 +1,13 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { CartCourseService } from 'src/cart_course/cart_course.service';
+import { CartCourseService } from '@src/cart_course/cart_course.service';
 import { EntityManager, FindOneOptions, Repository } from 'typeorm';
-import { CreateCartDto } from './dtos/request/create-cart.dto';
-import { CartEntity } from './entities/cart.entity';
-import { CourseService } from 'src/course/course.service';
+import { CreateCartDto } from '@src/cart/dtos/request/create-cart.dto';
+import { CartEntity } from '@src/cart/entities/cart.entity';
+import { CourseService } from '@src/course/course.service';
 import { NotFoundException } from '@nestjs/common';
-import { CartResponseDto } from './dtos/response/cart.response.dto';
-import { CourseUserService } from 'src/course_user/course-user.service';
+import { CartResponseDto } from '@src/cart/dtos/response/cart.response.dto';
+import { CourseUserService } from '@src/course_user/course-user.service';
 
 @Injectable()
 export class CartService {
@@ -111,9 +111,9 @@ export class CartService {
   async clearCartWithTransaction(
     userId: string,
     courseIds: string[],
-    transactionManager: EntityManager,
+    manager: EntityManager,
   ): Promise<void> {
-    const cart = await transactionManager.findOne(CartEntity, {
+    const cart = await manager.findOne(CartEntity, {
       where: { fk_user_id: userId },
     });
 
@@ -126,7 +126,7 @@ export class CartService {
         return await this.cartCourseService.deleteCourseInCart(
           cart.id,
           courseId,
-          transactionManager,
+          manager,
         );
       }),
     );

@@ -1,8 +1,8 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { CategoryNameResponseDto } from 'src/category/dtos/response/category.response.dto';
-import { ICategoryNameResponse } from 'src/category/interfaces/category.interface';
-import { CategoryCourseEntity } from '../../entities/category-course.entitiy';
-import { ICategoryCourseMainNameResponse } from '../../interfaces/category-course.interface';
+import { CategoryNameResponseDto } from '@src/category/dtos/response/category.response.dto';
+import { ICategoryNameResponse } from '@src/category/interfaces/category.interface';
+import { CategoryCourseEntity } from '@src/category_course/entities/category-course.entitiy';
+import { ICategoryCourseMainNameResponse } from '@src/category_course/interfaces/category-course.interface';
 
 export class CategoryCourseMainNameResponseDto
   implements ICategoryCourseMainNameResponse

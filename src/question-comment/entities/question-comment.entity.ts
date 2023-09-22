@@ -1,6 +1,6 @@
 import { Exclude } from 'class-transformer';
-import { QuestionEntity } from 'src/question/entities/question.entity';
-import { UserEntity } from 'src/user/entities/user.entity';
+import { QuestionEntity } from '@src/question/entities/question.entity';
+import { UserEntity } from '@src/user/entities/user.entity';
 import {
   Column,
   CreateDateColumn,

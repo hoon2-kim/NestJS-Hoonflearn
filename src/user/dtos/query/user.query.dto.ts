@@ -1,8 +1,8 @@
 import { IsEnum, IsOptional, IsString } from 'class-validator';
-import { PageOptionDto } from 'src/common/dtos/page-option.dto';
-import { EQuestionStatus } from 'src/question/enums/question.enum';
-import { ECourseChargeType } from 'src/course/enums/course.enum';
-import { EUserWishCourseSort } from 'src/user/enums/user.enum';
+import { PageOptionDto } from '@src/common/dtos/page-option.dto';
+import { EQuestionStatus } from '@src/question/enums/question.enum';
+import { ECourseChargeType } from '@src/course/enums/course.enum';
+import { EUserWishCourseSort } from '@src/user/enums/user.enum';
 import { ApiPropertyOptional } from '@nestjs/swagger';
 
 export class UserWishQueryDto extends PageOptionDto {

@@ -1,13 +1,13 @@
 import { BadRequestException, ForbiddenException } from '@nestjs/common';
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { CourseService } from 'src/course/course.service';
-import { ELessonAction } from 'src/lesson/enums/lesson.enum';
-import { UserEntity } from 'src/user/entities/user.entity';
+import { CourseService } from '@src/course/course.service';
+import { ELessonAction } from '@src/lesson/enums/lesson.enum';
+import { UserEntity } from '@src/user/entities/user.entity';
 import { EntityManager, FindOneOptions, Repository } from 'typeorm';
-import { CreateSectionDto } from './dtos/request/create-section.dto';
-import { UpdateSectionDto } from './dtos/request/update-section.dto';
-import { SectionEntity } from './entities/section.entity';
+import { CreateSectionDto } from '@src/section/dtos/request/create-section.dto';
+import { UpdateSectionDto } from '@src/section/dtos/request/update-section.dto';
+import { SectionEntity } from '@src/section/entities/section.entity';
 
 const LESSON_UPDATE_VALUE_INSECTION = 1;
 

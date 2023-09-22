@@ -2,12 +2,12 @@ import { NotFoundException } from '@nestjs/common';
 import { ForbiddenException } from '@nestjs/common';
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { CourseUserService } from 'src/course_user/course-user.service';
-import { ReviewService } from 'src/review/review.service';
+import { CourseUserService } from '@src/course_user/course-user.service';
+import { ReviewService } from '@src/review/review.service';
 import { Repository } from 'typeorm';
-import { CreateReviewCommentDto } from './dtos/request/create-review-comment.dto';
-import { UpdateReviewCommentDto } from './dtos/request/update-review-comment.dto';
-import { ReviewCommentEntity } from './entities/review-comment.entity';
+import { CreateReviewCommentDto } from '@src/review-comment/dtos/request/create-review-comment.dto';
+import { UpdateReviewCommentDto } from '@src/review-comment/dtos/request/update-review-comment.dto';
+import { ReviewCommentEntity } from '@src/review-comment/entities/review-comment.entity';
 
 @Injectable()
 export class ReviewCommentService {

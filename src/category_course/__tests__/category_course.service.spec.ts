@@ -1,5 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { CategoryCourseService } from '../category_course.service';
+import { CategoryCourseService } from '@src/category_course/category_course.service';
 
 describe('CategoryCourseService', () => {
   let service: CategoryCourseService;

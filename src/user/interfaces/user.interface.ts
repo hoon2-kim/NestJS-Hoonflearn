@@ -1,4 +1,4 @@
-import { ERoleType } from '../enums/user.enum';
+import { ERoleType } from '@src/user/enums/user.enum';
 
 export interface ISimpleUserResponse {
   id: string;

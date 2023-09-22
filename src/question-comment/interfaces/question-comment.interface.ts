@@ -1,4 +1,4 @@
-import { ISimpleUserResponse } from 'src/user/interfaces/user.interface';
+import { ISimpleUserResponse } from '@src/user/interfaces/user.interface';
 
 export interface IQuestionCommentResponse {
   id: string;

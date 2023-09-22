@@ -2,11 +2,11 @@ import { NotFoundException } from '@nestjs/common';
 import { ForbiddenException } from '@nestjs/common';
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { QuestionService } from 'src/question/question.service';
+import { QuestionService } from '@src/question/question.service';
 import { Repository } from 'typeorm';
-import { CreateQuestionCommentDto } from './dtos/request/create-question-comment.dto';
-import { UpdateQuestionCommentDto } from './dtos/request/update-question-comment.dto';
-import { QuestionCommentEntity } from './entities/question-comment.entity';
+import { CreateQuestionCommentDto } from '@src/question-comment/dtos/request/create-question-comment.dto';
+import { UpdateQuestionCommentDto } from '@src/question-comment/dtos/request/update-question-comment.dto';
+import { QuestionCommentEntity } from '@src/question-comment/entities/question-comment.entity';
 
 @Injectable()
 export class QuestionCommentService {

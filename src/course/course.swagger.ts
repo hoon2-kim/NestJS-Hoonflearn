@@ -11,13 +11,13 @@ import {
   ApiUnauthorizedResponse,
   getSchemaPath,
 } from '@nestjs/swagger';
-import { PageMetaDto } from 'src/common/dtos/page-meta.dto';
+import { PageMetaDto } from '@src/common/dtos/page-meta.dto';
 import {
   CourseDashBoardResponseDto,
   CourseDetailResponseDto,
   CourseListResponseDto,
-} from './dtos/response/course.response';
-import { CourseEntity } from './entities/course.entity';
+} from '@src/course/dtos/response/course.response';
+import { CourseEntity } from '@src/course/entities/course.entity';
 
 export const ApiGetCourseDetailSwagger = (summary: string) => {
   return applyDecorators(

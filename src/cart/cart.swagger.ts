@@ -9,7 +9,7 @@ import {
   ApiOperation,
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
-import { CartResponseDto } from './dtos/response/cart.response.dto';
+import { CartResponseDto } from '@src/cart/dtos/response/cart.response.dto';
 
 export const ApiGetMyCartSwagger = (summary: string) => {
   return applyDecorators(

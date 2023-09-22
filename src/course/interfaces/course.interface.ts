@@ -1,8 +1,8 @@
-import { ICategoryCourseMainNameResponse } from 'src/category_course/interfaces/category-course.interface';
-import { ICourseDashboardQuestionResponse } from 'src/question/interfaces/question.interface';
-import { ISectionResponse } from 'src/section/interfaces/section.interface';
-import { ISimpleUserResponse } from 'src/user/interfaces/user.interface';
-import { ECourseLevelType } from '../enums/course.enum';
+import { ICategoryCourseMainNameResponse } from '@src/category_course/interfaces/category-course.interface';
+import { ICourseDashboardQuestionResponse } from '@src/question/interfaces/question.interface';
+import { ISectionResponse } from '@src/section/interfaces/section.interface';
+import { ISimpleUserResponse } from '@src/user/interfaces/user.interface';
+import { ECourseLevelType } from '@src/course/enums/course.enum';
 
 export interface ISimpleCourseResponse {
   id: string;

@@ -8,17 +8,20 @@ import {
   UploadedFile,
   BadRequestException,
 } from '@nestjs/common';
-import { VideoService } from './video.service';
-import { Roles } from 'src/auth/decorators/role-protected.decorator';
-import { UserEntity } from 'src/user/entities/user.entity';
-import { AtGuard } from 'src/auth/guards/at.guard';
-import { RoleGuard } from 'src/auth/guards/role.guard';
+import { VideoService } from '@src/video/video.service';
+import { Roles } from '@src/auth/decorators/role-protected.decorator';
+import { UserEntity } from '@src/user/entities/user.entity';
+import { AtGuard } from '@src/auth/guards/at.guard';
+import { RoleGuard } from '@src/auth/guards/role.guard';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { CurrentUser } from 'src/auth/decorators/current-user.decorator';
+import { CurrentUser } from '@src/auth/decorators/current-user.decorator';
 import { ApiTags } from '@nestjs/swagger';
-import { ERoleType } from 'src/user/enums/user.enum';
-import { videoFileFilter } from 'src/common/helpers/fileFilter.helper';
-import { ApiDeleteVideoSwagger, ApiUploadVideoSwagger } from './video.swagger';
+import { ERoleType } from '@src/user/enums/user.enum';
+import { videoFileFilter } from '@src/common/helpers/fileFilter.helper';
+import {
+  ApiDeleteVideoSwagger,
+  ApiUploadVideoSwagger,
+} from '@src/video/video.swagger';
 
 @ApiTags('VIDEO')
 @Roles(ERoleType.Instructor)

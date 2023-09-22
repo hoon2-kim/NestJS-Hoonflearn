@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { VideoEntity } from 'src/video/entities/video.entity';
-import { IVideoResponse } from 'src/video/interfaces/video.interface';
+import { VideoEntity } from '@src/video/entities/video.entity';
+import { IVideoResponse } from '@src/video/interfaces/video.interface';
 
 export class VideoResponseDto implements IVideoResponse {
   @ApiProperty({ description: '영상 ID', type: 'string' })

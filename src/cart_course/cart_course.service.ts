@@ -2,15 +2,15 @@ import { NotFoundException } from '@nestjs/common';
 import { BadRequestException } from '@nestjs/common';
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { CartEntity } from 'src/cart/entities/cart.entity';
-import { CourseService } from 'src/course/course.service';
+import { CartEntity } from '@src/cart/entities/cart.entity';
+import { CourseService } from '@src/course/course.service';
 import {
   DeleteResult,
   EntityManager,
   FindOneOptions,
   Repository,
 } from 'typeorm';
-import { CartCourseEntity } from './entities/cart-course.entity';
+import { CartCourseEntity } from '@src/cart_course/entities/cart-course.entity';
 
 @Injectable()
 export class CartCourseService {
@@ -63,10 +63,10 @@ export class CartCourseService {
   // async deleteCourseInCart(
   //   courseId: string,
   //   cartId: string,
-  //   transactionManager?: EntityManager,
+  //   manager?: EntityManager,
   // ): Promise<DeleteResult> {
-  //   if (transactionManager) {
-  //     const existCourseInCart = await transactionManager.findOne(
+  //   if (manager) {
+  //     const existCourseInCart = await manager.findOne(
   //       CartCourseEntity,
   //       {
   //         where: {
@@ -82,7 +82,7 @@ export class CartCourseService {
   //       );
   //     }
 
-  //     return await transactionManager.delete(CartCourseEntity, {
+  //     return await manager.delete(CartCourseEntity, {
   //       fk_course_id: courseId,
   //       fk_cart_id: cartId,
   //     });
@@ -110,13 +110,9 @@ export class CartCourseService {
   async deleteCourseInCart(
     cartId: string,
     courseId: string,
-    transactionManager?: EntityManager,
+    manager?: EntityManager,
   ): Promise<DeleteResult> {
-    const courseInCart = await this.findCourseInCart(
-      cartId,
-      courseId,
-      transactionManager,
-    );
+    const courseInCart = await this.findCourseInCart(cartId, courseId, manager);
 
     if (!courseInCart) {
       throw new NotFoundException(
@@ -124,8 +120,8 @@ export class CartCourseService {
       );
     }
 
-    return transactionManager
-      ? await transactionManager.delete(CartCourseEntity, {
+    return manager
+      ? await manager.delete(CartCourseEntity, {
           fk_cart_id: cartId,
           fk_course_id: courseId,
         })
@@ -138,7 +134,7 @@ export class CartCourseService {
   private async findCourseInCart(
     cartId: string,
     courseId: string,
-    transactionManager?: EntityManager,
+    manager?: EntityManager,
   ): Promise<CartCourseEntity | null> {
     const queryOption = {
       where: {
@@ -147,8 +143,8 @@ export class CartCourseService {
       },
     };
 
-    return transactionManager
-      ? await transactionManager.findOne(CartCourseEntity, queryOption)
+    return manager
+      ? await manager.findOne(CartCourseEntity, queryOption)
       : await this.findOneByOptions(queryOption);
   }
 }

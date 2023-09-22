@@ -6,16 +6,16 @@ import {
   Delete,
   UseGuards,
 } from '@nestjs/common';
-import { VoucherService } from './voucher.service';
-import { CreateVoucherDto } from './dtos/create-voucher.dto';
-import { AtGuard } from 'src/auth/guards/at.guard';
+import { VoucherService } from '@src/voucher/voucher.service';
+import { CreateVoucherDto } from '@src/voucher/dtos/create-voucher.dto';
+import { AtGuard } from '@src/auth/guards/at.guard';
 import { ApiTags } from '@nestjs/swagger';
-import { CurrentUser } from 'src/auth/decorators/current-user.decorator';
+import { CurrentUser } from '@src/auth/decorators/current-user.decorator';
 import {
   ApiCancelFreeCourseSwagger,
   ApiRegisterFreeCourseSwagger,
-} from './voucher.swagger';
-import { CourseUserEntity } from 'src/course_user/entities/course-user.entity';
+} from '@src/voucher/voucher.swagger';
+import { CourseUserEntity } from '@src/course_user/entities/course-user.entity';
 
 @ApiTags('VOUCHER')
 @UseGuards(AtGuard)

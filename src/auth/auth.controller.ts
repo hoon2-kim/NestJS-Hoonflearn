@@ -1,17 +1,17 @@
 import { Body, Controller, Post, Req, Res, UseGuards } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { Response, Request } from 'express';
-import { AuthService } from './auth.service';
+import { AuthService } from '@src/auth/auth.service';
 import {
   ApiLoginSwagger,
   ApiLogoutSwagger,
   ApiRestoreAccessTokenSwagger,
-} from './auth.swagger';
-import { CurrentUser } from './decorators/current-user.decorator';
-import { LoginUserDto } from './dtos/request/login-user.dto';
-import { AtGuard } from './guards/at.guard';
-import { RtGuard } from './guards/rt.guard';
-import { IAuthLogin, IAuthRestore } from './interfaces/auth.interface';
+} from '@src/auth/auth.swagger';
+import { CurrentUser } from '@src/auth/decorators/current-user.decorator';
+import { LoginUserDto } from '@src/auth/dtos/request/login-user.dto';
+import { AtGuard } from '@src/auth/guards/at.guard';
+import { RtGuard } from '@src/auth/guards/rt.guard';
+import { IAuthLogin, IAuthRestore } from '@src/auth/interfaces/auth.interface';
 
 @ApiTags('AUTH')
 @Controller('auth')

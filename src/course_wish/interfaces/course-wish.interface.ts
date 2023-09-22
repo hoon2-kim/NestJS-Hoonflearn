@@ -1,5 +1,5 @@
-import { ECourseLevelType } from 'src/course/enums/course.enum';
-import { ISimpleUserResponse } from 'src/user/interfaces/user.interface';
+import { ECourseLevelType } from '@src/course/enums/course.enum';
+import { ISimpleUserResponse } from '@src/user/interfaces/user.interface';
 
 export interface IWishCourseListResponse {
   id: string;

@@ -7,7 +7,7 @@ import {
   IsUrl,
   IsOptional,
 } from 'class-validator';
-import { EFieldOfHopeType } from 'src/instructor/enums/instructor.enum';
+import { EFieldOfHopeType } from '@src/instructor/enums/instructor.enum';
 
 export class CreateInstructorDto {
   @ApiProperty({

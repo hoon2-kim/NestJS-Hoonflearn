@@ -10,12 +10,12 @@ import {
   ApiUnauthorizedResponse,
   getSchemaPath,
 } from '@nestjs/swagger';
-import { PageMetaDto } from 'src/common/dtos/page-meta.dto';
+import { PageMetaDto } from '@src/common/dtos/page-meta.dto';
 import {
   OrderDetailResponseDto,
   OrdersResponseDto,
-} from './dtos/response/order.response.dto';
-import { OrderEntity } from './entities/order.entity';
+} from '@src/order/dtos/response/order.response.dto';
+import { OrderEntity } from '@src/order/entities/order.entity';
 
 export const ApiGetMyOrdersSwagger = (summary: string) => {
   return applyDecorators(

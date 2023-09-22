@@ -5,25 +5,25 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { DataSource, FindOneOptions, Repository } from 'typeorm';
-import { CreateUserDto } from './dtos/request/create-user.dto';
-import { UpdateUserDto } from './dtos/request/update-user.dto';
-import { UserEntity } from './entities/user.entity';
+import { CreateUserDto } from '@src/user/dtos/request/create-user.dto';
+import { UpdateUserDto } from '@src/user/dtos/request/update-user.dto';
+import { UserEntity } from '@src/user/entities/user.entity';
 import * as bcryptjs from 'bcryptjs';
-import { AwsS3Service } from 'src/aws-s3/aws-s3.service';
+import { AwsS3Service } from '@src/aws-s3/aws-s3.service';
 import {
   UserMyCourseQueryDto,
   UserQuestionQueryDto,
   UserWishQueryDto,
-} from './dtos/query/user.query.dto';
-import { CourseWishService } from 'src/course_wish/course_wish.service';
-import { QuestionService } from 'src/question/question.service';
-import { CourseUserService } from 'src/course_user/course-user.service';
-import { ERoleType } from './enums/user.enum';
-import { PageDto } from 'src/common/dtos/page.dto';
-import { CourseUserListResponseDto } from 'src/course_user/dtos/response/course-user.response.dto';
-import { CourseWishListResponseDto } from 'src/course_wish/dtos/response/course-wish.reponse.dto';
-import { QuestionListResponseDto } from 'src/question/dtos/response/question.response.dto';
-import { InstructorProfileEntity } from 'src/instructor/entities/instructor-profile.entity';
+} from '@src/user/dtos/query/user.query.dto';
+import { CourseWishService } from '@src/course_wish/course_wish.service';
+import { QuestionService } from '@src/question/question.service';
+import { CourseUserService } from '@src/course_user/course-user.service';
+import { ERoleType } from '@src/user/enums/user.enum';
+import { PageDto } from '@src/common/dtos/page.dto';
+import { CourseUserListResponseDto } from '@src/course_user/dtos/response/course-user.response.dto';
+import { CourseWishListResponseDto } from '@src/course_wish/dtos/response/course-wish.reponse.dto';
+import { QuestionListResponseDto } from '@src/question/dtos/response/question.response.dto';
+import { InstructorProfileEntity } from '@src/instructor/entities/instructor-profile.entity';
 
 @Injectable()
 export class UserService {

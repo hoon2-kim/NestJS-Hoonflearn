@@ -1,6 +1,6 @@
-import { ISimpleCourseResponse } from 'src/course/interfaces/course.interface';
-import { IReviewCommentResponse } from 'src/review-comment/interfaces/review-comment.interface';
-import { ISimpleUserResponse } from 'src/user/interfaces/user.interface';
+import { ISimpleCourseResponse } from '@src/course/interfaces/course.interface';
+import { IReviewCommentResponse } from '@src/review-comment/interfaces/review-comment.interface';
+import { ISimpleUserResponse } from '@src/user/interfaces/user.interface';
 
 export interface IReviewWithOutCommentResponse {
   id: string;

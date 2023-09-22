@@ -1,7 +1,7 @@
-import { ISimpleCourseResponse } from 'src/course/interfaces/course.interface';
-import { IQuestionCommentResponse } from 'src/question-comment/interfaces/question-comment.interface';
-import { ISimpleUserResponse } from 'src/user/interfaces/user.interface';
-import { EQuestionStatus } from '../enums/question.enum';
+import { ISimpleCourseResponse } from '@src/course/interfaces/course.interface';
+import { IQuestionCommentResponse } from '@src/question-comment/interfaces/question-comment.interface';
+import { ISimpleUserResponse } from '@src/user/interfaces/user.interface';
+import { EQuestionStatus } from '@src/question/enums/question.enum';
 
 export interface IQuestionListResponse {
   id: string;

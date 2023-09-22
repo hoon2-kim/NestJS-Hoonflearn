@@ -4,12 +4,12 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { CategoryIdsDto } from 'src/course/dtos/request/create-course.dto';
+import { CategoryIdsDto } from '@src/course/dtos/request/create-course.dto';
 import { EntityManager, IsNull, Repository } from 'typeorm';
-import { CreateCategoryDto } from './dtos/request/create-category.dto';
-import { UpdateCategoryDto } from './dtos/request/update-category.dto';
-import { CategoryResponseDto } from './dtos/response/category.response.dto';
-import { CategoryEntity } from './entities/category.entity';
+import { CreateCategoryDto } from '@src/category/dtos/request/create-category.dto';
+import { UpdateCategoryDto } from '@src/category/dtos/request/update-category.dto';
+import { CategoryResponseDto } from '@src/category/dtos/response/category.response.dto';
+import { CategoryEntity } from '@src/category/entities/category.entity';
 
 @Injectable()
 export class CategoryService {
@@ -151,15 +151,15 @@ export class CategoryService {
 
   // async validateCategoryOptionalTransaction(
   //   selectedCategoryIds: CategoryIdsDto[],
-  //   transactionManager?: EntityManager,
+  //   manager?: EntityManager,
   // ): Promise<void> {
   //   let parent = null;
   //   let sub = null;
 
   //   await Promise.all(
   //     selectedCategoryIds.map(async (category) => {
-  //       transactionManager
-  //         ? (parent = await transactionManager.findOne(CategoryEntity, {
+  //       manager
+  //         ? (parent = await manager.findOne(CategoryEntity, {
   //             where: { id: category.parentCategoryId },
   //           }))
   //         : (parent = await this.categoryRepository.findOne({
@@ -178,8 +178,8 @@ export class CategoryService {
   //         );
   //       }
 
-  //       transactionManager
-  //         ? (sub = await transactionManager.findOne(CategoryEntity, {
+  //       manager
+  //         ? (sub = await manager.findOne(CategoryEntity, {
   //             where: { id: category.subCategoryId },
   //           }))
   //         : (sub = await this.categoryRepository.findOne({
@@ -202,27 +202,21 @@ export class CategoryService {
   // }
   async validateCategoryOptionalTransaction(
     selectedCategoryIds: CategoryIdsDto[],
-    transactionManager?: EntityManager,
+    manager?: EntityManager,
   ) {
     return Promise.all(
       selectedCategoryIds.map(async (category) => {
-        await this.validateParentCategory(
-          category.parentCategoryId,
-          transactionManager,
-        );
-        await this.validateSubCategory(
-          category.subCategoryId,
-          transactionManager,
-        );
+        await this.validateParentCategory(category.parentCategoryId, manager);
+        await this.validateSubCategory(category.subCategoryId, manager);
       }),
     );
   }
 
   private async validateParentCategory(
     categoryId: string,
-    transactionManager?: EntityManager,
+    manager?: EntityManager,
   ) {
-    const parent = await this.findCategoryById(categoryId, transactionManager);
+    const parent = await this.findCategoryById(categoryId, manager);
 
     if (!parent) {
       throw new NotFoundException(
@@ -239,9 +233,9 @@ export class CategoryService {
 
   private async validateSubCategory(
     categoryId: string,
-    transactionManager?: EntityManager,
+    manager?: EntityManager,
   ) {
-    const sub = await this.findCategoryById(categoryId, transactionManager);
+    const sub = await this.findCategoryById(categoryId, manager);
 
     if (!sub) {
       throw new NotFoundException(
@@ -256,12 +250,9 @@ export class CategoryService {
     }
   }
 
-  private async findCategoryById(
-    categoryId: string,
-    transactionManager?: EntityManager,
-  ) {
-    if (transactionManager) {
-      return await transactionManager.findOne(CategoryEntity, {
+  private async findCategoryById(categoryId: string, manager?: EntityManager) {
+    if (manager) {
+      return await manager.findOne(CategoryEntity, {
         where: { id: categoryId },
       });
     } else {

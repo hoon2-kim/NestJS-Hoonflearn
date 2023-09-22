@@ -1,6 +1,6 @@
 import { Exclude } from 'class-transformer';
-import { SectionEntity } from 'src/section/entities/section.entity';
-import { VideoEntity } from 'src/video/entities/video.entity';
+import { SectionEntity } from '@src/section/entities/section.entity';
+import { VideoEntity } from '@src/video/entities/video.entity';
 import {
   Column,
   CreateDateColumn,

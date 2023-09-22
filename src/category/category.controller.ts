@@ -8,7 +8,7 @@ import {
   Put,
 } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
-import { CategoryService } from './category.service';
+import { CategoryService } from '@src/category/category.service';
 import {
   ApiCreateCategorySwagger,
   ApiCreateSubCategorySwagger,
@@ -16,11 +16,11 @@ import {
   ApiGetAllCategoriesSwagger,
   ApiGetCategorySwagger,
   ApiUpdateCategorySwagger,
-} from './category.swagger';
-import { CreateCategoryDto } from './dtos/request/create-category.dto';
-import { UpdateCategoryDto } from './dtos/request/update-category.dto';
-import { CategoryResponseDto } from './dtos/response/category.response.dto';
-import { CategoryEntity } from './entities/category.entity';
+} from '@src/category/category.swagger';
+import { CreateCategoryDto } from '@src/category/dtos/request/create-category.dto';
+import { UpdateCategoryDto } from '@src/category/dtos/request/update-category.dto';
+import { CategoryResponseDto } from '@src/category/dtos/response/category.response.dto';
+import { CategoryEntity } from '@src/category/entities/category.entity';
 
 @ApiTags('CATEGORY')
 @Controller('categories')

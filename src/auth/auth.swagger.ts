@@ -7,7 +7,7 @@ import {
   ApiOperation,
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
-import { ERoleType } from 'src/user/enums/user.enum';
+import { ERoleType } from '@src/user/enums/user.enum';
 
 export const ApiLoginSwagger = (summary: string) => {
   return applyDecorators(

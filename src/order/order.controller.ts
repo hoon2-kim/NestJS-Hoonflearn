@@ -7,23 +7,23 @@ import {
   UseGuards,
   Query,
 } from '@nestjs/common';
-import { OrderService } from './order.service';
-import { CreateOrderDto } from './dtos/request/create-order.dto';
-import { AtGuard } from 'src/auth/guards/at.guard';
-import { CurrentUser } from 'src/auth/decorators/current-user.decorator';
-import { OrderListQueryDto } from './dtos/query/order-list.query.dto';
+import { OrderService } from '@src/order/order.service';
+import { CreateOrderDto } from '@src/order/dtos/request/create-order.dto';
+import { AtGuard } from '@src/auth/guards/at.guard';
+import { CurrentUser } from '@src/auth/decorators/current-user.decorator';
+import { OrderListQueryDto } from '@src/order/dtos/query/order-list.query.dto';
 import { ApiTags } from '@nestjs/swagger';
 import {
   ApiCompleteOrderSwagger,
   ApiGetMyOrderDetailSwagger,
   ApiGetMyOrdersSwagger,
-} from './order.swagger';
-import { PageDto } from 'src/common/dtos/page.dto';
+} from '@src/order/order.swagger';
+import { PageDto } from '@src/common/dtos/page.dto';
 import {
   OrderDetailResponseDto,
   OrdersResponseDto,
-} from './dtos/response/order.response.dto';
-import { OrderEntity } from './entities/order.entity';
+} from '@src/order/dtos/response/order.response.dto';
+import { OrderEntity } from '@src/order/entities/order.entity';
 
 @ApiTags('ORDER')
 @Controller('orders')

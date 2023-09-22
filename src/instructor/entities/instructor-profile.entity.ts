@@ -1,5 +1,5 @@
 import { Exclude } from 'class-transformer';
-import { UserEntity } from 'src/user/entities/user.entity';
+import { UserEntity } from '@src/user/entities/user.entity';
 import {
   Column,
   CreateDateColumn,
@@ -10,7 +10,7 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
-import { EFieldOfHopeType } from '../enums/instructor.enum';
+import { EFieldOfHopeType } from '@src/instructor/enums/instructor.enum';
 
 @Entity({ name: 'instructorsProfile' })
 export class InstructorProfileEntity {

@@ -3,23 +3,23 @@ import { ForbiddenException } from '@nestjs/common';
 import { BadRequestException } from '@nestjs/common';
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { PageMetaDto } from 'src/common/dtos/page-meta.dto';
-import { PageDto } from 'src/common/dtos/page.dto';
-import { CourseService } from 'src/course/course.service';
-import { CourseUserService } from 'src/course_user/course-user.service';
-import { InstructorReviewQueryDto } from 'src/instructor/dtos/query/instructor.query.dto';
-import { EInstructorReviewSortBy } from 'src/instructor/enums/instructor.enum';
-import { ReviewLikeService } from 'src/review-like/review-like.service';
+import { PageMetaDto } from '@src/common/dtos/page-meta.dto';
+import { PageDto } from '@src/common/dtos/page.dto';
+import { CourseService } from '@src/course/course.service';
+import { CourseUserService } from '@src/course_user/course-user.service';
+import { InstructorReviewQueryDto } from '@src/instructor/dtos/query/instructor.query.dto';
+import { EInstructorReviewSortBy } from '@src/instructor/enums/instructor.enum';
+import { ReviewLikeService } from '@src/review-like/review-like.service';
 import { FindOneOptions, Repository } from 'typeorm';
-import { CreateReviewDto } from './dtos/request/create-review.dto';
-import { ReviewListQueryDto } from './dtos/query/review-list.query.dto';
-import { UpdateReviewDto } from './dtos/request/update-review.dto';
-import { ReviewEntity } from './entities/review.entity';
-import { EReviewMethod, EReviewSortBy } from './enums/review.enum';
+import { CreateReviewDto } from '@src/review/dtos/request/create-review.dto';
+import { ReviewListQueryDto } from '@src/review/dtos/query/review-list.query.dto';
+import { UpdateReviewDto } from '@src/review/dtos/request/update-review.dto';
+import { ReviewEntity } from '@src/review/entities/review.entity';
+import { EReviewMethod, EReviewSortBy } from '@src/review/enums/review.enum';
 import {
   ReviewResponseWithCommentDto,
   ReviewResponseWithoutCommentDto,
-} from './dtos/response/review.response.dto';
+} from '@src/review/dtos/response/review.response.dto';
 
 @Injectable()
 export class ReviewService {

@@ -1,4 +1,4 @@
-import { ILessonResponse } from 'src/lesson/interfaces/lesson.interface';
+import { ILessonResponse } from '@src/lesson/interfaces/lesson.interface';
 
 export interface ISectionResponse {
   id: string;

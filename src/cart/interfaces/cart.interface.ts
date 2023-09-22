@@ -1,4 +1,4 @@
-import { ICartCourseResponse } from 'src/course/interfaces/course.interface';
+import { ICartCourseResponse } from '@src/course/interfaces/course.interface';
 
 export interface ICartResponse {
   id: string;

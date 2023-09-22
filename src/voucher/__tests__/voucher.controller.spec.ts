@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { VoucherController } from '../voucher.controller';
-import { VoucherService } from '../voucher.service';
+import { VoucherController } from '@src/voucher/voucher.controller';
+import { VoucherService } from '@src/voucher/voucher.service';
 
 describe('VoucherController', () => {
   let controller: VoucherController;

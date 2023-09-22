@@ -1,6 +1,6 @@
 import { Exclude } from 'class-transformer';
-import { CourseEntity } from 'src/course/entities/course.entity';
-import { UserEntity } from 'src/user/entities/user.entity';
+import { CourseEntity } from '@src/course/entities/course.entity';
+import { UserEntity } from '@src/user/entities/user.entity';
 import {
   Column,
   CreateDateColumn,
@@ -9,7 +9,7 @@ import {
   ManyToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
-import { ECouresUserType } from '../enums/course-user.enum';
+import { ECouresUserType } from '@src/course_user/enums/course-user.enum';
 
 @Entity({ name: 'courses_users' })
 export class CourseUserEntity {

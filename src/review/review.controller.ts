@@ -8,13 +8,13 @@ import {
   Delete,
   Query,
 } from '@nestjs/common';
-import { ReviewService } from './review.service';
-import { CreateReviewDto } from './dtos/request/create-review.dto';
-import { UpdateReviewDto } from './dtos/request/update-review.dto';
+import { ReviewService } from '@src/review/review.service';
+import { CreateReviewDto } from '@src/review/dtos/request/create-review.dto';
+import { UpdateReviewDto } from '@src/review/dtos/request/update-review.dto';
 import { UseGuards } from '@nestjs/common';
-import { AtGuard } from 'src/auth/guards/at.guard';
-import { CurrentUser } from 'src/auth/decorators/current-user.decorator';
-import { ReviewListQueryDto } from './dtos/query/review-list.query.dto';
+import { AtGuard } from '@src/auth/guards/at.guard';
+import { CurrentUser } from '@src/auth/decorators/current-user.decorator';
+import { ReviewListQueryDto } from '@src/review/dtos/query/review-list.query.dto';
 import { ApiTags } from '@nestjs/swagger';
 import {
   ApiCreateReviewSwagger,
@@ -23,9 +23,9 @@ import {
   ApiLikeReviewSwagger,
   ApiUpdateReviewSwagger,
 } from './review.swagger';
-import { PageDto } from 'src/common/dtos/page.dto';
-import { ReviewResponseWithCommentDto } from './dtos/response/review.response.dto';
-import { ReviewEntity } from './entities/review.entity';
+import { PageDto } from '@src/common/dtos/page.dto';
+import { ReviewResponseWithCommentDto } from '@src/review/dtos/response/review.response.dto';
+import { ReviewEntity } from '@src/review/entities/review.entity';
 
 @ApiTags('REVIEW')
 @Controller('reviews')

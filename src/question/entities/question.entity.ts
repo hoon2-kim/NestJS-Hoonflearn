@@ -1,7 +1,7 @@
 import { Exclude } from 'class-transformer';
-import { CourseEntity } from 'src/course/entities/course.entity';
-import { QuestionCommentEntity } from 'src/question-comment/entities/question-comment.entity';
-import { UserEntity } from 'src/user/entities/user.entity';
+import { CourseEntity } from '@src/course/entities/course.entity';
+import { QuestionCommentEntity } from '@src/question-comment/entities/question-comment.entity';
+import { UserEntity } from '@src/user/entities/user.entity';
 import {
   Column,
   CreateDateColumn,
@@ -12,7 +12,7 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
-import { EQuestionStatus } from '../enums/question.enum';
+import { EQuestionStatus } from '@src/question/enums/question.enum';
 
 @Entity({ name: 'questions' })
 export class QuestionEntity {

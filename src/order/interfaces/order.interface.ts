@@ -1,5 +1,5 @@
-import { IOrderCourseResponse } from 'src/order_course/interfaces/order-course.interface';
-import { EOrderStatus } from '../enums/order.enum';
+import { IOrderCourseResponse } from '@src/order_course/interfaces/order-course.interface';
+import { EOrderStatus } from '@src/order/enums/order.enum';
 
 export interface IOrdersResponse {
   id: string;

@@ -6,30 +6,33 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { DataSource, EntityManager, FindOneOptions, Repository } from 'typeorm';
-import { CreateCourseDto } from './dtos/request/create-course.dto';
-import { UpdateCourseDto } from './dtos/request/update-course.dto';
-import { CourseEntity } from './entities/course.entity';
+import { CreateCourseDto } from '@src/course/dtos/request/create-course.dto';
+import { UpdateCourseDto } from '@src/course/dtos/request/update-course.dto';
+import { CourseEntity } from '@src/course/entities/course.entity';
 import { URL } from 'url';
-import { AwsS3Service } from 'src/aws-s3/aws-s3.service';
-import { UserEntity } from 'src/user/entities/user.entity';
-import { CategoryService } from 'src/category/category.service';
-import { CategoryCourseService } from 'src/category_course/category_course.service';
-import { CourseWishService } from 'src/course_wish/course_wish.service';
-import { CourseListQueryDto } from './dtos/query/course-list.query.dto';
-import { PageMetaDto } from 'src/common/dtos/page-meta.dto';
-import { PageDto } from 'src/common/dtos/page.dto';
-import { ECourseChargeType, ECourseSortBy } from './enums/course.enum';
+import { AwsS3Service } from '@src/aws-s3/aws-s3.service';
+import { UserEntity } from '@src/user/entities/user.entity';
+import { CategoryService } from '@src/category/category.service';
+import { CategoryCourseService } from '@src/category_course/category_course.service';
+import { CourseWishService } from '@src/course_wish/course_wish.service';
+import { CourseListQueryDto } from '@src/course/dtos/query/course-list.query.dto';
+import { PageMetaDto } from '@src/common/dtos/page-meta.dto';
+import { PageDto } from '@src/common/dtos/page.dto';
+import {
+  ECourseChargeType,
+  ECourseSortBy,
+} from '@src/course/enums/course.enum';
 import {
   CourseDashBoardResponseDto,
   CourseDetailResponseDto,
   CourseIdsReponseDto,
   CourseListResponseDto,
-} from './dtos/response/course.response';
-import { EReviewMethod } from 'src/review/enums/review.enum';
-import { CourseUserService } from 'src/course_user/course-user.service';
-import { QuestionEntity } from 'src/question/entities/question.entity';
-import { ELessonAction } from 'src/lesson/enums/lesson.enum';
-import { EOrderAction } from 'src/order/enums/order.enum';
+} from '@src/course/dtos/response/course.response';
+import { EReviewMethod } from '@src/review/enums/review.enum';
+import { CourseUserService } from '@src/course_user/course-user.service';
+import { QuestionEntity } from '@src/question/entities/question.entity';
+import { ELessonAction } from '@src/lesson/enums/lesson.enum';
+import { EOrderAction } from '@src/order/enums/order.enum';
 
 const LESSON_UPDATE_VALUE_INCOURSE = 1;
 const COURSE_STUDENTS_VALUE = 1;
@@ -52,12 +55,12 @@ export class CourseService {
 
   async findOneByOptions(
     options: FindOneOptions<CourseEntity>,
-    transactionManager?: EntityManager,
+    manager?: EntityManager,
   ): Promise<CourseEntity | null> {
     let course: CourseEntity | null;
 
-    if (transactionManager) {
-      course = await transactionManager.findOne(CourseEntity, options);
+    if (manager) {
+      course = await manager.findOne(CourseEntity, options);
     } else {
       course = await this.courseRepository.findOne(options);
     }
@@ -470,7 +473,7 @@ export class CourseService {
   async validateInstructor(
     courseId: string,
     userId: string,
-    transactionManager?: EntityManager,
+    manager?: EntityManager,
   ): Promise<void> {
     const valid = await this.findOneByOptions(
       {
@@ -479,7 +482,7 @@ export class CourseService {
           fk_instructor_id: userId,
         },
       },
-      transactionManager,
+      manager,
     );
 
     if (!valid) {

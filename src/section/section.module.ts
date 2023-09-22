@@ -1,9 +1,9 @@
 import { Module } from '@nestjs/common';
-import { SectionService } from './section.service';
+import { SectionService } from '@src/section/section.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { SectionEntity } from './entities/section.entity';
-import { SectionController } from './section.controller';
-import { CourseModule } from 'src/course/course.module';
+import { SectionEntity } from '@src/section/entities/section.entity';
+import { SectionController } from '@src/section/section.controller';
+import { CourseModule } from '@src/course/course.module';
 
 @Module({
   imports: [TypeOrmModule.forFeature([SectionEntity]), CourseModule],

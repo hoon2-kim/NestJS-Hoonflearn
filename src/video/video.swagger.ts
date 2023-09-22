@@ -11,7 +11,7 @@ import {
   ApiPayloadTooLargeResponse,
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
-import { VideoEntity } from './entities/video.entity';
+import { VideoEntity } from '@src/video/entities/video.entity';
 
 export const ApiUploadVideoSwagger = (summary: string) => {
   return applyDecorators(

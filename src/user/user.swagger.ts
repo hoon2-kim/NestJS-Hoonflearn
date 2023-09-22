@@ -12,12 +12,12 @@ import {
   ApiUnauthorizedResponse,
   getSchemaPath,
 } from '@nestjs/swagger';
-import { UserResponseDto } from './dtos/response/user.response';
-import { CourseWishListResponseDto } from '../course_wish/dtos/response/course-wish.reponse.dto';
-import { QuestionListResponseDto } from '../question/dtos/response/question.response.dto';
-import { CourseUserListResponseDto } from 'src/course_user/dtos/response/course-user.response.dto';
-import { UserEntity } from './entities/user.entity';
-import { PageMetaDto } from 'src/common/dtos/page-meta.dto';
+import { UserResponseDto } from '@src/user/dtos/response/user.response';
+import { CourseWishListResponseDto } from '@src/course_wish/dtos/response/course-wish.reponse.dto';
+import { QuestionListResponseDto } from '@src/question/dtos/response/question.response.dto';
+import { CourseUserListResponseDto } from '@src/course_user/dtos/response/course-user.response.dto';
+import { UserEntity } from '@src/user/entities/user.entity';
+import { PageMetaDto } from '@src/common/dtos/page-meta.dto';
 
 export const ApiProfileUserSwagger = (summary: string) => {
   return applyDecorators(

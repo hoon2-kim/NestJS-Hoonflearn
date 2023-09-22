@@ -1,5 +1,5 @@
 import { Exclude } from 'class-transformer';
-import { LessonEntity } from 'src/lesson/entities/lesson.entity';
+import { LessonEntity } from '@src/lesson/entities/lesson.entity';
 import {
   Column,
   CreateDateColumn,

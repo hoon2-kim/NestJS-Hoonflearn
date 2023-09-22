@@ -1,8 +1,8 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { CartEntity } from 'src/cart/entities/cart.entity';
-import { ICartResponse } from 'src/cart/interfaces/cart.interface';
-import { CartCourseResponseDto } from 'src/course/dtos/response/course.response';
-import { ICartCourseResponse } from 'src/course/interfaces/course.interface';
+import { CartEntity } from '@src/cart/entities/cart.entity';
+import { ICartResponse } from '@src/cart/interfaces/cart.interface';
+import { CartCourseResponseDto } from '@src/course/dtos/response/course.response';
+import { ICartCourseResponse } from '@src/course/interfaces/course.interface';
 
 export class CartResponseDto implements ICartResponse {
   @ApiProperty({ description: '카트 ID', type: 'string' })

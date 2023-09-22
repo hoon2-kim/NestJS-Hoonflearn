@@ -1,22 +1,22 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { AwsS3Service } from 'src/aws-s3/aws-s3.service';
-import { CourseService } from 'src/course/course.service';
-import { CourseEntity } from 'src/course/entities/course.entity';
-import { CourseUserService } from 'src/course_user/course-user.service';
-import { SectionEntity } from 'src/section/entities/section.entity';
-import { SectionService } from 'src/section/section.service';
+import { AwsS3Service } from '@src/aws-s3/aws-s3.service';
+import { CourseService } from '@src/course/course.service';
+import { CourseEntity } from '@src/course/entities/course.entity';
+import { CourseUserService } from '@src/course_user/course-user.service';
+import { SectionEntity } from '@src/section/entities/section.entity';
+import { SectionService } from '@src/section/section.service';
 import {
   DeleteResult,
   EntityManager,
   FindOneOptions,
   Repository,
 } from 'typeorm';
-import { CreateLessonDto } from './dtos/request/create-lesson.dto';
-import { UpdateLessonDto } from './dtos/request/update-lesson.dto';
-import { LessonResponseDto } from './dtos/response/lesson.response.dto';
-import { LessonEntity } from './entities/lesson.entity';
-import { ELessonAction } from './enums/lesson.enum';
+import { CreateLessonDto } from '@src/lesson/dtos/request/create-lesson.dto';
+import { UpdateLessonDto } from '@src/lesson/dtos/request/update-lesson.dto';
+import { LessonResponseDto } from '@src/lesson/dtos/response/lesson.response.dto';
+import { LessonEntity } from '@src/lesson/entities/lesson.entity';
+import { ELessonAction } from '@src/lesson/enums/lesson.enum';
 
 @Injectable()
 export class LessonService {
@@ -32,12 +32,12 @@ export class LessonService {
 
   async findOneByOptions(
     options: FindOneOptions<LessonEntity>,
-    transactionManager?: EntityManager,
+    manager?: EntityManager,
   ): Promise<LessonEntity | null> {
     let lesson: LessonEntity | null;
 
-    transactionManager
-      ? (lesson = await transactionManager.findOne(LessonEntity, options))
+    manager
+      ? (lesson = await manager.findOne(LessonEntity, options))
       : (lesson = await this.lessonRepository.findOne(options));
 
     return lesson;
@@ -186,7 +186,7 @@ export class LessonService {
 
   async getCourseIdByLessonIdWithQueryBuilder(
     lessonId: string,
-    transactionManager?: EntityManager,
+    manager?: EntityManager,
   ): Promise<string> {
     let queryBuilder = this.lessonRepository
       .createQueryBuilder('lesson')
@@ -194,11 +194,9 @@ export class LessonService {
       .where('lesson.id = :lessonId', { lessonId })
       .select(['lesson.id', 'section.fk_course_id']);
 
-    if (transactionManager) {
+    if (manager) {
       // 트랜잭션 범위 설정
-      queryBuilder = queryBuilder.setQueryRunner(
-        transactionManager.queryRunner,
-      );
+      queryBuilder = queryBuilder.setQueryRunner(manager.queryRunner);
     }
 
     const lesson = await queryBuilder.getOne();

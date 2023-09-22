@@ -1,14 +1,14 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { PageMetaDto } from 'src/common/dtos/page-meta.dto';
-import { PageDto } from 'src/common/dtos/page.dto';
-import { CourseEntity } from 'src/course/entities/course.entity';
-import { ECourseChargeType } from 'src/course/enums/course.enum';
-import { UserWishQueryDto } from 'src/user/dtos/query/user.query.dto';
-import { EUserWishCourseSort } from 'src/user/enums/user.enum';
+import { PageMetaDto } from '@src/common/dtos/page-meta.dto';
+import { PageDto } from '@src/common/dtos/page.dto';
+import { CourseEntity } from '@src/course/entities/course.entity';
+import { ECourseChargeType } from '@src/course/enums/course.enum';
+import { UserWishQueryDto } from '@src/user/dtos/query/user.query.dto';
+import { EUserWishCourseSort } from '@src/user/enums/user.enum';
 import { FindOneOptions, Repository } from 'typeorm';
-import { CourseWishListResponseDto } from './dtos/response/course-wish.reponse.dto';
-import { CourseWishEntity } from './entities/course-wish.entity';
+import { CourseWishListResponseDto } from '@src/course_wish/dtos/response/course-wish.reponse.dto';
+import { CourseWishEntity } from '@src/course_wish/entities/course-wish.entity';
 
 @Injectable()
 export class CourseWishService {

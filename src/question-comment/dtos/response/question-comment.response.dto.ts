@@ -1,8 +1,8 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { QuestionCommentEntity } from 'src/question-comment/entities/question-comment.entity';
-import { IQuestionCommentResponse } from 'src/question-comment/interfaces/question-comment.interface';
-import { SimpleUserResponseDto } from 'src/user/dtos/response/user.response';
-import { ISimpleUserResponse } from 'src/user/interfaces/user.interface';
+import { QuestionCommentEntity } from '@src/question-comment/entities/question-comment.entity';
+import { IQuestionCommentResponse } from '@src/question-comment/interfaces/question-comment.interface';
+import { SimpleUserResponseDto } from '@src/user/dtos/response/user.response';
+import { ISimpleUserResponse } from '@src/user/interfaces/user.interface';
 
 export class QuestionCommentResponseDto implements IQuestionCommentResponse {
   @ApiProperty({

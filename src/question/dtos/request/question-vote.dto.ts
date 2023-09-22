@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsEnum, IsNotEmpty } from 'class-validator';
-import { EQuestionVoteDtoType } from 'src/question-vote/enums/question-vote.enum';
+import { EQuestionVoteDtoType } from '@src/question-vote/enums/question-vote.enum';
 
 export class QuestionVoteDto {
   @ApiProperty({

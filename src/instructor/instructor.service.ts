@@ -4,28 +4,28 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { AuthService } from 'src/auth/auth.service';
+import { AuthService } from '@src/auth/auth.service';
 import { Repository } from 'typeorm';
-import { CreateInstructorDto } from './dtos/request/create-instructor.dto';
-import { InstructorProfileEntity } from './entities/instructor-profile.entity';
+import { CreateInstructorDto } from '@src/instructor/dtos/request/create-instructor.dto';
+import { InstructorProfileEntity } from '@src/instructor/entities/instructor-profile.entity';
 import { Response } from 'express';
-import { IInstructorCreateResult } from './interfaces/instructor.interface';
-import { UserService } from 'src/user/user.service';
-import { UserEntity } from 'src/user/entities/user.entity';
+import { IInstructorCreateResult } from '@src/instructor/interfaces/instructor.interface';
+import { UserService } from '@src/user/user.service';
+import { UserEntity } from '@src/user/entities/user.entity';
 import {
   InstructorCourseQueryDto,
   InstructorQuestionQueryDto,
   InstructorReviewQueryDto,
-} from './dtos/query/instructor.query.dto';
-import { PageMetaDto } from 'src/common/dtos/page-meta.dto';
-import { PageDto } from 'src/common/dtos/page.dto';
-import { CourseService } from 'src/course/course.service';
-import { QuestionService } from 'src/question/question.service';
-import { ReviewService } from 'src/review/review.service';
-import { ERoleType } from 'src/user/enums/user.enum';
-import { CourseListByInstructorResponseDto } from 'src/course/dtos/response/course.response';
-import { QuestionListResponseDto } from 'src/question/dtos/response/question.response.dto';
-import { ReviewResponseWithoutCommentDto } from 'src/review/dtos/response/review.response.dto';
+} from '@src/instructor/dtos/query/instructor.query.dto';
+import { PageMetaDto } from '@src/common/dtos/page-meta.dto';
+import { PageDto } from '@src/common/dtos/page.dto';
+import { CourseService } from '@src/course/course.service';
+import { QuestionService } from '@src/question/question.service';
+import { ReviewService } from '@src/review/review.service';
+import { ERoleType } from '@src/user/enums/user.enum';
+import { CourseListByInstructorResponseDto } from '@src/course/dtos/response/course.response';
+import { QuestionListResponseDto } from '@src/question/dtos/response/question.response.dto';
+import { ReviewResponseWithoutCommentDto } from '@src/review/dtos/response/review.response.dto';
 
 @Injectable()
 export class InstructorService {

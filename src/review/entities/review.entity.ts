@@ -1,7 +1,7 @@
 import { Exclude } from 'class-transformer';
-import { CourseEntity } from 'src/course/entities/course.entity';
-import { ReviewCommentEntity } from 'src/review-comment/entities/review-comment.entity';
-import { UserEntity } from 'src/user/entities/user.entity';
+import { CourseEntity } from '@src/course/entities/course.entity';
+import { ReviewCommentEntity } from '@src/review-comment/entities/review-comment.entity';
+import { UserEntity } from '@src/user/entities/user.entity';
 import {
   Column,
   CreateDateColumn,

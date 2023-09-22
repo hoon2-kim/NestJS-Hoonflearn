@@ -1,4 +1,4 @@
-import { IVideoResponse } from 'src/video/interfaces/video.interface';
+import { IVideoResponse } from '@src/video/interfaces/video.interface';
 
 export interface ILessonResponse {
   id: string;

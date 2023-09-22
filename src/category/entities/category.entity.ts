@@ -8,7 +8,7 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
-import { CategoryCourseEntity } from 'src/category_course/entities/category-course.entitiy';
+import { CategoryCourseEntity } from '@src/category_course/entities/category-course.entitiy';
 
 @Entity({ name: 'categories' })
 export class CategoryEntity {

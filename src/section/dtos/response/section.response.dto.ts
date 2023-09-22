@@ -1,8 +1,8 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { LessonResponseDto } from 'src/lesson/dtos/response/lesson.response.dto';
-import { ILessonResponse } from 'src/lesson/interfaces/lesson.interface';
-import { SectionEntity } from 'src/section/entities/section.entity';
-import { ISectionResponse } from 'src/section/interfaces/section.interface';
+import { LessonResponseDto } from '@src/lesson/dtos/response/lesson.response.dto';
+import { ILessonResponse } from '@src/lesson/interfaces/lesson.interface';
+import { SectionEntity } from '@src/section/entities/section.entity';
+import { ISectionResponse } from '@src/section/interfaces/section.interface';
 
 export class SectionResponseDto implements ISectionResponse {
   @ApiProperty({ description: '섹션 ID', type: 'string' })

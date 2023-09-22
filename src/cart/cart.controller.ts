@@ -1,17 +1,17 @@
 import { UseGuards } from '@nestjs/common';
 import { Controller, Get, Post, Body, Param, Delete } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
-import { CurrentUser } from 'src/auth/decorators/current-user.decorator';
-import { AtGuard } from 'src/auth/guards/at.guard';
-import { CartService } from './cart.service';
+import { CurrentUser } from '@src/auth/decorators/current-user.decorator';
+import { AtGuard } from '@src/auth/guards/at.guard';
+import { CartService } from '@src/cart/cart.service';
 import {
   ApiDeleteCourseInCartSwagger,
   ApiGetMyCartSwagger,
   ApiInsertCourseInCartSwagger,
-} from './cart.swagger';
-import { CreateCartDto } from './dtos/request/create-cart.dto';
-import { CartResponseDto } from './dtos/response/cart.response.dto';
-import { CartEntity } from './entities/cart.entity';
+} from '@src/cart/cart.swagger';
+import { CreateCartDto } from '@src/cart/dtos/request/create-cart.dto';
+import { CartResponseDto } from '@src/cart/dtos/response/cart.response.dto';
+import { CartEntity } from '@src/cart/entities/cart.entity';
 
 @ApiTags('CART')
 @UseGuards(AtGuard)

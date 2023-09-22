@@ -8,17 +8,17 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
-import { CurrentUser } from 'src/auth/decorators/current-user.decorator';
-import { AtGuard } from 'src/auth/guards/at.guard';
-import { CreateQuestionReCommentDto } from './dtos/request/create-question-recomment.dto';
-import { UpdateQuestionReCommentDto } from './dtos/request/update-question-recomment.dto';
-import { QuestionCommentEntity } from './entities/question-comment.entity';
+import { CurrentUser } from '@src/auth/decorators/current-user.decorator';
+import { AtGuard } from '@src/auth/guards/at.guard';
+import { CreateQuestionReCommentDto } from '@src/question-comment/dtos/request/create-question-recomment.dto';
+import { UpdateQuestionReCommentDto } from '@src/question-comment/dtos/request/update-question-recomment.dto';
+import { QuestionCommentEntity } from '@src/question-comment/entities/question-comment.entity';
 import {
   ApiCreateQuestionReCommentSwagger,
   ApiDeleteQuestionReCommentSwagger,
   ApiUpdateQuestionReCommentSwagger,
-} from './question-comment.swagger';
-import { QuestionRecommentService } from './question-recomment.service';
+} from '@src/question-comment/question-comment.swagger';
+import { QuestionRecommentService } from '@src/question-comment/question-recomment.service';
 
 @ApiTags('QUESTION-RE_COMMENT')
 @UseGuards(AtGuard)

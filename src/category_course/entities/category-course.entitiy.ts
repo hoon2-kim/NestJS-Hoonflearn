@@ -1,5 +1,6 @@
-import { CategoryEntity } from 'src/category/entities/category.entity';
-import { CourseEntity } from 'src/course/entities/course.entity';
+import { CategoryEntity } from '@src/category/entities/category.entity';
+import { CourseEntity } from '@src/course/entities/course.entity';
+import { Exclude } from 'class-transformer';
 import {
   Column,
   Entity,
@@ -16,12 +17,15 @@ export class CategoryCourseEntity {
   @Column({ type: 'boolean', default: false })
   isMain: boolean;
 
+  @Exclude()
   @Column({ type: 'uuid' })
   fk_course_id: string;
 
+  @Exclude()
   @Column({ type: 'uuid' })
   fk_parent_category_id: string;
 
+  @Exclude()
   @Column({ type: 'uuid' })
   fk_sub_category_id: string;
 

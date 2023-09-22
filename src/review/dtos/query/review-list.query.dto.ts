@@ -1,7 +1,7 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { IsEnum, IsOptional } from 'class-validator';
-import { PageOptionDto } from 'src/common/dtos/page-option.dto';
-import { EReviewSortBy } from '../../enums/review.enum';
+import { PageOptionDto } from '@src/common/dtos/page-option.dto';
+import { EReviewSortBy } from '@src/review/enums/review.enum';
 
 export class ReviewListQueryDto extends PageOptionDto {
   @ApiPropertyOptional({

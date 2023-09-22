@@ -12,7 +12,7 @@ import {
   IsUUID,
   ValidateNested,
 } from 'class-validator';
-import { ECourseLevelType } from '../../enums/course.enum';
+import { ECourseLevelType } from '@src/course/enums/course.enum';
 
 export class CreateCourseDto {
   @ApiProperty({

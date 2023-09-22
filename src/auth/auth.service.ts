@@ -7,11 +7,11 @@ import {
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as bcryptjs from 'bcryptjs';
-import { LoginUserDto } from './dtos/request/login-user.dto';
-import { Response, Request } from 'express';
-import { UserService } from 'src/user/user.service';
-import { IAuthLogin, IAuthRestore } from './interfaces/auth.interface';
-import { ERoleType } from 'src/user/enums/user.enum';
+import { LoginUserDto } from '@src/auth/dtos/request/login-user.dto';
+import { Request, Response } from 'express';
+import { UserService } from '@src/user/user.service';
+import { IAuthLogin, IAuthRestore } from '@src/auth/interfaces/auth.interface';
+import { ERoleType } from '@src/user/enums/user.enum';
 
 @Injectable()
 export class AuthService {

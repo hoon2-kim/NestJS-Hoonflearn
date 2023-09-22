@@ -1,10 +1,10 @@
-import { HttpExceptionFilter } from './common/filters/http-api-exception.filter';
 import { NestFactory, Reflector } from '@nestjs/core';
-import { AppModule } from './app.module';
+import { AppModule } from '@src/app.module';
 import { NestExpressApplication } from '@nestjs/platform-express';
-import * as cookieParser from 'cookie-parser';
+import cookieParser from 'cookie-parser';
 import { ClassSerializerInterceptor, ValidationPipe } from '@nestjs/common';
-import { setupSwagger } from './api-docs.swagger';
+import { setupSwagger } from '@src/api-docs.swagger';
+import { HttpExceptionFilter } from '@src/common/filters/http-api-exception.filter';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);

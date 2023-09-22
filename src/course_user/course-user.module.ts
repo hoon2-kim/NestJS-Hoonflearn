@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { CourseUserService } from './course-user.service';
-import { CourseUserEntity } from './entities/course-user.entity';
+import { CourseUserService } from '@src/course_user/course-user.service';
+import { CourseUserEntity } from '@src/course_user/entities/course-user.entity';
 
 @Module({
   imports: [TypeOrmModule.forFeature([CourseUserEntity])],

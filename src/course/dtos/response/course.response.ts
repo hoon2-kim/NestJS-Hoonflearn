@@ -1,8 +1,8 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { CategoryCourseMainNameResponseDto } from 'src/category_course/dtos/response/category-course.response.dto';
-import { ICategoryCourseMainNameResponse } from 'src/category_course/interfaces/category-course.interface';
-import { CourseEntity } from 'src/course/entities/course.entity';
-import { ECourseLevelType } from 'src/course/enums/course.enum';
+import { CategoryCourseMainNameResponseDto } from '@src/category_course/dtos/response/category-course.response.dto';
+import { ICategoryCourseMainNameResponse } from '@src/category_course/interfaces/category-course.interface';
+import { CourseEntity } from '@src/course/entities/course.entity';
+import { ECourseLevelType } from '@src/course/enums/course.enum';
 import {
   ICartCourseResponse,
   ICourseDashboardResponse,
@@ -13,13 +13,13 @@ import {
   ICourseListResponse,
   IOrderDetailCourseResponse,
   ISimpleCourseResponse,
-} from 'src/course/interfaces/course.interface';
-import { CourseDashBoardQuestionResponseDto } from 'src/question/dtos/response/question.response.dto';
-import { ICourseDashboardQuestionResponse } from 'src/question/interfaces/question.interface';
-import { SectionResponseDto } from 'src/section/dtos/response/section.response.dto';
-import { ISectionResponse } from 'src/section/interfaces/section.interface';
-import { SimpleUserResponseDto } from 'src/user/dtos/response/user.response';
-import { ISimpleUserResponse } from 'src/user/interfaces/user.interface';
+} from '@src/course/interfaces/course.interface';
+import { CourseDashBoardQuestionResponseDto } from '@src/question/dtos/response/question.response.dto';
+import { ICourseDashboardQuestionResponse } from '@src/question/interfaces/question.interface';
+import { SectionResponseDto } from '@src/section/dtos/response/section.response.dto';
+import { ISectionResponse } from '@src/section/interfaces/section.interface';
+import { SimpleUserResponseDto } from '@src/user/dtos/response/user.response';
+import { ISimpleUserResponse } from '@src/user/interfaces/user.interface';
 
 export class SimpleCourseResponseDto implements ISimpleCourseResponse {
   @ApiProperty({ description: '강의 ID', type: 'string' })

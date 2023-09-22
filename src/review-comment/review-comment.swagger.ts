@@ -9,7 +9,7 @@ import {
   ApiOperation,
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
-import { ReviewCommentEntity } from './entities/review-comment.entity';
+import { ReviewCommentEntity } from '@src/review-comment/entities/review-comment.entity';
 
 export const ApiCreateReviewCommentSwagger = (summary: string) => {
   return applyDecorators(

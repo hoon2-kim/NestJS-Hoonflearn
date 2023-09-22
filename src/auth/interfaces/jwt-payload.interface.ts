@@ -1,4 +1,4 @@
-import { ERoleType } from 'src/user/enums/user.enum';
+import { ERoleType } from '@src/user/enums/user.enum';
 
 export interface JwtPayload {
   id: string;

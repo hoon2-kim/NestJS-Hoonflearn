@@ -13,18 +13,18 @@ import {
   BadRequestException,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { CurrentUser } from 'src/auth/decorators/current-user.decorator';
-import { Roles } from 'src/auth/decorators/role-protected.decorator';
-import { AtGuard } from 'src/auth/guards/at.guard';
-import { RoleGuard } from 'src/auth/guards/role.guard';
-import { CourseService } from './course.service';
-import { CreateCourseDto } from './dtos/request/create-course.dto';
-import { UpdateCourseDto } from './dtos/request/update-course.dto';
-import { UserEntity } from 'src/user/entities/user.entity';
-import { CourseListQueryDto } from './dtos/query/course-list.query.dto';
+import { CurrentUser } from '@src/auth/decorators/current-user.decorator';
+import { Roles } from '@src/auth/decorators/role-protected.decorator';
+import { AtGuard } from '@src/auth/guards/at.guard';
+import { RoleGuard } from '@src/auth/guards/role.guard';
+import { CourseService } from '@src/course/course.service';
+import { CreateCourseDto } from '@src/course/dtos/request/create-course.dto';
+import { UpdateCourseDto } from '@src/course/dtos/request/update-course.dto';
+import { UserEntity } from '@src/user/entities/user.entity';
+import { CourseListQueryDto } from '@src/course/dtos/query/course-list.query.dto';
 import { ApiTags } from '@nestjs/swagger';
-import { ERoleType } from 'src/user/enums/user.enum';
-import { CoursePriceValidationPipe } from 'src/common/pipes/course-price.pipe';
+import { ERoleType } from '@src/user/enums/user.enum';
+import { CoursePriceValidationPipe } from '@src/common/pipes/course-price.pipe';
 import {
   ApiCreateCourseSwagger,
   ApiDeleteCourseSwagger,
@@ -35,15 +35,15 @@ import {
   ApiUpdateCourseSwagger,
   ApiUploadCourseCoverImageSwagger,
   ApiWishCourseSwagger,
-} from './course.swagger';
+} from '@src/course/course.swagger';
 import {
   CourseDetailResponseDto,
   CourseListResponseDto,
-} from './dtos/response/course.response';
-import { PageDto } from 'src/common/dtos/page.dto';
-import { CourseEntity } from './entities/course.entity';
-import { PublicGuard } from 'src/auth/guards/public.guard';
-import { CurrentOptionalUser } from 'src/auth/decorators/current-optionalUser.decorator';
+} from '@src/course/dtos/response/course.response';
+import { PageDto } from '@src/common/dtos/page.dto';
+import { CourseEntity } from '@src/course/entities/course.entity';
+import { PublicGuard } from '@src/auth/guards/public.guard';
+import { CurrentOptionalUser } from '@src/auth/decorators/current-optionalUser.decorator';
 
 @ApiTags('COURSE')
 @Controller('courses')

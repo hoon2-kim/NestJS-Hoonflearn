@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { CourseUserEntity } from 'src/course_user/entities/course-user.entity';
-import { ICourseUserList } from 'src/course_user/interfaces/course-user.interface';
+import { CourseUserEntity } from '@src/course_user/entities/course-user.entity';
+import { ICourseUserList } from '@src/course_user/interfaces/course-user.interface';
 
 export class CourseUserListResponseDto implements ICourseUserList {
   @ApiProperty({ description: '강의 ID', type: 'string' })

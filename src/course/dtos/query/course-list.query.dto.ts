@@ -1,11 +1,11 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { IsEnum, IsOptional, IsString } from 'class-validator';
-import { PageOptionDto } from 'src/common/dtos/page-option.dto';
+import { PageOptionDto } from '@src/common/dtos/page-option.dto';
 import {
   ECourseChargeType,
   ECourseLevelType,
   ECourseSortBy,
-} from '../../enums/course.enum';
+} from '@src/course/enums/course.enum';
 
 export class CourseListQueryDto extends PageOptionDto {
   @ApiPropertyOptional({ description: '검색어' })
@@ -43,9 +43,9 @@ export class CourseListQueryDto extends PageOptionDto {
   @ApiPropertyOptional({
     description: '페이지당 아이템 수',
     type: 'number',
-    default: 28,
+    default: 24,
     minimum: 1,
     maximum: 50,
   })
-  take?: number = 28;
+  take?: number = 24;
 }

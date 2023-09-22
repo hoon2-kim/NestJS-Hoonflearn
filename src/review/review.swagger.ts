@@ -11,9 +11,9 @@ import {
   ApiUnauthorizedResponse,
   getSchemaPath,
 } from '@nestjs/swagger';
-import { PageMetaDto } from 'src/common/dtos/page-meta.dto';
-import { ReviewResponseWithCommentDto } from './dtos/response/review.response.dto';
-import { ReviewEntity } from './entities/review.entity';
+import { PageMetaDto } from '@src/common/dtos/page-meta.dto';
+import { ReviewResponseWithCommentDto } from '@src/review/dtos/response/review.response.dto';
+import { ReviewEntity } from '@src/review/entities/review.entity';
 
 export const ApiGetAllReviewsByCourseSwagger = (summary: string) => {
   return applyDecorators(

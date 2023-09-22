@@ -1,12 +1,12 @@
 import { Module } from '@nestjs/common';
-import { LessonService } from './lesson.service';
-import { LessonController } from './lesson.controller';
+import { LessonService } from '@src/lesson/lesson.service';
+import { LessonController } from '@src/lesson/lesson.controller';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { LessonEntity } from './entities/lesson.entity';
-import { CourseModule } from '../course/course.module';
-import { SectionModule } from 'src/section/section.module';
-import { CourseUserModule } from 'src/course_user/course-user.module';
-import { AwsS3Module } from 'src/aws-s3/aws-s3.module';
+import { LessonEntity } from '@src/lesson/entities/lesson.entity';
+import { CourseModule } from '@src/course/course.module';
+import { SectionModule } from '@src/section/section.module';
+import { CourseUserModule } from '@src/course_user/course-user.module';
+import { AwsS3Module } from '@src/aws-s3/aws-s3.module';
 
 @Module({
   imports: [

@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { UserEntity } from 'src/user/entities/user.entity';
-import { ERoleType } from 'src/user/enums/user.enum';
+import { UserEntity } from '@src/user/entities/user.entity';
+import { ERoleType } from '@src/user/enums/user.enum';
 import {
   ISimpleUserResponse,
   IUserResponse,

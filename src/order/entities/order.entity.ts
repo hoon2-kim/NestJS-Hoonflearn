@@ -1,5 +1,5 @@
-import { OrderCourseEntity } from 'src/order_course/entities/order-course.entity';
-import { UserEntity } from 'src/user/entities/user.entity';
+import { OrderCourseEntity } from '@src/order_course/entities/order-course.entity';
+import { UserEntity } from '@src/user/entities/user.entity';
 import {
   Column,
   CreateDateColumn,
@@ -9,7 +9,7 @@ import {
   OneToMany,
   PrimaryGeneratedColumn,
 } from 'typeorm';
-import { EOrderStatus } from '../enums/order.enum';
+import { EOrderStatus } from '@src/order/enums/order.enum';
 
 @Entity({ name: 'orders' })
 export class OrderEntity {

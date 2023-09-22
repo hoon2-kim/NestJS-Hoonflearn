@@ -1,10 +1,10 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { CategoryEntity } from '../../entities/category.entity';
+import { CategoryEntity } from '@src/category/entities/category.entity';
 import {
   ICategoryNameResponse,
   ICategoryResponse,
   ISubCategoryResponse,
-} from '../../interfaces/category.interface';
+} from '@src/category/interfaces/category.interface';
 
 export class SubCategoryResponseDto implements ISubCategoryResponse {
   @ApiProperty({ description: '서브 카테고리 ID', type: 'string' })

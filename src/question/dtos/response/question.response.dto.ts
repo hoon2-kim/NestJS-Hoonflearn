@@ -1,17 +1,17 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { SimpleCourseResponseDto } from 'src/course/dtos/response/course.response';
-import { ISimpleCourseResponse } from 'src/course/interfaces/course.interface';
-import { QuestionCommentResponseDto } from 'src/question-comment/dtos/response/question-comment.response.dto';
-import { IQuestionCommentResponse } from 'src/question-comment/interfaces/question-comment.interface';
-import { SimpleUserResponseDto } from 'src/user/dtos/response/user.response';
-import { ISimpleUserResponse } from 'src/user/interfaces/user.interface';
-import { QuestionEntity } from '../../entities/question.entity';
-import { EQuestionStatus } from '../../enums/question.enum';
+import { SimpleCourseResponseDto } from '@src/course/dtos/response/course.response';
+import { ISimpleCourseResponse } from '@src/course/interfaces/course.interface';
+import { QuestionCommentResponseDto } from '@src/question-comment/dtos/response/question-comment.response.dto';
+import { IQuestionCommentResponse } from '@src/question-comment/interfaces/question-comment.interface';
+import { SimpleUserResponseDto } from '@src/user/dtos/response/user.response';
+import { ISimpleUserResponse } from '@src/user/interfaces/user.interface';
+import { QuestionEntity } from '@src/question/entities/question.entity';
+import { EQuestionStatus } from '@src/question/enums/question.enum';
 import {
   IQuestionListResponse,
   IQuestionDetailResponse,
   ICourseDashboardQuestionResponse,
-} from '../../interfaces/question.interface';
+} from '@src/question/interfaces/question.interface';
 
 export class QuestionListResponseDto implements IQuestionListResponse {
   @ApiProperty({ description: '질문글 ID', type: 'string' })

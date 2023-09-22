@@ -1,18 +1,18 @@
 import { INestApplication } from '@nestjs/common';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
-import { PageMetaDto } from './common/dtos/page-meta.dto';
+import { PageMetaDto } from '@src/common/dtos/page-meta.dto';
 import {
   CourseListByInstructorResponseDto,
   CourseListResponseDto,
-} from './course/dtos/response/course.response';
-import { CourseUserListResponseDto } from './course_user/dtos/response/course-user.response.dto';
-import { CourseWishListResponseDto } from './course_wish/dtos/response/course-wish.reponse.dto';
-import { OrdersResponseDto } from './order/dtos/response/order.response.dto';
-import { QuestionListResponseDto } from './question/dtos/response/question.response.dto';
+} from '@src/course/dtos/response/course.response';
+import { CourseUserListResponseDto } from '@src/course_user/dtos/response/course-user.response.dto';
+import { CourseWishListResponseDto } from '@src/course_wish/dtos/response/course-wish.reponse.dto';
+import { OrdersResponseDto } from '@src/order/dtos/response/order.response.dto';
+import { QuestionListResponseDto } from '@src/question/dtos/response/question.response.dto';
 import {
   ReviewResponseWithCommentDto,
   ReviewResponseWithoutCommentDto,
-} from './review/dtos/response/review.response.dto';
+} from '@src/review/dtos/response/review.response.dto';
 
 export function setupSwagger(app: INestApplication) {
   const config = new DocumentBuilder()

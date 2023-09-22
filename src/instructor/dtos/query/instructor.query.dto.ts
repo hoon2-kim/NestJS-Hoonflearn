@@ -1,11 +1,11 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { IsEnum, IsOptional, IsUUID } from 'class-validator';
-import { PageOptionDto } from 'src/common/dtos/page-option.dto';
+import { PageOptionDto } from '@src/common/dtos/page-option.dto';
 import {
   EInstructorQuestionSortBy,
   EInstructorQuestionStatusBy,
   EInstructorReviewSortBy,
-} from '../../enums/instructor.enum';
+} from '@src/instructor/enums/instructor.enum';
 
 export class InstructorCourseQueryDto extends PageOptionDto {}
 

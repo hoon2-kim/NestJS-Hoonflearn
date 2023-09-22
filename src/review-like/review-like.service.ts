@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { ReviewEntity } from 'src/review/entities/review.entity';
+import { ReviewEntity } from '@src/review/entities/review.entity';
 import { FindOneOptions, Repository } from 'typeorm';
-import { ReviewLikeEntity } from './entities/review-like.entity';
+import { ReviewLikeEntity } from '@src/review-like/entities/review-like.entity';
 
 @Injectable()
 export class ReviewLikeService {

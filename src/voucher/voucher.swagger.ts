@@ -9,7 +9,7 @@ import {
   ApiOperation,
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
-import { CourseUserEntity } from 'src/course_user/entities/course-user.entity';
+import { CourseUserEntity } from '@src/course_user/entities/course-user.entity';
 
 export const ApiRegisterFreeCourseSwagger = (summary: string) => {
   return applyDecorators(

@@ -1,15 +1,15 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { SimpleCourseResponseDto } from 'src/course/dtos/response/course.response';
-import { ISimpleCourseResponse } from 'src/course/interfaces/course.interface';
-import { ReviewCommentResponseDto } from 'src/review-comment/dtos/response/review-comment.response.dto';
-import { IReviewCommentResponse } from 'src/review-comment/interfaces/review-comment.interface';
-import { ReviewEntity } from 'src/review/entities/review.entity';
+import { SimpleCourseResponseDto } from '@src/course/dtos/response/course.response';
+import { ISimpleCourseResponse } from '@src/course/interfaces/course.interface';
+import { ReviewCommentResponseDto } from '@src/review-comment/dtos/response/review-comment.response.dto';
+import { IReviewCommentResponse } from '@src/review-comment/interfaces/review-comment.interface';
+import { ReviewEntity } from '@src/review/entities/review.entity';
 import {
   IReviewWithCommentResponse,
   IReviewWithOutCommentResponse,
-} from 'src/review/interfaces/review.interface';
-import { SimpleUserResponseDto } from 'src/user/dtos/response/user.response';
-import { ISimpleUserResponse } from 'src/user/interfaces/user.interface';
+} from '@src/review/interfaces/review.interface';
+import { SimpleUserResponseDto } from '@src/user/dtos/response/user.response';
+import { ISimpleUserResponse } from '@src/user/interfaces/user.interface';
 
 export class ReviewResponseWithoutCommentDto
   implements IReviewWithOutCommentResponse

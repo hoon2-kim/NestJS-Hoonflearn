@@ -1,7 +1,10 @@
 import { OmitType, PartialType } from '@nestjs/swagger';
 import { IsOptional } from 'class-validator';
-import { ECourseLevelType } from '../../enums/course.enum';
-import { CategoryIdsDto, CreateCourseDto } from './create-course.dto';
+import { ECourseLevelType } from '@src/course/enums/course.enum';
+import {
+  CategoryIdsDto,
+  CreateCourseDto,
+} from '@src/course/dtos/request/create-course.dto';
 
 export class UpdateCourseDto extends PartialType(
   OmitType(CreateCourseDto, ['price'] as const),

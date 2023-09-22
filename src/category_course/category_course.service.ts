@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { CategoryIdsDto } from 'src/course/dtos/request/create-course.dto';
+import { CategoryIdsDto } from '@src/course/dtos/request/create-course.dto';
 import { EntityManager, Repository } from 'typeorm';
-import { CategoryCourseEntity } from './entities/category-course.entitiy';
+import { CategoryCourseEntity } from '@src/category_course/entities/category-course.entitiy';
 
 /**
  * TODO : 동시성 테스트
@@ -17,7 +17,7 @@ export class CategoryCourseService {
   async linkCourseToCategories(
     selectedCategoryIds: CategoryIdsDto[],
     courseId: string,
-    transactionManager?: EntityManager,
+    manager?: EntityManager,
   ): Promise<void> {
     const saveCategoryCourse = async (category: CategoryIdsDto) => {
       const isMain =
@@ -29,8 +29,8 @@ export class CategoryCourseService {
         isMain,
       };
 
-      transactionManager
-        ? await transactionManager.save(CategoryCourseEntity, data)
+      manager
+        ? await manager.save(CategoryCourseEntity, data)
         : await this.categoryCourseRepository.save(data);
     };
 

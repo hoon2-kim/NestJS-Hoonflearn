@@ -5,24 +5,24 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { CartService } from 'src/cart/cart.service';
-import { PageMetaDto } from 'src/common/dtos/page-meta.dto';
-import { PageDto } from 'src/common/dtos/page.dto';
-import { CourseEntity } from 'src/course/entities/course.entity';
-import { CourseUserService } from 'src/course_user/course-user.service';
-import { OrderCourseService } from 'src/order_course/order-course.service';
+import { CartService } from '@src/cart/cart.service';
+import { PageMetaDto } from '@src/common/dtos/page-meta.dto';
+import { PageDto } from '@src/common/dtos/page.dto';
+import { CourseEntity } from '@src/course/entities/course.entity';
+import { CourseUserService } from '@src/course_user/course-user.service';
+import { OrderCourseService } from '@src/order_course/order-course.service';
 import { DataSource, Repository } from 'typeorm';
-import { CreateOrderDto } from './dtos/request/create-order.dto';
-import { OrderListQueryDto } from './dtos/query/order-list.query.dto';
-import { OrderEntity } from './entities/order.entity';
-import { IamportService } from './iamport.service';
-import { EOrderAction, EOrderStatus } from './enums/order.enum';
-import { ICoursesTotalPrice } from 'src/course/interfaces/course.interface';
+import { CreateOrderDto } from '@src/order/dtos/request/create-order.dto';
+import { OrderListQueryDto } from '@src/order/dtos/query/order-list.query.dto';
+import { OrderEntity } from '@src/order/entities/order.entity';
+import { IamportService } from '@src/order/iamport.service';
+import { EOrderAction, EOrderStatus } from '@src/order/enums/order.enum';
+import { ICoursesTotalPrice } from '@src/course/interfaces/course.interface';
 import {
   OrderDetailResponseDto,
   OrdersResponseDto,
-} from './dtos/response/order.response.dto';
-import { CourseService } from 'src/course/course.service';
+} from '@src/order/dtos/response/order.response.dto';
+import { CourseService } from '@src/course/course.service';
 
 @Injectable()
 export class OrderService {

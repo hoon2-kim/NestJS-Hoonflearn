@@ -4,13 +4,13 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { CourseService } from 'src/course/course.service';
-import { CourseUserService } from 'src/course_user/course-user.service';
-import { CourseUserEntity } from 'src/course_user/entities/course-user.entity';
-import { ECouresUserType } from 'src/course_user/enums/course-user.enum';
-import { EOrderAction } from 'src/order/enums/order.enum';
+import { CourseService } from '@src/course/course.service';
+import { CourseUserService } from '@src/course_user/course-user.service';
+import { CourseUserEntity } from '@src/course_user/entities/course-user.entity';
+import { ECouresUserType } from '@src/course_user/enums/course-user.enum';
+import { EOrderAction } from '@src/order/enums/order.enum';
 import { Repository } from 'typeorm';
-import { CreateVoucherDto } from './dtos/create-voucher.dto';
+import { CreateVoucherDto } from '@src/voucher/dtos/create-voucher.dto';
 
 @Injectable()
 export class VoucherService {

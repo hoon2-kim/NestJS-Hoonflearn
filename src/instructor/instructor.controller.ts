@@ -7,32 +7,32 @@ import {
   Res,
   Query,
 } from '@nestjs/common';
-import { InstructorService } from './instructor.service';
-import { CreateInstructorDto } from './dtos/request/create-instructor.dto';
-import { Roles } from 'src/auth/decorators/role-protected.decorator';
-import { AtGuard } from 'src/auth/guards/at.guard';
-import { RoleGuard } from 'src/auth/guards/role.guard';
-import { CurrentUser } from 'src/auth/decorators/current-user.decorator';
+import { InstructorService } from '@src/instructor/instructor.service';
+import { CreateInstructorDto } from '@src/instructor/dtos/request/create-instructor.dto';
+import { Roles } from '@src/auth/decorators/role-protected.decorator';
+import { AtGuard } from '@src/auth/guards/at.guard';
+import { RoleGuard } from '@src/auth/guards/role.guard';
+import { CurrentUser } from '@src/auth/decorators/current-user.decorator';
 import { Response } from 'express';
-import { IInstructorCreateResult } from './interfaces/instructor.interface';
-import { UserEntity } from 'src/user/entities/user.entity';
+import { IInstructorCreateResult } from '@src/instructor/interfaces/instructor.interface';
+import { UserEntity } from '@src/user/entities/user.entity';
 import {
   InstructorCourseQueryDto,
   InstructorQuestionQueryDto,
   InstructorReviewQueryDto,
-} from './dtos/query/instructor.query.dto';
+} from '@src/instructor/dtos/query/instructor.query.dto';
 import { ApiTags } from '@nestjs/swagger';
-import { ERoleType } from 'src/user/enums/user.enum';
+import { ERoleType } from '@src/user/enums/user.enum';
 import {
   ApiGetMyCoursesByInstructorSwagger,
   ApiGetQuestionsByMyCourseSwagger,
   ApiGetReviewsByMyCourseSwagger,
   ApiRegisterInstructorSwagger,
-} from './instructor.swagger';
-import { PageDto } from 'src/common/dtos/page.dto';
-import { CourseListByInstructorResponseDto } from 'src/course/dtos/response/course.response';
-import { QuestionListResponseDto } from 'src/question/dtos/response/question.response.dto';
-import { ReviewResponseWithoutCommentDto } from 'src/review/dtos/response/review.response.dto';
+} from '@src/instructor/instructor.swagger';
+import { PageDto } from '@src/common/dtos/page.dto';
+import { CourseListByInstructorResponseDto } from '@src/course/dtos/response/course.response';
+import { QuestionListResponseDto } from '@src/question/dtos/response/question.response.dto';
+import { ReviewResponseWithoutCommentDto } from '@src/review/dtos/response/review.response.dto';
 
 @ApiTags('INSTRUCTOR')
 @Controller('instructors')

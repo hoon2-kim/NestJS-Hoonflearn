@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsEnum, IsNotEmpty } from 'class-validator';
-import { EQuestionStatus } from '../../enums/question.enum';
+import { EQuestionStatus } from '@src/question/enums/question.enum';
 
 export class QuestionStatusDto {
   @ApiProperty({

@@ -1,5 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { QuestionRecommentController } from '../question-recomment.controller';
+import { QuestionRecommentController } from '@src/question-comment/question-recomment.controller';
 
 describe('QuestionRecommentController', () => {
   let controller: QuestionRecommentController;

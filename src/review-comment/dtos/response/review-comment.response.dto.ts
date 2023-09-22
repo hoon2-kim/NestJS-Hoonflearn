@@ -1,8 +1,8 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { ReviewCommentEntity } from 'src/review-comment/entities/review-comment.entity';
-import { IReviewCommentResponse } from 'src/review-comment/interfaces/review-comment.interface';
-import { SimpleUserResponseDto } from 'src/user/dtos/response/user.response';
-import { ISimpleUserResponse } from 'src/user/interfaces/user.interface';
+import { ReviewCommentEntity } from '@src/review-comment/entities/review-comment.entity';
+import { IReviewCommentResponse } from '@src/review-comment/interfaces/review-comment.interface';
+import { SimpleUserResponseDto } from '@src/user/dtos/response/user.response';
+import { ISimpleUserResponse } from '@src/user/interfaces/user.interface';
 
 export class ReviewCommentResponseDto implements IReviewCommentResponse {
   @ApiProperty({ description: '리뷰 댓글 ID', type: 'string' })

@@ -1,12 +1,12 @@
 import { Module } from '@nestjs/common';
-import { QuestionService } from './question.service';
-import { QuestionController } from './question.controller';
+import { QuestionService } from '@src/question/question.service';
+import { QuestionController } from '@src/question/question.controller';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { QuestionEntity } from './entities/question.entity';
-import { CourseModule } from '../course/course.module';
-import { QuestionVoteModule } from 'src/question-vote/question-vote.module';
-import { CourseUserModule } from 'src/course_user/course-user.module';
-import { QuestionHitListener } from './listeners/question-hit.listener';
+import { QuestionEntity } from '@src/question/entities/question.entity';
+import { CourseModule } from '@src/course/course.module';
+import { QuestionVoteModule } from '@src/question-vote/question-vote.module';
+import { CourseUserModule } from '@src/course_user/course-user.module';
+import { QuestionHitListener } from '@src/question/listeners/question-hit.listener';
 
 @Module({
   imports: [

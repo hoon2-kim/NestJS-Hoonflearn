@@ -7,8 +7,8 @@ import {
   ApiOkResponse,
   ApiOperation,
 } from '@nestjs/swagger';
-import { CategoryResponseDto } from './dtos/response/category.response.dto';
-import { CategoryEntity } from './entities/category.entity';
+import { CategoryResponseDto } from '@src/category/dtos/response/category.response.dto';
+import { CategoryEntity } from '@src/category/entities/category.entity';
 
 export const ApiGetAllCategoriesSwagger = (summary: string) => {
   return applyDecorators(

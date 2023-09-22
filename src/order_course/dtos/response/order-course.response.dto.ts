@@ -1,8 +1,8 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { OrderDetailCourseResponseDto } from 'src/course/dtos/response/course.response';
-import { IOrderDetailCourseResponse } from 'src/course/interfaces/course.interface';
-import { OrderCourseEntity } from 'src/order_course/entities/order-course.entity';
-import { IOrderCourseResponse } from 'src/order_course/interfaces/order-course.interface';
+import { OrderDetailCourseResponseDto } from '@src/course/dtos/response/course.response';
+import { IOrderDetailCourseResponse } from '@src/course/interfaces/course.interface';
+import { OrderCourseEntity } from '@src/order_course/entities/order-course.entity';
+import { IOrderCourseResponse } from '@src/order_course/interfaces/order-course.interface';
 
 export class OrderCourseResponseDto implements IOrderCourseResponse {
   @ApiProperty({ description: '주문 상세 ID', type: 'string' })

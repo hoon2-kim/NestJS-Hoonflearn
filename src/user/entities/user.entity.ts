@@ -9,13 +9,13 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 import { Exclude } from 'class-transformer';
-import { InstructorProfileEntity } from 'src/instructor/entities/instructor-profile.entity';
-import { CourseEntity } from 'src/course/entities/course.entity';
-import { CourseWishEntity } from 'src/course_wish/entities/course-wish.entity';
-import { ReviewEntity } from 'src/review/entities/review.entity';
-import { CourseUserEntity } from 'src/course_user/entities/course-user.entity';
-import { ERoleType } from '../enums/user.enum';
-import { QuestionEntity } from 'src/question/entities/question.entity';
+import { InstructorProfileEntity } from '@src/instructor/entities/instructor-profile.entity';
+import { CourseEntity } from '@src/course/entities/course.entity';
+import { CourseWishEntity } from '@src/course_wish/entities/course-wish.entity';
+import { ReviewEntity } from '@src/review/entities/review.entity';
+import { CourseUserEntity } from '@src/course_user/entities/course-user.entity';
+import { ERoleType } from '@src/user/enums/user.enum';
+import { QuestionEntity } from '@src/question/entities/question.entity';
 
 @Entity({ name: 'users' })
 export class UserEntity {

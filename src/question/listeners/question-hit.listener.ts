@@ -2,7 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { OnEvent } from '@nestjs/event-emitter';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { QuestionEntity } from '../entities/question.entity';
+import { QuestionEntity } from '@src/question/entities/question.entity';
 
 export const QUESTION_HIT_EVENT = 'question.hit';
 

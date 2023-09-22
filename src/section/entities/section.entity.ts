@@ -1,6 +1,6 @@
 import { Exclude } from 'class-transformer';
-import { CourseEntity } from 'src/course/entities/course.entity';
-import { LessonEntity } from 'src/lesson/entities/lesson.entity';
+import { CourseEntity } from '@src/course/entities/course.entity';
+import { LessonEntity } from '@src/lesson/entities/lesson.entity';
 import {
   Column,
   CreateDateColumn,

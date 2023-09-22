@@ -6,17 +6,17 @@ import { Patch } from '@nestjs/common';
 import { Delete } from '@nestjs/common';
 import { Controller } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
-import { CurrentUser } from 'src/auth/decorators/current-user.decorator';
-import { AtGuard } from 'src/auth/guards/at.guard';
-import { CreateReviewCommentDto } from './dtos/request/create-review-comment.dto';
-import { UpdateReviewCommentDto } from './dtos/request/update-review-comment.dto';
-import { ReviewCommentEntity } from './entities/review-comment.entity';
-import { ReviewCommentService } from './review-comment.service';
+import { CurrentUser } from '@src/auth/decorators/current-user.decorator';
+import { AtGuard } from '@src/auth/guards/at.guard';
+import { CreateReviewCommentDto } from '@src/review-comment/dtos/request/create-review-comment.dto';
+import { UpdateReviewCommentDto } from '@src/review-comment/dtos/request/update-review-comment.dto';
+import { ReviewCommentEntity } from '@src/review-comment/entities/review-comment.entity';
+import { ReviewCommentService } from '@src/review-comment/review-comment.service';
 import {
   ApiCreateReviewCommentSwagger,
   ApiDeleteReviewCommentSwagger,
   ApiUpdateReviewCommentSwagger,
-} from './review-comment.swagger';
+} from '@src/review-comment/review-comment.swagger';
 
 @ApiTags('REVIEW-COMMENT')
 @UseGuards(AtGuard)

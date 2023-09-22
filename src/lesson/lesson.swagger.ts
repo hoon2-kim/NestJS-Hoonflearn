@@ -8,8 +8,8 @@ import {
   ApiOperation,
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
-import { LessonResponseDto } from './dtos/response/lesson.response.dto';
-import { LessonEntity } from './entities/lesson.entity';
+import { LessonResponseDto } from '@src/lesson/dtos/response/lesson.response.dto';
+import { LessonEntity } from '@src/lesson/entities/lesson.entity';
 
 export const ApiViewLessonSwagger = (summary: string) => {
   return applyDecorators(

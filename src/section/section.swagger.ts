@@ -9,7 +9,7 @@ import {
   ApiOperation,
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
-import { SectionEntity } from './entities/section.entity';
+import { SectionEntity } from '@src/section/entities/section.entity';
 
 export const ApiCreateSectionSwagger = (summary: string) => {
   return applyDecorators(

@@ -10,12 +10,12 @@ import {
   ApiUnauthorizedResponse,
   getSchemaPath,
 } from '@nestjs/swagger';
-import { PageMetaDto } from 'src/common/dtos/page-meta.dto';
+import { PageMetaDto } from '@src/common/dtos/page-meta.dto';
 import {
   QuestionDetailResponseDto,
   QuestionListResponseDto,
-} from './dtos/response/question.response.dto';
-import { QuestionEntity } from './entities/question.entity';
+} from '@src/question/dtos/response/question.response.dto';
+import { QuestionEntity } from '@src/question/entities/question.entity';
 
 export const ApiGetAllQuestionsSwagger = (summary: string) => {
   return applyDecorators(

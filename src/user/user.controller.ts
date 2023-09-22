@@ -11,12 +11,12 @@ import {
   BadRequestException,
   Query,
 } from '@nestjs/common';
-import { UserService } from './user.service';
-import { CreateUserDto } from './dtos/request/create-user.dto';
-import { UpdateUserDto } from './dtos/request/update-user.dto';
-import { AtGuard } from '../auth/guards/at.guard';
-import { CurrentUser } from '../auth/decorators/current-user.decorator';
-import { UserEntity } from './entities/user.entity';
+import { UserService } from '@src/user/user.service';
+import { CreateUserDto } from '@src/user/dtos/request/create-user.dto';
+import { UpdateUserDto } from '@src/user/dtos/request/update-user.dto';
+import { AtGuard } from '@src/auth/guards/at.guard';
+import { CurrentUser } from '@src/auth/decorators/current-user.decorator';
+import { UserEntity } from '@src/user/entities/user.entity';
 import { FileInterceptor } from '@nestjs/platform-express';
 import {
   ApiCreateUserSwagger,
@@ -27,18 +27,18 @@ import {
   ApiUpdateUserSwagger,
   ApiUploadUserAvataSwagger,
   ApiWithdrawalUserSwagger,
-} from './user.swagger';
+} from '@src/user/user.swagger';
 import {
   UserMyCourseQueryDto,
   UserQuestionQueryDto,
   UserWishQueryDto,
-} from './dtos/query/user.query.dto';
+} from '@src/user/dtos/query/user.query.dto';
 import { ApiTags } from '@nestjs/swagger';
-import { CourseWishListResponseDto } from 'src/course_wish/dtos/response/course-wish.reponse.dto';
-import { PageDto } from 'src/common/dtos/page.dto';
-import { QuestionListResponseDto } from 'src/question/dtos/response/question.response.dto';
-import { CourseUserListResponseDto } from 'src/course_user/dtos/response/course-user.response.dto';
-import { imageFileFilter } from 'src/common/helpers/fileFilter.helper';
+import { CourseWishListResponseDto } from '@src/course_wish/dtos/response/course-wish.reponse.dto';
+import { QuestionListResponseDto } from '@src/question/dtos/response/question.response.dto';
+import { CourseUserListResponseDto } from '@src/course_user/dtos/response/course-user.response.dto';
+import { imageFileFilter } from '@src/common/helpers/fileFilter.helper';
+import { PageDto } from '@src/common/dtos/page.dto';
 
 @ApiTags('USER')
 @Controller('users')

@@ -2,33 +2,36 @@ import { NotFoundException } from '@nestjs/common';
 import { ForbiddenException } from '@nestjs/common';
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { PageMetaDto } from 'src/common/dtos/page-meta.dto';
-import { PageDto } from 'src/common/dtos/page.dto';
-import { CourseService } from 'src/course/course.service';
-import { CourseUserService } from 'src/course_user/course-user.service';
-import { QuestionVoteService } from 'src/question-vote/question-vote.service';
-import { UserQuestionQueryDto } from 'src/user/dtos/query/user.query.dto';
+import { PageMetaDto } from '@src/common/dtos/page-meta.dto';
+import { PageDto } from '@src/common/dtos/page.dto';
+import { CourseService } from '@src/course/course.service';
+import { CourseUserService } from '@src/course_user/course-user.service';
+import { QuestionVoteService } from '@src/question-vote/question-vote.service';
+import { UserQuestionQueryDto } from '@src/user/dtos/query/user.query.dto';
 import { FindOneOptions, Repository } from 'typeorm';
-import { CreateQuestionDto } from './dtos/request/create-question.dto';
-import { QuestionListQueryDto } from './dtos/query/question-list.query.dto';
-import { QuestionStatusDto } from './dtos/request/question-status.dto';
-import { UpdateQuestionDto } from './dtos/request/update-question.dto';
-import { QuestionEntity } from './entities/question.entity';
-import { EQuestionSortBy, EQuestionStatus } from './enums/question.enum';
+import { CreateQuestionDto } from '@src/question/dtos/request/create-question.dto';
+import { QuestionListQueryDto } from '@src/question/dtos/query/question-list.query.dto';
+import { QuestionStatusDto } from '@src/question/dtos/request/question-status.dto';
+import { UpdateQuestionDto } from '@src/question/dtos/request/update-question.dto';
+import { QuestionEntity } from '@src/question/entities/question.entity';
+import {
+  EQuestionSortBy,
+  EQuestionStatus,
+} from '@src/question/enums/question.enum';
 import {
   QuestionDetailResponseDto,
   QuestionListResponseDto,
-} from './dtos/response/question.response.dto';
-import { InstructorQuestionQueryDto } from 'src/instructor/dtos/query/instructor.query.dto';
+} from '@src/question/dtos/response/question.response.dto';
+import { InstructorQuestionQueryDto } from '@src/instructor/dtos/query/instructor.query.dto';
 import {
   EInstructorQuestionSortBy,
   EInstructorQuestionStatusBy,
-} from 'src/instructor/enums/instructor.enum';
+} from '@src/instructor/enums/instructor.enum';
 import { EventEmitter2 } from '@nestjs/event-emitter';
-import { QuestionHitEvent } from './events/question-hit.event';
-import { QUESTION_HIT_EVENT } from './listeners/question-hit.listener';
-import { QuestionVoteDto } from './dtos/request/question-vote.dto';
-import { EQuestionVoteDtoType } from 'src/question-vote/enums/question-vote.enum';
+import { QuestionHitEvent } from '@src/question/events/question-hit.event';
+import { QUESTION_HIT_EVENT } from '@src/question/listeners/question-hit.listener';
+import { QuestionVoteDto } from '@src/question/dtos/request/question-vote.dto';
+import { EQuestionVoteDtoType } from '@src/question-vote/enums/question-vote.enum';
 
 @Injectable()
 export class QuestionService {

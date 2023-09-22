@@ -1,5 +1,5 @@
 import { Exclude } from 'class-transformer';
-import { UserEntity } from 'src/user/entities/user.entity';
+import { UserEntity } from '@src/user/entities/user.entity';
 import {
   Column,
   CreateDateColumn,
@@ -9,7 +9,7 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
-import { ReviewEntity } from '../../review/entities/review.entity';
+import { ReviewEntity } from '@src/review/entities/review.entity';
 
 @Entity({ name: 'reviews_comments' })
 export class ReviewCommentEntity {

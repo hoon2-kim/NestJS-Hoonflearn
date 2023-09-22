@@ -1,6 +1,6 @@
 import { OmitType, PartialType } from '@nestjs/swagger';
 import { IsOptional } from 'class-validator';
-import { CreateQuestionDto } from './create-question.dto';
+import { CreateQuestionDto } from '@src/question/dtos/request/create-question.dto';
 
 export class UpdateQuestionDto extends PartialType(
   OmitType(CreateQuestionDto, ['courseId'] as const),

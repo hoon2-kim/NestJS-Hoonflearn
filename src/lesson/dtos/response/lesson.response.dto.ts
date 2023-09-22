@@ -1,7 +1,7 @@
-import { LessonEntity } from 'src/lesson/entities/lesson.entity';
-import { ILessonResponse } from 'src/lesson/interfaces/lesson.interface';
-import { VideoResponseDto } from 'src/video/dtos/response/video.response.dto';
-import { IVideoResponse } from 'src/video/interfaces/video.interface';
+import { LessonEntity } from '@src/lesson/entities/lesson.entity';
+import { ILessonResponse } from '@src/lesson/interfaces/lesson.interface';
+import { VideoResponseDto } from '@src/video/dtos/response/video.response.dto';
+import { IVideoResponse } from '@src/video/interfaces/video.interface';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class LessonResponseDto implements ILessonResponse {

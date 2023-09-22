@@ -1,9 +1,9 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { ECourseLevelType } from 'src/course/enums/course.enum';
-import { CourseWishEntity } from 'src/course_wish/entities/course-wish.entity';
-import { IWishCourseListResponse } from 'src/course_wish/interfaces/course-wish.interface';
-import { SimpleUserResponseDto } from 'src/user/dtos/response/user.response';
-import { ISimpleUserResponse } from 'src/user/interfaces/user.interface';
+import { ECourseLevelType } from '@src/course/enums/course.enum';
+import { CourseWishEntity } from '@src/course_wish/entities/course-wish.entity';
+import { IWishCourseListResponse } from '@src/course_wish/interfaces/course-wish.interface';
+import { SimpleUserResponseDto } from '@src/user/dtos/response/user.response';
+import { ISimpleUserResponse } from '@src/user/interfaces/user.interface';
 
 export class CourseWishListResponseDto implements IWishCourseListResponse {
   @ApiProperty({ description: '강의 ID', type: 'string' })

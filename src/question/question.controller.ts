@@ -8,15 +8,14 @@ import {
   Delete,
   Query,
 } from '@nestjs/common';
-import { QuestionService } from './question.service';
-import { CreateQuestionDto } from './dtos/request/create-question.dto';
-import { UpdateQuestionDto } from './dtos/request/update-question.dto';
+import { QuestionService } from '@src/question/question.service';
+import { CreateQuestionDto } from '@src/question/dtos/request/create-question.dto';
+import { UpdateQuestionDto } from '@src/question/dtos/request/update-question.dto';
 import { UseGuards } from '@nestjs/common';
-import { AtGuard } from 'src/auth/guards/at.guard';
-import { CurrentUser } from 'src/auth/decorators/current-user.decorator';
-import { Put } from '@nestjs/common';
-import { QuestionStatusDto } from './dtos/request/question-status.dto';
-import { QuestionListQueryDto } from './dtos/query/question-list.query.dto';
+import { AtGuard } from '@src/auth/guards/at.guard';
+import { CurrentUser } from '@src/auth/decorators/current-user.decorator';
+import { QuestionStatusDto } from '@src/question/dtos/request/question-status.dto';
+import { QuestionListQueryDto } from '@src/question/dtos/query/question-list.query.dto';
 import { ApiTags } from '@nestjs/swagger';
 import {
   ApiCreateQuestionSwagger,
@@ -27,14 +26,14 @@ import {
   ApiVoteQuestionSwagger,
   ApiReactionQuestionSwagger,
   ApiUpdateQuestionSwagger,
-} from './question.swagger';
-import { PageDto } from 'src/common/dtos/page.dto';
+} from '@src/question/question.swagger';
+import { PageDto } from '@src/common/dtos/page.dto';
 import {
   QuestionDetailResponseDto,
   QuestionListResponseDto,
-} from './dtos/response/question.response.dto';
-import { QuestionEntity } from './entities/question.entity';
-import { QuestionVoteDto } from './dtos/request/question-vote.dto';
+} from '@src/question/dtos/response/question.response.dto';
+import { QuestionEntity } from '@src/question/entities/question.entity';
+import { QuestionVoteDto } from '@src/question/dtos/request/question-vote.dto';
 
 @ApiTags('QUESTION')
 @Controller('questions')

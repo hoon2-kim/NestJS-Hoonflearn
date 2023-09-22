@@ -1,7 +1,10 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { IsEnum, IsOptional, IsString } from 'class-validator';
-import { PageOptionDto } from 'src/common/dtos/page-option.dto';
-import { EQuestionSortBy, EQuestionStatus } from '../../enums/question.enum';
+import { PageOptionDto } from '@src/common/dtos/page-option.dto';
+import {
+  EQuestionSortBy,
+  EQuestionStatus,
+} from '@src/question/enums/question.enum';
 
 export class QuestionListQueryDto extends PageOptionDto {
   @ApiPropertyOptional({

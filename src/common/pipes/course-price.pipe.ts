@@ -4,7 +4,7 @@ import {
   Injectable,
   PipeTransform,
 } from '@nestjs/common';
-import { CreateCourseDto } from 'src/course/dtos/request/create-course.dto';
+import { CreateCourseDto } from '@src/course/dtos/request/create-course.dto';
 
 @Injectable()
 export class CoursePriceValidationPipe implements PipeTransform {

@@ -18,5 +18,3 @@ export const typeOrmModuleConfig = {
   }),
   inject: [ConfigService],
 };
-
-console.log(process.env.NODE_ENV);

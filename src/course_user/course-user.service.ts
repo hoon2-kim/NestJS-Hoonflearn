@@ -1,17 +1,17 @@
 import { ForbiddenException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { PageMetaDto } from 'src/common/dtos/page-meta.dto';
-import { PageDto } from 'src/common/dtos/page.dto';
-import { UserMyCourseQueryDto } from 'src/user/dtos/query/user.query.dto';
+import { PageMetaDto } from '@src/common/dtos/page-meta.dto';
+import { PageDto } from '@src/common/dtos/page.dto';
+import { UserMyCourseQueryDto } from '@src/user/dtos/query/user.query.dto';
 import {
   DeleteResult,
   EntityManager,
   FindOneOptions,
   Repository,
 } from 'typeorm';
-import { CourseUserListResponseDto } from './dtos/response/course-user.response.dto';
-import { CourseUserEntity } from './entities/course-user.entity';
-import { ECouresUserType } from './enums/course-user.enum';
+import { CourseUserListResponseDto } from '@src/course_user/dtos/response/course-user.response.dto';
+import { CourseUserEntity } from '@src/course_user/entities/course-user.entity';
+import { ECouresUserType } from '@src/course_user/enums/course-user.enum';
 
 @Injectable()
 export class CourseUserService {
@@ -56,11 +56,11 @@ export class CourseUserService {
   async saveCourseUserRepo(
     courseIds: string[],
     userId: string,
-    transactionManager?: EntityManager,
+    manager?: EntityManager,
   ): Promise<void> {
     const datas = courseIds.map((courseId) => {
-      return transactionManager
-        ? transactionManager.save(CourseUserEntity, {
+      return manager
+        ? manager.save(CourseUserEntity, {
             fk_course_id: courseId,
             fk_user_id: userId,
             type: ECouresUserType.Paid,
