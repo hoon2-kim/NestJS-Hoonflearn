@@ -39,11 +39,19 @@ import { QuestionListResponseDto } from '@src/question/dtos/response/question.re
 import { CourseUserListResponseDto } from '@src/course_user/dtos/response/course-user.response.dto';
 import { imageFileFilter } from '@src/common/helpers/fileFilter.helper';
 import { PageDto } from '@src/common/dtos/page.dto';
+import { QuestionService } from '@src/question/question.service';
+import { CourseWishService } from '@src/course_wish/course_wish.service';
+import { CourseUserService } from '@src/course_user/course-user.service';
 
 @ApiTags('USER')
 @Controller('users')
 export class UserController {
-  constructor(private readonly userService: UserService) {}
+  constructor(
+    private readonly userService: UserService,
+    private readonly questionService: QuestionService,
+    private readonly courseWishService: CourseWishService,
+    private readonly courseUserService: CourseUserService,
+  ) {}
 
   @ApiProfileUserSwagger('유저 프로필 조회')
   @Get('/profile')
@@ -57,31 +65,40 @@ export class UserController {
   @ApiGetUserWishCoursesSwagger('유저의 찜한 강의 조회')
   @Get('/wishs')
   @UseGuards(AtGuard)
-  getMyWishCourses(
+  async getMyWishCourses(
     @Query() userWishQueryDto: UserWishQueryDto,
     @CurrentUser('id') userId: string,
   ): Promise<PageDto<CourseWishListResponseDto>> {
-    return this.userService.getWishCourses(userWishQueryDto, userId);
+    return await this.courseWishService.findWishCoursesByUser(
+      userWishQueryDto,
+      userId,
+    );
   }
 
   @ApiGetMyQuestionsSwagger('유저가 작성한 질문글 조회')
   @Get('/questions')
   @UseGuards(AtGuard)
-  getMyQuestions(
+  async getMyQuestions(
     @Query() userQuestionQueryDto: UserQuestionQueryDto,
     @CurrentUser('id') userId: string,
   ): Promise<PageDto<QuestionListResponseDto>> {
-    return this.userService.getMyQuestions(userQuestionQueryDto, userId);
+    return await this.questionService.findMyQuestions(
+      userQuestionQueryDto,
+      userId,
+    );
   }
 
   @ApiGetMyCoursesSwagger('유저가 수강하는 강의 조회')
   @Get('/courses')
   @UseGuards(AtGuard)
-  getMyCourses(
+  async getMyCourses(
     @Query() userMyCourseQueryDto: UserMyCourseQueryDto,
     @CurrentUser('id') userId: string,
   ): Promise<PageDto<CourseUserListResponseDto>> {
-    return this.userService.getMyCourses(userMyCourseQueryDto, userId);
+    return await this.courseUserService.findMyCourses(
+      userMyCourseQueryDto,
+      userId,
+    );
   }
 
   @ApiCreateUserSwagger('유저 회원가입')

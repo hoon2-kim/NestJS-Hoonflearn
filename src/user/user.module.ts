@@ -8,6 +8,7 @@ import { CourseWishModule } from '@src/course_wish/course_wish.module';
 import { QuestionModule } from '@src/question/question.module';
 import { CourseUserModule } from '@src/course_user/course-user.module';
 import { InstructorProfileEntity } from '@src/instructor/entities/instructor-profile.entity';
+import { CartModule } from '@src/cart/cart.module';
 
 @Module({
   imports: [
@@ -16,6 +17,7 @@ import { InstructorProfileEntity } from '@src/instructor/entities/instructor-pro
     CourseWishModule,
     QuestionModule,
     CourseUserModule,
+    CartModule,
   ],
   controllers: [UserController],
   providers: [UserService],

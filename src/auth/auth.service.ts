@@ -33,7 +33,6 @@ export class AuthService {
 
     const validatePassword = await bcryptjs.compare(password, user.password);
 
-    // 비밀번호 확인
     if (!validatePassword) {
       throw new UnauthorizedException('비밀번호가 틀렸습니다.');
     }
@@ -43,10 +42,10 @@ export class AuthService {
 
     const rtHash = await this.hashData(rt);
 
-    // refreshToken DB 저장
+    /** refreshToken DB 저장 */
     await this.userService.updateRefreshToken(user.id, rtHash);
 
-    // refreshToken 쿠키 설정
+    /** refreshToken 쿠키 설정 */
     res.cookie('refreshToken', rt, {
       httpOnly: true,
       secure: false, // https 환경에서는 true
@@ -62,10 +61,10 @@ export class AuthService {
 
   async logout(userId: string, res: Response): Promise<string> {
     try {
-      // DB에 저장된 refreshToken = null
+      /** DB에 저장된 refreshToken = null */
       await this.userService.removeRefreshToken(userId);
 
-      // 쿠키에 있는 refreshToken 빈값으로 변경 및 만료시간 과거로 설정
+      /** 쿠키에 있는 refreshToken 빈값으로 변경 및 만료시간 과거로 설정 */
       res.cookie('refreshToken', '', {
         httpOnly: true,
         secure: false,

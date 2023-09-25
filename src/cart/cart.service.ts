@@ -29,13 +29,17 @@ export class CartService {
   }
 
   async findMyCart(userId: string): Promise<CartResponseDto> {
-    const cart = await this.cartRepository
+    let cart = await this.cartRepository
       .createQueryBuilder('cart')
       .leftJoinAndSelect('cart.cartsCourses', 'cartsCourses')
       .leftJoinAndSelect('cartsCourses.course', 'course')
       .leftJoinAndSelect('course.instructor', 'instructor')
       .where('cart.fk_user_id = :userId', { userId })
       .getOne();
+
+    if (!cart) {
+      cart = await this.createCart(userId);
+    }
 
     const courseIds = cart.cartsCourses?.map((c) => c.fk_course_id);
 
@@ -130,5 +134,11 @@ export class CartService {
         );
       }),
     );
+  }
+
+  async removeCart(userId: string): Promise<void> {
+    // TODO : 장바구니 여부
+
+    await this.cartRepository.delete({ fk_user_id: userId });
   }
 }

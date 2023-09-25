@@ -21,7 +21,7 @@ export class AuthController {
   @ApiLoginSwagger('로그인')
   @Post('/login')
   loginUser(
-    @Body() loginUserDto: LoginUserDto, //
+    @Body() loginUserDto: LoginUserDto,
     @Res({ passthrough: true }) res: Response,
   ): Promise<IAuthLogin> {
     return this.authService.login(loginUserDto, res);
@@ -31,7 +31,7 @@ export class AuthController {
   @Post('/logout')
   @UseGuards(AtGuard)
   logoutUser(
-    @CurrentUser('id') userId: string, //
+    @CurrentUser('id') userId: string,
     @Res({ passthrough: true }) res: Response,
   ): Promise<string> {
     return this.authService.logout(userId, res);
@@ -41,7 +41,7 @@ export class AuthController {
   @Post('/refresh')
   @UseGuards(RtGuard)
   restoreAccessToken(
-    @CurrentUser('id') userId: string, //
+    @CurrentUser('id') userId: string,
     @Req() req: Request,
   ): Promise<IAuthRestore> {
     return this.authService.restore(userId, req);

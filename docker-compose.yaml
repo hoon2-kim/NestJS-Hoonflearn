@@ -7,7 +7,7 @@ services:
       context: .
       dockerfile: Dockerfile
       # 개발 환경
-      target: development
+      target: build
     env_file: .env
     volumes:
       - .:/usr/src/app # 호스트와 컨테이너의 파일 공유 - 핫 리로딩을 위해서(개발 단계)

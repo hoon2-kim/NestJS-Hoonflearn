@@ -1,4 +1,4 @@
-FROM node:18 AS development
+FROM node:18 AS build
 
 # 명령이 실행될 위치
 WORKDIR /usr/src/app
@@ -18,19 +18,16 @@ RUN yarn build
 
 FROM node:18 as production
 
-# Set node env to prod
-ARG NODE_ENV=production
-ENV NODE_ENV=${NODE_ENV}
-
 WORKDIR /usr/src/app
 
-# Copy all from development stage
-COPY --from=development /usr/src/app/ .
+COPY --from=build /usr/src/app .
 
+RUN yarn install --only=production
+
+# 8080 포트를 사용한다는 의미(문서화)
 EXPOSE 8080
 
-# Run app
-CMD [ "node","dist/main" ]
+CMD ["node", "dist/main"]
 
 # Example Commands to buuild and run the dockerfile (without docker-compose)
 # docker build -t 이름 .
