@@ -7,13 +7,13 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { UserEntity } from '@src/user/entities/user.entity';
 import { DataSource, Repository } from 'typeorm';
 import { VideoEntity } from '@src/video/entities/video.entity';
-import getVideoDurationInSeconds from 'get-video-duration';
 import { CourseService } from '@src/course/course.service';
 import { LessonService } from '@src/lesson/lesson.service';
 import { URL } from 'url';
 import { SectionEntity } from '@src/section/entities/section.entity';
 import { CourseEntity } from '@src/course/entities/course.entity';
 import { AwsS3Service } from '@src/aws-s3/aws-s3.service';
+import { getVideoDuration } from '@src/common/helpers/getVideoDuration.helper';
 
 @Injectable()
 export class VideoService {
@@ -67,7 +67,7 @@ export class VideoService {
 
       const s3upload = await this.awsS3Service.uploadFileToS3(folderName, file);
 
-      const videoTime = Math.floor(await getVideoDurationInSeconds(s3upload));
+      const videoTime = Math.floor(await getVideoDuration(s3upload));
 
       const result = await queryRunner.manager.save(VideoEntity, {
         videoUrl: s3upload,

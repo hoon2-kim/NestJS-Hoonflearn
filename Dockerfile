@@ -1,5 +1,8 @@
 FROM node:18 AS build
 
+# FFmpeg 설치
+RUN apt-get update && apt-get upgrade -y && apt-get install ffmpeg -y
+
 # 명령이 실행될 위치
 WORKDIR /usr/src/app
 
@@ -16,7 +19,7 @@ RUN yarn build
 
 ### PRODUCTION
 
-FROM node:18 as production
+FROM node:18 AS production
 
 WORKDIR /usr/src/app
 
