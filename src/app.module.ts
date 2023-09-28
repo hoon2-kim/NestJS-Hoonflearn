@@ -25,14 +25,11 @@ import { OrderCourseModule } from '@src/order_course/order-course.module';
 import { VoucherModule } from '@src/voucher/voucher.module';
 import { EventEmitterModule } from '@nestjs/event-emitter';
 import { typeOrmModuleConfig } from '@src/config/database';
-import { CacheModule } from '@src/cache/cache.module';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
-      envFilePath:
-        process.env.NODE_ENV === 'development' ? '.env' : '.env.prod',
     }),
     TypeOrmModule.forRootAsync(typeOrmModuleConfig),
     EventEmitterModule.forRoot(),
@@ -58,7 +55,6 @@ import { CacheModule } from '@src/cache/cache.module';
     OrderModule,
     OrderCourseModule,
     VoucherModule,
-    CacheModule,
   ],
   controllers: [],
   providers: [],

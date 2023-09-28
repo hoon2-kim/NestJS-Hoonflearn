@@ -3,6 +3,9 @@ FROM node:18 AS build
 # FFmpeg 설치
 RUN apt-get update && apt-get upgrade -y && apt-get install ffmpeg -y
 
+# 시간대 설정
+RUN ln -fs /usr/share/zoneinfo/Asia/Seoul /etc/localtime && dpkg-reconfigure -f noninteractive tzdata
+
 # 명령이 실행될 위치
 WORKDIR /usr/src/app
 
@@ -34,4 +37,4 @@ CMD ["node", "dist/main"]
 
 # Example Commands to buuild and run the dockerfile (without docker-compose)
 # docker build -t 이름 .
-# docker run 이름
+# docker run -p 포트:포트 이름

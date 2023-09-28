@@ -31,7 +31,6 @@ import { EventEmitter2 } from '@nestjs/event-emitter';
 import { QuestionHitEvent } from '@src/question/events/question-hit.event';
 import { QUESTION_HIT_EVENT } from '@src/question/listeners/question-hit.listener';
 import { QuestionVoteDto } from '@src/question/dtos/request/question-vote.dto';
-import { EQuestionVoteDtoType } from '@src/question-vote/enums/question-vote.enum';
 
 @Injectable()
 export class QuestionService {
@@ -65,8 +64,9 @@ export class QuestionService {
       if (sort === EQuestionSortBy.Comment) {
         query.orderBy('question.commetCount', 'DESC');
       } else if (sort === EQuestionSortBy.Vote) {
-        query.orderBy('question.voteCount', 'DESC');
-        query.addOrderBy('question.created_at', 'DESC');
+        query
+          .orderBy('question.voteCount', 'DESC')
+          .addOrderBy('question.created_at', 'DESC');
       } else if (sort === EQuestionSortBy.Recent) {
         query.orderBy('question.created_at', 'DESC');
       } else if (sort === EQuestionSortBy.Old) {

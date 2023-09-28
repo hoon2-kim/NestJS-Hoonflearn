@@ -30,5 +30,7 @@ async function bootstrap() {
   setupSwagger(app);
 
   await app.listen(process.env.SERVER_PORT || 8080);
+
+  console.log(new Date());
 }
 bootstrap();
