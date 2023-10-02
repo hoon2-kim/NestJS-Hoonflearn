@@ -7,7 +7,6 @@ import {
   ApiOperation,
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
-import { ERoleType } from '@src/user/enums/user.enum';
 
 export const ApiLoginSwagger = (summary: string) => {
   return applyDecorators(
@@ -18,25 +17,14 @@ export const ApiLoginSwagger = (summary: string) => {
         type: 'object',
         properties: {
           access_token: { type: 'string' },
-          user: {
-            properties: {
-              id: { type: 'string' },
-              email: { type: 'string' },
-              nickname: { type: 'string' },
-              description: { type: 'string' },
-              phone: { type: 'string' },
-              profileAvatar: { type: 'string' },
-              role: { enum: [ERoleType] },
-              created_at: { type: 'string', format: 'date-time' },
-              updated_at: { type: 'string', format: 'date-time' },
-            },
-          },
+          refresh_token: { type: 'string' },
         },
       },
       headers: {
         'Set-Cookie': {
           description: '로그인 후 쿠키에 설정되는 refresh_token',
           schema: {
+            type: 'string',
             example: `refreshToken=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjM0NTE4MTIzLWRmZjEtNDA4NC1iOGY4LWViMGY2Yjc2ZWFjMyIsImVtYWlsIjoiaW5zMUBhLmNvbSIsInJvbGUiOiJJbnN0cnVjdG9yIiwiaWF0IjoxNjkzMzc5MjA5LCJleHAiOjE2OTQ1ODg4MDl9.Dtb4XXDC9ZKMODe94TVr2Ea6R5xJIgVFheX5ZW7sPV8; Path=/; HttpOnly; SameSite=None`,
           },
         },
@@ -57,11 +45,10 @@ export const ApiLogoutSwagger = (summary: string) => {
   );
 };
 
-// TODO : test
 export const ApiRestoreAccessTokenSwagger = (summary: string) => {
   return applyDecorators(
     ApiOperation({ summary }),
-    ApiCookieAuth('refresh_token'),
+    ApiCookieAuth('refreshToken'),
     ApiCreatedResponse({
       description: '발급 성공',
       schema: {

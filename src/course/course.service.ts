@@ -572,13 +572,13 @@ export class CourseService {
   }
 
   async calculateCoursePriceInCart(courseIds: string[]): Promise<number> {
-    const result = await this.courseRepository
+    const { result } = await this.courseRepository
       .createQueryBuilder('course')
       .whereInIds(courseIds)
       .select('SUM(course.price)', 'total')
       .getRawOne();
 
-    return Number(result.total);
+    return Number(result || 0);
   }
 
   async updateCourseStudents(

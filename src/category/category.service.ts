@@ -149,57 +149,6 @@ export class CategoryService {
     return isName;
   }
 
-  // async validateCategoryOptionalTransaction(
-  //   selectedCategoryIds: CategoryIdsDto[],
-  //   manager?: EntityManager,
-  // ): Promise<void> {
-  //   let parent = null;
-  //   let sub = null;
-
-  //   await Promise.all(
-  //     selectedCategoryIds.map(async (category) => {
-  //       manager
-  //         ? (parent = await manager.findOne(CategoryEntity, {
-  //             where: { id: category.parentCategoryId },
-  //           }))
-  //         : (parent = await this.categoryRepository.findOne({
-  //             where: { id: category.parentCategoryId },
-  //           }));
-
-  //       if (!parent) {
-  //         throw new NotFoundException(
-  //           `해당 카테고리ID:${category.parentCategoryId} 는 존재하지 않습니다.`,
-  //         );
-  //       }
-
-  //       if (parent.fk_parent_category_id !== null) {
-  //         throw new BadRequestException(
-  //           `해당 메인 카테고리ID:${category.parentCategoryId} 는 메인 카테고리가 아닙니다.`,
-  //         );
-  //       }
-
-  //       manager
-  //         ? (sub = await manager.findOne(CategoryEntity, {
-  //             where: { id: category.subCategoryId },
-  //           }))
-  //         : (sub = await this.categoryRepository.findOne({
-  //             where: { id: category.subCategoryId },
-  //           }));
-
-  //       if (!sub) {
-  //         throw new NotFoundException(
-  //           `해당 카테고리ID:${category.subCategoryId} 는 존재하지 않습니다.`,
-  //         );
-  //       }
-
-  //       if (sub.fk_parent_category_id === null) {
-  //         throw new BadRequestException(
-  //           `해당 카테고리ID:${category.subCategoryId} 는 메인 카테고리 입니다.`,
-  //         );
-  //       }
-  //     }),
-  //   );
-  // }
   async validateCategoryOptionalTransaction(
     selectedCategoryIds: CategoryIdsDto[],
     manager?: EntityManager,
@@ -255,10 +204,10 @@ export class CategoryService {
       return await manager.findOne(CategoryEntity, {
         where: { id: categoryId },
       });
-    } else {
-      return await this.categoryRepository.findOne({
-        where: { id: categoryId },
-      });
     }
+
+    return await this.categoryRepository.findOne({
+      where: { id: categoryId },
+    });
   }
 }

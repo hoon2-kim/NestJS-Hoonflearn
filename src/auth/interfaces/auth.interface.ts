@@ -1,8 +1,6 @@
-import { UserEntity } from '@src/user/entities/user.entity';
-
 export interface IAuthLogin {
   access_token: string;
-  user: UserEntity;
+  refresh_token: string;
 }
 
 export interface IAuthRestore {

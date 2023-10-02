@@ -6,8 +6,8 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { CreateQuestionReCommentDto } from '@src/question-comment/dtos/request/create-question-recomment.dto';
-import { UpdateQuestionReCommentDto } from '@src/question-comment/dtos/request/update-question-recomment.dto';
+import { CreateQuestionReCommentDto } from '@src/question-comment/question-reComment/dtos/request/create-question-recomment.dto';
+import { UpdateQuestionReCommentDto } from '@src/question-comment/question-reComment/dtos/request/update-question-recomment.dto';
 import { QuestionCommentEntity } from '@src/question-comment/entities/question-comment.entity';
 
 @Injectable()

@@ -49,63 +49,15 @@ export class CartCourseService {
       },
     });
 
-    if (!cartCourse) {
-      return await this.cartCourseRepository.save({
-        fk_course_id: courseId,
-        fk_cart_id: cart.id,
-      });
-    } else {
+    if (cartCourse) {
       throw new BadRequestException('이미 장바구니에 강의를 넣으셨습니다.');
     }
+
+    return await this.cartCourseRepository.save({
+      fk_course_id: courseId,
+      fk_cart_id: cart.id,
+    });
   }
-
-  // TODO : 리팩토링
-  // async deleteCourseInCart(
-  //   courseId: string,
-  //   cartId: string,
-  //   manager?: EntityManager,
-  // ): Promise<DeleteResult> {
-  //   if (manager) {
-  //     const existCourseInCart = await manager.findOne(
-  //       CartCourseEntity,
-  //       {
-  //         where: {
-  //           fk_cart_id: cartId,
-  //           fk_course_id: courseId,
-  //         },
-  //       },
-  //     );
-
-  //     if (!existCourseInCart) {
-  //       throw new NotFoundException(
-  //         '장바구니에 해당 강의가 들어있지 않습니다.',
-  //       );
-  //     }
-
-  //     return await manager.delete(CartCourseEntity, {
-  //       fk_course_id: courseId,
-  //       fk_cart_id: cartId,
-  //     });
-  //   } else {
-  //     const existCourseInCart = await this.findOneByOptions({
-  //       where: {
-  //         fk_cart_id: cartId,
-  //         fk_course_id: courseId,
-  //       },
-  //     });
-
-  //     if (!existCourseInCart) {
-  //       throw new NotFoundException(
-  //         '장바구니에 해당 강의가 들어있지 않습니다.',
-  //       );
-  //     }
-
-  //     return await this.cartCourseRepository.delete({
-  //       fk_course_id: courseId,
-  //       fk_cart_id: cartId,
-  //     });
-  //   }
-  // }
 
   async deleteCourseInCart(
     cartId: string,

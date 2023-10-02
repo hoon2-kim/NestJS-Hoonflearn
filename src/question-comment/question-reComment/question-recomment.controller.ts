@@ -10,15 +10,15 @@ import {
 import { ApiTags } from '@nestjs/swagger';
 import { CurrentUser } from '@src/auth/decorators/current-user.decorator';
 import { AtGuard } from '@src/auth/guards/at.guard';
-import { CreateQuestionReCommentDto } from '@src/question-comment/dtos/request/create-question-recomment.dto';
-import { UpdateQuestionReCommentDto } from '@src/question-comment/dtos/request/update-question-recomment.dto';
+import { CreateQuestionReCommentDto } from '@src/question-comment/question-reComment/dtos/request/create-question-recomment.dto';
+import { UpdateQuestionReCommentDto } from '@src/question-comment/question-reComment/dtos/request/update-question-recomment.dto';
 import { QuestionCommentEntity } from '@src/question-comment/entities/question-comment.entity';
 import {
   ApiCreateQuestionReCommentSwagger,
   ApiDeleteQuestionReCommentSwagger,
   ApiUpdateQuestionReCommentSwagger,
 } from '@src/question-comment/question-comment.swagger';
-import { QuestionRecommentService } from '@src/question-comment/question-recomment.service';
+import { QuestionRecommentService } from '@src/question-comment/question-reComment/question-recomment.service';
 
 @ApiTags('QUESTION-RE_COMMENT')
 @UseGuards(AtGuard)

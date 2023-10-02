@@ -41,7 +41,7 @@ export class CartService {
       cart = await this.createCart(userId);
     }
 
-    const courseIds = cart.cartsCourses?.map((c) => c.fk_course_id);
+    const courseIds = cart.cartsCourses.map((c) => c.fk_course_id);
 
     const total_price = await this.courseService.calculateCoursePriceInCart(
       courseIds,
@@ -66,11 +66,12 @@ export class CartService {
       where: { fk_user_id: userId },
     });
 
+    /** 장바구니가 없다면 생성 */
     if (!cart) {
       cart = await this.createCart(userId);
     }
 
-    // 0원인 강의는 장바구니에 담지 말기
+    /** 무료강의는 장바구니에 담지못함 */
     const course = await this.courseService.findOneByOptions({
       where: { id: courseId },
     });
@@ -81,6 +82,7 @@ export class CartService {
       );
     }
 
+    /** 강의 구매 여부 */
     const isBoughtCourse = await this.courseUserService.checkBoughtCourseByUser(
       userId,
       courseId,
@@ -125,20 +127,28 @@ export class CartService {
       throw new NotFoundException('장바구니가 존재하지 않습니다.');
     }
 
-    await Promise.all(
-      courseIds.map(async (courseId) => {
-        return await this.cartCourseService.deleteCourseInCart(
-          cart.id,
-          courseId,
-          manager,
-        );
-      }),
-    );
+    const datas = courseIds.map((courseId) => {
+      return this.cartCourseService.deleteCourseInCart(
+        cart.id,
+        courseId,
+        manager,
+      );
+    });
+
+    await Promise.all(datas);
+
+    // await Promise.all(
+    //   courseIds.map(async (courseId) => {
+    //     return await this.cartCourseService.deleteCourseInCart(
+    //       cart.id,
+    //       courseId,
+    //       manager,
+    //     );
+    //   }),
+    // );
   }
 
   async removeCart(userId: string): Promise<void> {
-    // TODO : 장바구니 여부
-
     await this.cartRepository.delete({ fk_user_id: userId });
   }
 }

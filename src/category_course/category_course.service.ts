@@ -4,9 +4,6 @@ import { CategoryIdsDto } from '@src/course/dtos/request/create-course.dto';
 import { EntityManager, Repository } from 'typeorm';
 import { CategoryCourseEntity } from '@src/category_course/entities/category-course.entitiy';
 
-/**
- * TODO : 동시성 테스트
- */
 @Injectable()
 export class CategoryCourseService {
   constructor(

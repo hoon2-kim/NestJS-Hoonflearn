@@ -55,7 +55,7 @@ export class AuthService {
 
     return {
       access_token: at,
-      user,
+      refresh_token: rt,
     };
   }
 
