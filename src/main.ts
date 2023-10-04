@@ -32,7 +32,6 @@ async function bootstrap() {
   await app.listen(process.env.SERVER_PORT || 8080);
 
   console.log(new Date());
-  console.log(process.env.TEST);
   console.log(process.env.NODE_ENV);
 }
 bootstrap();
