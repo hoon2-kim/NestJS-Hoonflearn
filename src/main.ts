@@ -33,6 +33,6 @@ async function bootstrap() {
 
   console.log(new Date());
   console.log(process.env.NODE_ENV);
-  console.log('깃헙액션 테스트7');
+  console.log('깃헙액션 테스트8');
 }
 bootstrap();
