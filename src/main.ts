@@ -30,5 +30,8 @@ async function bootstrap() {
   setupSwagger(app);
 
   await app.listen(process.env.SERVER_PORT || 8080);
+
+  console.log(process.env.DB_HOST);
+  console.log(process.env.DB_DATABASE);
 }
 bootstrap();
