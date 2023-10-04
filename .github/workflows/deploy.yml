@@ -46,8 +46,6 @@ jobs:
           username: ${{ secrets.EC2_USERNAME }}
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
-            aws ecr get-login-password --profile ${{ secrets.AWS_IAM_PROFILE }} --region ap-northeast-2 | docker login --username AWS --password-stdin ${{ secrets.ECR_REGISTRY }}
-
             ECR_CONTAINER_IDS=$(docker ps -a --format "{{.ID}} {{.Image}}" | awk '/hoonflearn/ {print $1}')
             for ECR_CONTAINER_ID in $ECR_CONTAINER_IDS; do
               docker stop "$ECR_CONTAINER_ID"
@@ -65,3 +63,5 @@ jobs:
 
             docker pull $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
             docker run -d --env-file ./.env -p 80:8080 $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+
+# aws ecr get-login-password --profile ${{ secrets.AWS_IAM_PROFILE }} --region ap-northeast-2 | docker login --username AWS --password-stdin ${{ secrets.ECR_REGISTRY }}
