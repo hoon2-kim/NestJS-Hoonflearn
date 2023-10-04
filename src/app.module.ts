@@ -25,6 +25,7 @@ import { OrderCourseModule } from '@src/order_course/order-course.module';
 import { VoucherModule } from '@src/voucher/voucher.module';
 import { EventEmitterModule } from '@nestjs/event-emitter';
 import { typeOrmModuleConfig } from '@src/config/database';
+import { AppController } from '@src/app.controller';
 
 @Module({
   imports: [
@@ -56,7 +57,7 @@ import { typeOrmModuleConfig } from '@src/config/database';
     OrderCourseModule,
     VoucherModule,
   ],
-  controllers: [],
+  controllers: [AppController],
   providers: [],
 })
 export class AppModule {}
