@@ -24,7 +24,7 @@ jobs:
 
       - name: ECR 로그인
         id: login-ecr
-        uuses: aws-actions/amazon-ecr-login@v1
+        uses: aws-actions/amazon-ecr-login@v1
 
       - name: 도커 이미지 빌드, ECR 푸시
         id: build-image
