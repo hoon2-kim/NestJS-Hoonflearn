@@ -14,7 +14,7 @@ import { AtGuard } from '@src/auth/guards/at.guard';
 import { RoleGuard } from '@src/auth/guards/role.guard';
 import { CurrentUser } from '@src/auth/decorators/current-user.decorator';
 import { Response } from 'express';
-import { IInstructorCreateResult } from '@src/instructor/interfaces/instructor.interface';
+import { IInstructorTokens } from '@src/instructor/interfaces/instructor.interface';
 import { UserEntity } from '@src/user/entities/user.entity';
 import {
   InstructorCourseQueryDto,
@@ -88,7 +88,7 @@ export class InstructorController {
     @Body() createInstructorDto: CreateInstructorDto,
     @CurrentUser() user: UserEntity,
     @Res({ passthrough: true }) res: Response,
-  ): Promise<IInstructorCreateResult> {
+  ): Promise<IInstructorTokens> {
     return this.instructorService.create(createInstructorDto, user, res);
   }
 }

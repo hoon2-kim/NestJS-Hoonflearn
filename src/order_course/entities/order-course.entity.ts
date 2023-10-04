@@ -8,7 +8,6 @@ import {
   JoinColumn,
   ManyToOne,
   PrimaryGeneratedColumn,
-  UpdateDateColumn,
 } from 'typeorm';
 
 @Entity({ name: 'orders_courses' })
@@ -29,9 +28,6 @@ export class OrderCourseEntity {
 
   @CreateDateColumn({ type: 'timestamptz' })
   created_at: Date;
-
-  @UpdateDateColumn({ type: 'timestamptz' })
-  updated_at: Date;
 
   @ManyToOne(() => OrderEntity, (order) => order.ordersCourses, {
     onDelete: 'CASCADE',

@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  ForbiddenException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { AwsS3Service } from '@src/aws-s3/aws-s3.service';
 import { CourseService } from '@src/course/course.service';
@@ -17,6 +21,8 @@ import { UpdateLessonDto } from '@src/lesson/dtos/request/update-lesson.dto';
 import { LessonResponseDto } from '@src/lesson/dtos/response/lesson.response.dto';
 import { LessonEntity } from '@src/lesson/entities/lesson.entity';
 import { ELessonAction } from '@src/lesson/enums/lesson.enum';
+import { UserEntity } from '@src/user/entities/user.entity';
+import { ERoleType } from '@src/user/enums/user.enum';
 
 @Injectable()
 export class LessonService {
@@ -45,7 +51,7 @@ export class LessonService {
 
   async viewLesson(
     lessonId: string,
-    userId: string,
+    user: UserEntity,
   ): Promise<LessonResponseDto> {
     const lesson = await this.findOneByOptions({
       where: { id: lessonId },
@@ -60,8 +66,20 @@ export class LessonService {
 
     const courseId = await this.getCourseIdByLessonIdWithQueryBuilder(lessonId);
 
-    // 보안(강의를 구매한 유저만 접근 가능) , TODO : 강의를 만든 지식공유자는 접근가능하게 하기
-    await this.courseUserService.validateBoughtCourseByUser(userId, courseId);
+    // role이 유저면 해당 강의를 구매했는지
+    if (user.role === ERoleType.User) {
+      await this.courseUserService.validateBoughtCourseByUser(
+        user.id,
+        courseId,
+      );
+    } else if (user.role === ERoleType.Instructor) {
+      // role이 지식공유자면 해당 강의를 만든 지식공유자면 통과
+      try {
+        await this.courseService.validateInstructor(courseId, user.id);
+      } catch (e) {
+        throw new ForbiddenException('해당 강의를 구매하지 않았습니다.');
+      }
+    }
 
     return LessonResponseDto.from(lesson);
   }

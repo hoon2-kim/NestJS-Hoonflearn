@@ -11,7 +11,13 @@ export class JwtRtStrategy extends PassportStrategy(Strategy, 'refresh') {
     super({
       jwtFromRequest: ExtractJwt.fromExtractors([
         (req: Request) => {
-          return req?.cookies?.refreshToken;
+          const data = req?.cookies['refreshToken'];
+
+          if (!data) {
+            return null;
+          }
+
+          return data;
         },
       ]),
       secretOrKey: configService.get<string>('JWT_RT_SECRET'),
@@ -20,7 +26,7 @@ export class JwtRtStrategy extends PassportStrategy(Strategy, 'refresh') {
   }
 
   async validate(req: Request, payload: JwtPayload) {
-    const refreshToken = req?.cookies?.refreshToken;
+    const refreshToken = req?.cookies['refreshToken'];
 
     if (!refreshToken) {
       throw new ForbiddenException('Refresh token is missing');

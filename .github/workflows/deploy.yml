@@ -1,0 +1,37 @@
+name: 배포 (AWS EC2 / ECR)
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read # github actions의 워크플로우에서 읽기 권한만 허용
+
+    steps:
+      - name: 저장소 확인
+        uses: actions/checkout@v3
+
+      - name: AWS 자격 증명
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_KEY }}
+          aws-region: ap-northeast-2
+
+      - name: ECR 로그인
+        id: login-ecr
+        uuses: aws-actions/amazon-ecr-login@v1
+
+      - name: 도커 이미지 빌드, ECR 푸시
+        id: build-image
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          ECR_REPOSITORY: hoonflearn
+          IMAGE_TAG: latest
+        run: |
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG

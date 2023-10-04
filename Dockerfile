@@ -30,7 +30,7 @@ WORKDIR /usr/src/app
 COPY --from=build /usr/src/app/node_modules ./node_modules
 COPY --from=build /usr/src/app/dist ./dist
 
-# 8080 포트를 사용한다는 의미(문서화)
+# 8080 포트 열기
 EXPOSE 8080
 
 CMD ["node", "dist/main.js"]

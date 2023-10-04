@@ -1,6 +1,4 @@
-import { InstructorProfileEntity } from '@src/instructor/entities/instructor-profile.entity';
-
-export interface IInstructorCreateResult {
+export interface IInstructorTokens {
   access_token: string;
-  instructorProfile: InstructorProfileEntity;
+  refresh_token: string;
 }

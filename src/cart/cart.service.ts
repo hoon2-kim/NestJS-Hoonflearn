@@ -136,16 +136,6 @@ export class CartService {
     });
 
     await Promise.all(datas);
-
-    // await Promise.all(
-    //   courseIds.map(async (courseId) => {
-    //     return await this.cartCourseService.deleteCourseInCart(
-    //       cart.id,
-    //       courseId,
-    //       manager,
-    //     );
-    //   }),
-    // );
   }
 
   async removeCart(userId: string): Promise<void> {

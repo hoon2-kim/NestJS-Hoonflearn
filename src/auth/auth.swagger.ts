@@ -1,5 +1,6 @@
 import { applyDecorators } from '@nestjs/common';
 import {
+  ApiBearerAuth,
   ApiCookieAuth,
   ApiCreatedResponse,
   ApiForbiddenResponse,
@@ -48,7 +49,7 @@ export const ApiLogoutSwagger = (summary: string) => {
 export const ApiRestoreAccessTokenSwagger = (summary: string) => {
   return applyDecorators(
     ApiOperation({ summary }),
-    ApiCookieAuth('refreshToken'),
+    ApiBearerAuth('access_token'),
     ApiCreatedResponse({
       description: '발급 성공',
       schema: {

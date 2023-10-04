@@ -13,7 +13,6 @@ import { PageMetaDto } from '@src/common/dtos/page-meta.dto';
 import { CourseListByInstructorResponseDto } from '@src/course/dtos/response/course.response';
 import { QuestionListResponseDto } from '@src/question/dtos/response/question.response.dto';
 import { ReviewResponseWithoutCommentDto } from '@src/review/dtos/response/review.response.dto';
-import { EFieldOfHopeType } from '@src/instructor/enums/instructor.enum';
 
 export const ApiGetMyCoursesByInstructorSwagger = (summary: string) => {
   return applyDecorators(
@@ -87,19 +86,7 @@ export const ApiRegisterInstructorSwagger = (summary: string) => {
       schema: {
         properties: {
           access_token: { type: 'string' },
-          instructorProfile: {
-            type: 'object',
-            properties: {
-              id: { type: 'string' },
-              contactEmail: { type: 'string' },
-              nameOrBusiness: { type: 'string' },
-              fieldOfHope: { type: 'string', enum: [EFieldOfHopeType] },
-              aboutMe: { type: 'string' },
-              link: { type: 'string', nullable: true },
-              created_at: { type: 'string', format: 'date-time' },
-              updated_at: { type: 'string', format: 'date-time' },
-            },
-          },
+          refresh_token: { type: 'string' },
         },
       },
     }),

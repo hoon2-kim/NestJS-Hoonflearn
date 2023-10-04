@@ -9,7 +9,7 @@ import { Repository } from 'typeorm';
 import { CreateInstructorDto } from '@src/instructor/dtos/request/create-instructor.dto';
 import { InstructorProfileEntity } from '@src/instructor/entities/instructor-profile.entity';
 import { Response } from 'express';
-import { IInstructorCreateResult } from '@src/instructor/interfaces/instructor.interface';
+import { IInstructorTokens } from '@src/instructor/interfaces/instructor.interface';
 import { UserService } from '@src/user/user.service';
 import { UserEntity } from '@src/user/entities/user.entity';
 import {
@@ -127,7 +127,7 @@ export class InstructorService {
     createInstructorDto: CreateInstructorDto,
     user: UserEntity,
     res: Response,
-  ): Promise<IInstructorCreateResult> {
+  ): Promise<IInstructorTokens> {
     const { contactEmail, nameOrBusiness, ...instructorInfo } =
       createInstructorDto;
 
@@ -196,7 +196,7 @@ export class InstructorService {
 
     return {
       access_token: newAt,
-      instructorProfile,
+      refresh_token: newRt,
     };
   }
 }

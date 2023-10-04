@@ -10,10 +10,10 @@ export class AwsS3Service {
   constructor() {
     this.aswS3 = new AWS.S3({
       credentials: {
-        accessKeyId: process.env.AWS_S3_ACCESS_KEY as string,
-        secretAccessKey: process.env.AWS_S3_SECRET_KEY as string,
+        accessKeyId: process.env.AWS_ACCESS_KEY as string,
+        secretAccessKey: process.env.AWS_SECRET_KEY as string,
       },
-      region: process.env.AWS_S3_REGION as string,
+      region: process.env.AWS_REGION as string,
     });
     this.S3_BUCKET_NAME = process.env.AWS_S3_BUCKET_NAME;
   }

@@ -10,13 +10,14 @@ import {
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import { EOrderStatus } from '@src/order/enums/order.enum';
+import { Exclude } from 'class-transformer';
 
 @Entity({ name: 'orders' })
 export class OrderEntity {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column({ type: 'varchar', nullable: true })
+  @Column({ type: 'varchar' })
   orderName: string;
 
   @Column({ type: 'varchar' })
@@ -31,6 +32,7 @@ export class OrderEntity {
   @Column({ type: 'varchar' })
   paymentMethod: string;
 
+  @Exclude()
   @Column({ type: 'uuid' })
   fk_user_id: string;
 

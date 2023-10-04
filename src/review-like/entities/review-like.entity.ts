@@ -8,7 +8,6 @@ import {
   JoinColumn,
   ManyToOne,
   PrimaryGeneratedColumn,
-  UpdateDateColumn,
 } from 'typeorm';
 
 @Entity({ name: 'review_like' })
@@ -26,9 +25,6 @@ export class ReviewLikeEntity {
 
   @CreateDateColumn({ type: 'timestamptz' })
   created_at: Date;
-
-  @UpdateDateColumn({ type: 'timestamptz' })
-  updated_at: Date;
 
   @ManyToOne(() => ReviewEntity, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'fk_review_id' })

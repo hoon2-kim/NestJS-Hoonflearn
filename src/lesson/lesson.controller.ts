@@ -25,6 +25,7 @@ import {
   ApiUpdateLessonSwagger,
   ApiViewLessonSwagger,
 } from '@src/lesson/lesson.swagger';
+import { UserEntity } from '@src/user/entities/user.entity';
 
 @ApiTags('LESSON')
 @Controller('lessons')
@@ -36,9 +37,9 @@ export class LessonController {
   @UseGuards(AtGuard)
   viewLesson(
     @Param('lessonId') lessonId: string,
-    @CurrentUser('id') userId: string,
+    @CurrentUser() user: UserEntity,
   ): Promise<LessonResponseDto> {
-    return this.lessonService.viewLesson(lessonId, userId);
+    return this.lessonService.viewLesson(lessonId, user);
   }
 
   @ApiCreateLessonSwagger('수업 생성')

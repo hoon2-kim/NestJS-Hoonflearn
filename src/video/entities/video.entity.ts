@@ -7,7 +7,6 @@ import {
   JoinColumn,
   OneToOne,
   PrimaryGeneratedColumn,
-  UpdateDateColumn,
 } from 'typeorm';
 
 @Entity({ name: 'videos' })
@@ -27,9 +26,6 @@ export class VideoEntity {
 
   @CreateDateColumn({ type: 'timestamptz' })
   created_at: Date;
-
-  @UpdateDateColumn({ type: 'timestamptz' })
-  updated_at: Date;
 
   @OneToOne(() => LessonEntity, (lesson) => lesson.video, {
     onDelete: 'CASCADE',

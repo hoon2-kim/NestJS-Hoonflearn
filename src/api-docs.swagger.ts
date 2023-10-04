@@ -30,7 +30,6 @@ export function setupSwagger(app: INestApplication) {
       },
       'access_token',
     )
-    .addCookieAuth('refresh_token')
     .build();
   const document = SwaggerModule.createDocument(app, config, {
     extraModels: [
