@@ -46,12 +46,12 @@ jobs:
           username: ${{ secrets.EC2_USERNAME }}
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
-            ECR_CONTAINER_IDS=$(docker ps -a --format "{{.ID}} {{.IMAGE}}" | awk '/hoonflearn/ {print $1}')
+            ECR_CONTAINER_IDS=$(docker ps -a --format "{{.ID}} {{.Image}}" | awk '/hoonflearn/ {print $1}')
             for ECR_CONTAINER_ID in $ECR_CONTAINER_IDS; do
               docker stop "$ECR_CONTAINER_ID"
               docker rm "$ECR_CONTAINER_ID"
             done
-            ECR_IMAGE_IDS=$(docker images --format "{{.ID}} {{.REPOSITORY}}" | awk '$2 ~ /hoonflearn/ {print $1}')
+            ECR_IMAGE_IDS=$(docker images --format "{{.ID}} {{.Repository}}" | awk '$2 ~ /hoonflearn/ {print $1}')
 
             if [ -n "$ECR_IMAGE_IDS" ]; then
               for ECR_IMAGE_ID in $ECR_IMAGES_IDS; do
@@ -62,5 +62,5 @@ jobs:
             fi
 
             aws ecr get-login-password --profile ${{ secrets.EC2_USERNAME }} --region ap-northeast-2 | docker login --username AWS --password-stdin ${{ secrets.ECR_REGISTRY }}
-            sudo docker pull $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
-            sudo docker run -d --env.file ./.env -p 80:8080 $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+            docker pull $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+            docker run -d --env-file ./.env -p 80:8080 $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
