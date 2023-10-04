@@ -45,6 +45,7 @@ jobs:
           host: ${{ secrets.EC2_PUBLIC_IP }}
           username: ${{ secrets.EC2_USERNAME }}
           key: ${{ secrets.EC2_SSH_KEY }}
+          run: echo "$ECR_REGISTRY"
           script: |
             ECR_CONTAINER_IDS=$(docker ps -a --format "{{.ID}} {{.Image}}" | awk '/hoonflearn/ {print $1}')
             for ECR_CONTAINER_ID in $ECR_CONTAINER_IDS; do
@@ -52,8 +53,6 @@ jobs:
               docker rm "$ECR_CONTAINER_ID"
             done
             ECR_IMAGE_IDS=$(docker images --format "{{.ID}} {{.Repository}}" | awk '$2 ~ /hoonflearn/ {print $1}')
-
-            echo "$ECR_REGISTRY"
 
             if [ -n "$ECR_IMAGE_IDS" ]; then
               for ECR_IMAGE_ID in $ECR_IMAGE_IDS; do
