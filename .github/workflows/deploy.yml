@@ -31,7 +31,32 @@ jobs:
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
           ECR_REPOSITORY: hoonflearn
-          IMAGE_TAG: latest
+          IMAGE_TAG: ${{ github.sha }}
         run: |
           docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+
+      - name: EC2 배포
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.EC2_PUBLIC_IP }}
+          username: ${{ secrets.EC2_USERNAME }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          scripts: |
+            ECR_CONTAINER_IDS=$(docker ps -a --format "{{.ID}} {{.IMAGE}}") | awk '/hoonflearn/ {print $1}')
+            for ECR_CONTAINER_ID in $ECR_CONTAINER_IDS; do
+              docker stop "$ECR_CONTAINER_ID"
+              docker rm "$ECR_CONTAINER_ID"
+            done
+            ECR_IMAGE_IDS=$(docker images --format "{{.ID}} {{.REPOSITORY}}") | awk '$2 ~ /hoonflearn/ {print $1}')
+
+            if [ -n "$ECR_IMAGE_IDS"]; then
+              for ECR_IMAGE_ID in $ECR_IMAGES_IDS; do
+                docker rmi -f "$ECR_IMAGE_ID"
+              done
+            else
+              echo "No images found matching the pattern *hoonflearn*"
+            fi
+
+            docker pull $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+            docker run -d --env.file ./.env -p 80:8080 $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
