@@ -61,7 +61,7 @@ jobs:
               echo "No images found matching the pattern *hoonflearn*"
             fi
 
+            aws ecr get-login-password --profile ${{ secrets.AWS_IAM_PROFILE }} --region ap-northeast-2 | docker login --username AWS --password-stdin $ECR_REGISTRY
+
             docker pull $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
             docker run -d --env-file ./.env -p 80:8080 $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
-
-# aws ecr get-login-password --profile ${{ secrets.AWS_IAM_PROFILE }} --region ap-northeast-2 | docker login --username AWS --password-stdin ${{ secrets.ECR_REGISTRY }}
