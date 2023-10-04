@@ -46,7 +46,7 @@ jobs:
           username: ${{ secrets.EC2_USERNAME }}
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
-            ECR_CONTAINER_IDS=$(docker ps -a --format "{{.ID}} {{.IMAGE}}") | awk '/hoonflearn/ {print $1}')
+            ECR_CONTAINER_IDS=$(docker ps -a --format "{{.ID}} {{.IMAGE}}" | awk '/hoonflearn/ {print $1}')
             for ECR_CONTAINER_ID in $ECR_CONTAINER_IDS; do
               docker stop "$ECR_CONTAINER_ID"
               docker rm "$ECR_CONTAINER_ID"
