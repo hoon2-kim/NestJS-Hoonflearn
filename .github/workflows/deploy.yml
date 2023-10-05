@@ -70,3 +70,11 @@ jobs:
 
             docker pull $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
             docker run -d --env-file ./.env -p 80:8080 $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+
+# ECR_CONTAINER_IDS=$(docker ps -a --format "{{.ID}} {{.Image}}" | awk '/hoonflearn/ {print $1}')
+# docker ps -a 한 뒤 --format을 이용해 출력 형식 지정, awk명령어로 hoonflearn이 들어간거 필터링 후 $1(1행) 즉, ID만 출력해 변수에 저장
+# 그 후 for를 통해 docker 컨테이너 stop 및 삭제
+
+# ECR_IMAGE_IDS=$(docker images --format "{{.ID}} {{.Repository}}" | awk '$2 ~ /hoonflearn/ {print $1}')
+# 위와 비슷하고 awk명령어로 $2(2행)에서 hoonflearn이 들어간걸 필터링 후 1행 출력 후 저장
+# if else문으로 있다면 이미지 삭제

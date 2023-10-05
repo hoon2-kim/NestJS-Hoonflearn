@@ -53,6 +53,18 @@ $ yarn install  / npm install
 $ yarn start:dev / npm run start:dev
 ```
 
+### 구매확인 API를 위한 imp_uid 얻는 방법
+
+1. views폴더에 있는 order.html에 name, buyer_email, buyer_name, buyer_tel을 입력 후 VSCode에서 Live Server로 엽니다.
+
+   <img width="300" alt="결제전" src="https://github.com/hoon2-kim/NestJS-Hoonflearn/assets/107983013/90026ede-9f9c-4c50-9a91-bcbfe43e5a5e">
+
+2. 결제금액을 입력한 뒤 결제하기를 누른 뒤 결제를 진행합니다.(실제 결제 X)
+   <img width="300" alt="결제" src="https://github.com/hoon2-kim/NestJS-Hoonflearn/assets/107983013/291751eb-6bc9-4642-b50b-ab61299df6a4">
+
+3. 결제 후 결제결과에 나오는 정보를 활용합니다.
+   <img width="1200" alt="결제후" src="https://github.com/hoon2-kim/NestJS-Hoonflearn/assets/107983013/4f6d920e-ecd9-4b7a-a250-2b39e85928be">
+
 ---
 
 ## 아키텍쳐
