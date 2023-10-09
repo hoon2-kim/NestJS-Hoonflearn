@@ -5,9 +5,17 @@ import cookieParser from 'cookie-parser';
 import { ClassSerializerInterceptor, ValidationPipe } from '@nestjs/common';
 import { setupSwagger } from '@src/api-docs.swagger';
 import { HttpExceptionFilter } from '@src/common/filters/http-api-exception.filter';
+import * as Sentry from '@sentry/node';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
+
+  // Sentry
+  Sentry.init({
+    dsn: process.env.SENTRY_DNS,
+    // tracesSampleRate: 1,
+    enabled: process.env.NODE_ENV === 'production',
+  });
 
   app.setGlobalPrefix('api');
   app.enableCors({
