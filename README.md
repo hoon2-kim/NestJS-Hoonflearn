@@ -60,6 +60,7 @@ $ yarn start:dev / npm run start:dev
    <img width="300" alt="결제전" src="https://github.com/hoon2-kim/NestJS-Hoonflearn/assets/107983013/90026ede-9f9c-4c50-9a91-bcbfe43e5a5e">
 
 2. 결제금액을 입력한 뒤 결제하기를 누른 뒤 결제를 진행합니다.(실제 결제 X)
+
    <img width="300" alt="결제" src="https://github.com/hoon2-kim/NestJS-Hoonflearn/assets/107983013/291751eb-6bc9-4642-b50b-ab61299df6a4">
 
 3. 결제 후 결제결과에 나오는 정보를 활용합니다.
