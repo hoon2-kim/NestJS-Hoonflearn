@@ -38,7 +38,7 @@ export class CategoryController {
   findOneCategoryWithSub(
     @Param('categoryId') categoryId: string, //
   ): Promise<CategoryResponseDto> {
-    return this.categoryService.findOneById(categoryId);
+    return this.categoryService.findOneWithSub(categoryId);
   }
 
   @ApiCreateCategorySwagger('메인 카테고리 생성')

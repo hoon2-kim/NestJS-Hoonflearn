@@ -5,7 +5,7 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { CategoryIdsDto } from '@src/course/dtos/request/create-course.dto';
-import { EntityManager, IsNull, Repository } from 'typeorm';
+import { EntityManager, FindOneOptions, IsNull, Repository } from 'typeorm';
 import { CreateCategoryDto } from '@src/category/dtos/request/create-category.dto';
 import { UpdateCategoryDto } from '@src/category/dtos/request/update-category.dto';
 import { CategoryResponseDto } from '@src/category/dtos/response/category.response.dto';
@@ -41,21 +41,33 @@ export class CategoryService {
     return categories.map((c) => CategoryResponseDto.from(c));
   }
 
-  async findOneById(
-    categoryId: string,
-    withRelations = true,
-  ): Promise<CategoryResponseDto> {
-    const queryBuilder = this.categoryRepository
-      .createQueryBuilder('category')
-      .where('category.id = :categoryId', { categoryId });
+  async findOneByOptions(
+    options: FindOneOptions<CategoryEntity>,
+    manager?: EntityManager,
+  ): Promise<CategoryEntity | null> {
+    let category: CategoryEntity | null;
 
-    if (withRelations) {
-      queryBuilder
-        .leftJoinAndSelect('category.children', 'children')
-        .orderBy('children.name', 'ASC');
-    }
+    manager
+      ? (category = await manager.findOne(CategoryEntity, options))
+      : (category = await this.categoryRepository.findOne(options));
 
-    const category = await queryBuilder.getOne();
+    return category;
+  }
+
+  async findOneWithSub(categoryId: string) {
+    const category = await this.findOneByOptions({
+      where: {
+        id: categoryId,
+      },
+      relations: {
+        children: true,
+      },
+      order: {
+        children: {
+          name: 'ASC',
+        },
+      },
+    });
 
     if (!category) {
       throw new NotFoundException(
@@ -77,7 +89,7 @@ export class CategoryService {
   ): Promise<CategoryEntity> {
     const { name } = createCategoryDto;
 
-    const isName = await this.isCategoryName(name);
+    const isName = await this.findOneByOptions({ where: { name } });
 
     if (isName) {
       throw new BadRequestException(
@@ -96,9 +108,15 @@ export class CategoryService {
   ): Promise<CategoryEntity> {
     const { name } = createCategoryDto;
 
-    await this.findOneById(categoryId, false);
+    const category = await this.findOneByOptions({ where: { id: categoryId } });
 
-    const isName = await this.isCategoryName(name);
+    if (!category) {
+      throw new NotFoundException(
+        `카테고리:${categoryId} 가 존재하지 않습니다.`,
+      );
+    }
+
+    const isName = await this.findOneByOptions({ where: { name } });
 
     if (isName) {
       throw new BadRequestException(
@@ -118,9 +136,19 @@ export class CategoryService {
   ): Promise<void> {
     const { name } = updateCategoryDto;
 
-    const category = await this.findOneById(categoryId, false);
+    const category = await this.findOneByOptions({
+      where: { id: categoryId },
+    });
 
-    const duplicateName = await this.isCategoryName(name);
+    if (!category) {
+      throw new NotFoundException(
+        `카테고리:${categoryId} 가 존재하지 않습니다.`,
+      );
+    }
+
+    const duplicateName = await this.findOneByOptions({
+      where: { name },
+    });
 
     if (duplicateName && category.name !== name) {
       throw new BadRequestException(
@@ -134,19 +162,19 @@ export class CategoryService {
   }
 
   async delete(categoryId: string): Promise<boolean> {
-    await this.findOneById(categoryId, false);
+    const category = await this.findOneByOptions({
+      where: { id: categoryId },
+    });
+
+    if (!category) {
+      throw new NotFoundException(
+        `카테고리:${categoryId} 가 존재하지 않습니다.`,
+      );
+    }
 
     const result = await this.categoryRepository.delete({ id: categoryId });
 
     return result.affected ? true : false;
-  }
-
-  private async isCategoryName(name: string) {
-    const isName = await this.categoryRepository.findOne({
-      where: { name },
-    });
-
-    return isName;
   }
 
   async validateCategoryOptionalTransaction(
@@ -155,59 +183,40 @@ export class CategoryService {
   ) {
     return Promise.all(
       selectedCategoryIds.map(async (category) => {
-        await this.validateParentCategory(category.parentCategoryId, manager);
-        await this.validateSubCategory(category.subCategoryId, manager);
+        await this.validateCategory(category.parentCategoryId, true, manager);
+        await this.validateCategory(category.subCategoryId, false, manager);
       }),
     );
   }
 
-  private async validateParentCategory(
+  async validateCategory(
     categoryId: string,
+    isMainCategory: boolean,
     manager?: EntityManager,
-  ) {
-    const parent = await this.findCategoryById(categoryId, manager);
+  ): Promise<void> {
+    const category = await this.findOneByOptions(
+      {
+        where: { id: categoryId },
+      },
+      manager,
+    );
 
-    if (!parent) {
+    if (!category) {
       throw new NotFoundException(
         `해당 카테고리ID:${categoryId} 는 존재하지 않습니다.`,
       );
     }
 
-    if (parent.fk_parent_category_id !== null) {
+    if (isMainCategory && category.fk_parent_category_id !== null) {
       throw new BadRequestException(
         `해당 메인 카테고리ID:${categoryId} 는 메인 카테고리가 아닙니다.`,
       );
     }
-  }
 
-  private async validateSubCategory(
-    categoryId: string,
-    manager?: EntityManager,
-  ) {
-    const sub = await this.findCategoryById(categoryId, manager);
-
-    if (!sub) {
-      throw new NotFoundException(
-        `해당 카테고리ID:${categoryId} 는 존재하지 않습니다.`,
-      );
-    }
-
-    if (sub.fk_parent_category_id === null) {
+    if (!isMainCategory && category.fk_parent_category_id === null) {
       throw new BadRequestException(
         `해당 카테고리ID:${categoryId} 는 메인 카테고리 입니다.`,
       );
     }
-  }
-
-  private async findCategoryById(categoryId: string, manager?: EntityManager) {
-    if (manager) {
-      return await manager.findOne(CategoryEntity, {
-        where: { id: categoryId },
-      });
-    }
-
-    return await this.categoryRepository.findOne({
-      where: { id: categoryId },
-    });
   }
 }

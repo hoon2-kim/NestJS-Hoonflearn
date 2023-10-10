@@ -29,10 +29,10 @@ export class CategoryEntity {
     nullable: true,
   })
   @JoinColumn({ name: 'fk_parent_category_id' })
-  parent: CategoryEntity;
+  parent?: CategoryEntity;
 
   @Column({ type: 'uuid', nullable: true })
-  fk_parent_category_id: string;
+  fk_parent_category_id?: string;
 
   @OneToMany(() => CategoryEntity, (category) => category.parent)
   children: CategoryEntity[];
