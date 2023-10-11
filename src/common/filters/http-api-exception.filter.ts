@@ -33,24 +33,26 @@ export class HttpExceptionFilter<T extends HttpException>
 
     const webhook = new IncomingWebhook(process.env.SLACK_WEBHOOK);
 
-    /** Sentry 알림 */
-    Sentry.captureException(exception);
-    /** Slack 알림 */
-    webhook.send({
-      attachments: [
-        {
-          color: 'danger',
-          fields: [
-            {
-              title: '🚨Hoonflaern SERVER 에러 발생🚨',
-              value: exception.stack,
-              short: false,
-            },
-          ],
-          ts: Math.floor(new Date().getTime() / 1000).toString(),
-        },
-      ],
-    });
+    if (status >= 500) {
+      /** Sentry 알림 */
+      Sentry.captureException(exception);
+      /** Slack 알림 */
+      webhook.send({
+        attachments: [
+          {
+            color: 'danger',
+            fields: [
+              {
+                title: '🚨Hoonflaern SERVER 에러 발생🚨',
+                value: exception.stack,
+                short: false,
+              },
+            ],
+            ts: Math.floor(new Date().getTime() / 1000).toString(),
+          },
+        ],
+      });
+    }
 
     return response.status(status).json({
       time: new Date().toLocaleString('ko-KR', { timeZone: 'Asia/Seoul' }),

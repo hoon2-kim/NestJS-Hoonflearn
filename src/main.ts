@@ -13,7 +13,6 @@ async function bootstrap() {
   // Sentry
   Sentry.init({
     dsn: process.env.SENTRY_DNS,
-    // tracesSampleRate: 1,
     enabled: process.env.NODE_ENV === 'production',
   });
 
