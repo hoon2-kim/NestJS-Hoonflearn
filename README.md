@@ -13,8 +13,6 @@
 ## 배포 주소
 
 > **개인 프로젝트 백엔드 Swagger** : [http://hoonflearn.shop/api-docs](http://hoonflearn.shop/api-docs)<br>
->
-> 스웨거 아이디 : hoon / 비밀번호 : 1234
 
 ---
 

@@ -13,19 +13,8 @@ import {
   ReviewResponseWithCommentDto,
   ReviewResponseWithoutCommentDto,
 } from '@src/review/dtos/response/review.response.dto';
-import expressBasicAuth from 'express-basic-auth';
 
 export function setupSwagger(app: INestApplication) {
-  app.use(
-    '/api-docs',
-    expressBasicAuth({
-      challenge: true,
-      users: {
-        [process.env.SWAGGER_USER]: process.env.SWAGGER_PASSWORD,
-      },
-    }),
-  );
-
   const config = new DocumentBuilder()
     .setTitle('Hoonflearn-server')
     .setDescription('NestJS-REST-API-개인 프로젝트')
