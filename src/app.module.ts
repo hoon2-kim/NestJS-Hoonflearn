@@ -26,12 +26,21 @@ import { VoucherModule } from '@src/voucher/voucher.module';
 import { EventEmitterModule } from '@nestjs/event-emitter';
 import { typeOrmModuleConfig } from '@src/config/database';
 import { AppController } from '@src/app.controller';
+import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
+import { APP_GUARD } from '@nestjs/core';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
     }),
+    // rate limit
+    ThrottlerModule.forRoot([
+      {
+        ttl: 60000,
+        limit: 10,
+      },
+    ]),
     TypeOrmModule.forRootAsync(typeOrmModuleConfig),
     EventEmitterModule.forRoot(),
     UserModule,
@@ -58,6 +67,11 @@ import { AppController } from '@src/app.controller';
     VoucherModule,
   ],
   controllers: [AppController],
-  providers: [],
+  providers: [
+    {
+      provide: APP_GUARD,
+      useClass: ThrottlerGuard,
+    },
+  ],
 })
 export class AppModule {}
