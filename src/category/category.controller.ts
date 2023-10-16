@@ -30,7 +30,7 @@ export class CategoryController {
   @ApiGetAllCategoriesSwagger('모든 카테고리 조회')
   @Get()
   findAllCategories(): Promise<CategoryResponseDto[]> {
-    return this.categoryService.findAll(false);
+    return this.categoryService.findAll();
   }
 
   @ApiGetCategorySwagger('카테고리 상세 조회(메인카테고리)')

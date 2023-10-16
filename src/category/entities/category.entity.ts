@@ -8,7 +8,6 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
-import { CategoryCourseEntity } from '@src/category_course/entities/category-course.entitiy';
 
 @Entity({ name: 'categories' })
 export class CategoryEntity {
@@ -36,16 +35,4 @@ export class CategoryEntity {
 
   @OneToMany(() => CategoryEntity, (category) => category.parent)
   children: CategoryEntity[];
-
-  @OneToMany(
-    () => CategoryCourseEntity,
-    (categoryCourse) => categoryCourse.parentCategory,
-  )
-  parentCategoriesCourses: CategoryCourseEntity[];
-
-  @OneToMany(
-    () => CategoryCourseEntity,
-    (categoryCourse) => categoryCourse.subCategory,
-  )
-  subCategoriesCourses: CategoryCourseEntity[];
 }

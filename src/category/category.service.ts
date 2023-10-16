@@ -10,6 +10,7 @@ import { CreateCategoryDto } from '@src/category/dtos/request/create-category.dt
 import { UpdateCategoryDto } from '@src/category/dtos/request/update-category.dto';
 import { CategoryResponseDto } from '@src/category/dtos/response/category.response.dto';
 import { CategoryEntity } from '@src/category/entities/category.entity';
+import { ICategoryResponse } from './interfaces/category.interface';
 
 @Injectable()
 export class CategoryService {
@@ -18,7 +19,7 @@ export class CategoryService {
     private readonly categoryRepository: Repository<CategoryEntity>,
   ) {}
 
-  async findAll(isRelation?: boolean): Promise<CategoryResponseDto[]> {
+  async findAll(isRelation = true): Promise<CategoryResponseDto[]> {
     const relations = isRelation
       ? {
           children: true,
@@ -36,9 +37,28 @@ export class CategoryService {
           name: 'asc',
         },
       },
+      // select: {
+      //   id: true,
+      //   name: true,
+      //   children: {
+      //     id: true,
+      //     name: true,
+      //     fk_parent_category_id: true,
+      //   },
+      // },
     });
 
-    return categories.map((c) => CategoryResponseDto.from(c));
+    // return categories.map((category) => ({
+    //   id: category.id,
+    //   name: category.name,
+    //   sub_category: category.children?.map((child) => ({
+    //     id: child.id,
+    //     fk_parent_category_id: child.fk_parent_category_id,
+    //     name: child.name,
+    //   })),
+    // }));
+
+    return categories.map((category) => CategoryResponseDto.from(category));
   }
 
   async findOneByOptions(
@@ -97,9 +117,11 @@ export class CategoryService {
       );
     }
 
-    return await this.categoryRepository.save({
+    const result = await this.categoryRepository.save({
       name,
     });
+
+    return result;
   }
 
   async createSub(
@@ -124,10 +146,14 @@ export class CategoryService {
       );
     }
 
-    return await this.categoryRepository.save({
+    const result = await this.categoryRepository.save({
       name,
       parent: { id: categoryId },
     });
+
+    delete result.parent;
+
+    return result;
   }
 
   async update(
@@ -140,19 +166,21 @@ export class CategoryService {
       where: { id: categoryId },
     });
 
+    if (category) {
+      const duplicateName = await this.findOneByOptions({
+        where: { name },
+      });
+
+      if (duplicateName && category.name !== name) {
+        throw new BadRequestException(
+          `해당 카테고리 이름:${name} 이(가) 이미 존재합니다.`,
+        );
+      }
+    }
+
     if (!category) {
       throw new NotFoundException(
         `카테고리:${categoryId} 가 존재하지 않습니다.`,
-      );
-    }
-
-    const duplicateName = await this.findOneByOptions({
-      where: { name },
-    });
-
-    if (duplicateName && category.name !== name) {
-      throw new BadRequestException(
-        `해당 카테고리 이름:${name} 이(가) 이미 존재합니다.`,
       );
     }
 

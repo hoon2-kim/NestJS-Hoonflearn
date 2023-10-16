@@ -14,7 +14,7 @@ export const ApiGetAllCategoriesSwagger = (summary: string) => {
   return applyDecorators(
     ApiOperation({
       summary,
-      description: 'false일 경우 메인카테고리만, true면 서브까지',
+      description: 'false일 경우 메인카테고리만',
     }),
     ApiOkResponse({
       description: '조회 성공',

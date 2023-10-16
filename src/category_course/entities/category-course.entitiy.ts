@@ -35,19 +35,11 @@ export class CategoryCourseEntity {
   @JoinColumn({ name: 'fk_course_id' })
   course: CourseEntity;
 
-  @ManyToOne(
-    () => CategoryEntity,
-    (category) => category.parentCategoriesCourses,
-    { onDelete: 'CASCADE' },
-  )
+  @ManyToOne(() => CategoryEntity, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'fk_parent_category_id' })
   parentCategory: CategoryEntity;
 
-  @ManyToOne(
-    () => CategoryEntity,
-    (category) => category.subCategoriesCourses,
-    { onDelete: 'CASCADE' },
-  )
+  @ManyToOne(() => CategoryEntity, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'fk_sub_category_id' })
   subCategory: CategoryEntity;
 }

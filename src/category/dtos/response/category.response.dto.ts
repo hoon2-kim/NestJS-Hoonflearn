@@ -61,7 +61,7 @@ export class CategoryResponseDto implements ICategoryResponse {
 
     dto.id = id;
     dto.name = name;
-    dto.sub_category = children?.map((c) => SubCategoryResponseDto.from(c));
+    dto.sub_category = children.map((c) => SubCategoryResponseDto.from(c));
 
     return dto;
   }
