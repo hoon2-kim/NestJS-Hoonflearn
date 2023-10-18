@@ -19,18 +19,14 @@ export class CategoryService {
     private readonly categoryRepository: Repository<CategoryEntity>,
   ) {}
 
-  async findAll(isRelation = true): Promise<CategoryResponseDto[]> {
-    const relations = isRelation
-      ? {
-          children: true,
-        }
-      : null;
-
+  async findAll(): Promise<CategoryResponseDto[]> {
     const categories = await this.categoryRepository.find({
       where: {
         parent: IsNull(),
       },
-      relations,
+      relations: {
+        children: true,
+      },
       order: {
         name: 'asc',
         children: {
@@ -74,7 +70,35 @@ export class CategoryService {
     return category;
   }
 
-  async findOneWithSub(categoryId: string) {
+  // async findOneById(categoryId: string) {
+  //   const category = await this.categoryRepository.findOne({
+  //     where: { id: categoryId },
+  //   });
+
+  //   if (!category) {
+  //     throw new NotFoundException(
+  //       `카테고리:${categoryId} 가 존재하지 않습니다.`,
+  //     );
+  //   }
+
+  //   return category;
+  // }
+
+  // async findOneByName(categoryName: string) {
+  //   const category = await this.categoryRepository.findOne({
+  //     where: { name: categoryName },
+  //   });
+
+  //   if (category) {
+  //     throw new BadRequestException(
+  //       `해당 카테고리 이름:${categoryName} 이(가) 이미 존재합니다.`,
+  //     );
+  //   }
+
+  //   return category;
+  // }
+
+  async findOneWithSub(categoryId: string): Promise<CategoryResponseDto> {
     const category = await this.findOneByOptions({
       where: {
         id: categoryId,
@@ -159,7 +183,7 @@ export class CategoryService {
   async update(
     categoryId: string,
     updateCategoryDto: UpdateCategoryDto,
-  ): Promise<void> {
+  ): Promise<{ message: string }> {
     const { name } = updateCategoryDto;
 
     const category = await this.findOneByOptions({
@@ -187,6 +211,8 @@ export class CategoryService {
     Object.assign(category, updateCategoryDto);
 
     await this.categoryRepository.save(category);
+
+    return { message: '수정 성공' };
   }
 
   async delete(categoryId: string): Promise<boolean> {

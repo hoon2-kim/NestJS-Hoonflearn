@@ -42,7 +42,7 @@ export class QuestionCommentController {
     @Param('commentId') commentId: string,
     @Body() updateQuestionCommentDto: UpdateQuestionCommentDto,
     @CurrentUser('id') userId: string,
-  ): Promise<void> {
+  ): Promise<{ message: string }> {
     return this.questionCommentService.update(
       questionId,
       commentId,

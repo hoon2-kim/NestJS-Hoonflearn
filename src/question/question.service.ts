@@ -198,6 +198,8 @@ export class QuestionService {
 
     const [questions, count] = await query.getManyAndCount();
 
+    console.log(questions);
+
     const pageMeta = new PageMetaDto({
       pageOptionDto: userQuestionQueryDto,
       itemCount: count,
@@ -339,7 +341,7 @@ export class QuestionService {
     questionId: string,
     updateQuestionDto: UpdateQuestionDto,
     userId: string,
-  ): Promise<void> {
+  ): Promise<{ message: string }> {
     const question = await this.findOneByOptions({
       where: { id: questionId },
     });
@@ -355,6 +357,8 @@ export class QuestionService {
     Object.assign(question, updateQuestionDto);
 
     await this.questionRepository.save(question);
+
+    return { message: '수정 성공' };
   }
 
   async status(

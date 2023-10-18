@@ -159,7 +159,7 @@ export class ReviewService {
     reviewId: string,
     updateReviewDto: UpdateReviewDto,
     userId: string,
-  ): Promise<void> {
+  ): Promise<{ message: string }> {
     const { rating } = updateReviewDto;
 
     const review = await this.findOneByOptions({
@@ -194,6 +194,8 @@ export class ReviewService {
     Object.assign(review, updateReviewDto);
 
     await this.reviewRepository.save(review);
+
+    return { message: '수정 성공' };
   }
 
   async delete(reviewId: string, userId: string): Promise<boolean> {
@@ -249,10 +251,7 @@ export class ReviewService {
     );
   }
 
-  private async isLikeByUser(
-    reviewId: string,
-    userId: string,
-  ): Promise<boolean> {
+  async isLikeByUser(reviewId: string, userId: string): Promise<boolean> {
     const isLike = await this.revivewLikeService.findOneByOptions({
       where: {
         fk_review_id: reviewId,

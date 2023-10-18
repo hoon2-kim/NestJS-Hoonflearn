@@ -61,7 +61,7 @@ export class SectionService {
     sectionId: string,
     updateSectionDto: UpdateSectionDto,
     user: UserEntity,
-  ): Promise<void> {
+  ): Promise<{ message: string }> {
     const section = await this.findOneByOptions({
       where: { id: sectionId },
     });
@@ -75,6 +75,8 @@ export class SectionService {
     Object.assign(section, updateSectionDto);
 
     await this.sectionRepository.save(section);
+
+    return { message: '수정 성공' };
   }
 
   async delete(sectionId: string, user: UserEntity): Promise<boolean> {

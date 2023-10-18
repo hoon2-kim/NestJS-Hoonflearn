@@ -291,7 +291,7 @@ export class CourseService {
     courseId: string,
     updateCourseDto: UpdateCourseDto,
     user: UserEntity,
-  ): Promise<void> {
+  ): Promise<{ message: string }> {
     const { title, selectedCategoryIds } = updateCourseDto;
 
     const existCourse = await this.findOneByOptions({
@@ -330,6 +330,8 @@ export class CourseService {
     Object.assign(existCourse, updateCourseDto);
 
     await this.courseRepository.save(existCourse);
+
+    return { message: '수정 성공' };
   }
 
   async uploadImage(
@@ -404,10 +406,7 @@ export class CourseService {
     );
   }
 
-  private async isWishByUser(
-    courseId: string,
-    userId: string,
-  ): Promise<boolean> {
+  async isWishByUser(courseId: string, userId: string): Promise<boolean> {
     const isWish = await this.courseWishService.findOneByOptions({
       where: {
         fk_course_id: courseId,

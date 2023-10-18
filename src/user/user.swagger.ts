@@ -45,6 +45,25 @@ export const ApiCreateUserSwagger = (summary: string) => {
   );
 };
 
+export const ApiCheckNicknameSwagger = (summary: string) => {
+  return applyDecorators(
+    ApiOperation({ summary }),
+    ApiOkResponse({
+      description: '닉네임 중복 체크 성공',
+      schema: {
+        type: 'object',
+        properties: {
+          message: { type: 'string' },
+        },
+      },
+    }),
+    ApiBadRequestResponse({
+      description: '닉네임 중복 오류',
+    }),
+    ApiInternalServerErrorResponse({ description: '서버 오류' }),
+  );
+};
+
 export const ApiUpdateUserSwagger = (summary: string) => {
   return applyDecorators(
     ApiOperation({ summary }),

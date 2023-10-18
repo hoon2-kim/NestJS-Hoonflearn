@@ -97,7 +97,7 @@ export class QuestionController {
     @Param('questionId') questionId: string,
     @Body() updateQuestionDto: UpdateQuestionDto,
     @CurrentUser('id') userId: string,
-  ): Promise<void> {
+  ): Promise<{ message: string }> {
     return this.questionService.update(questionId, updateQuestionDto, userId);
   }
 

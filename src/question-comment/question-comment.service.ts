@@ -46,7 +46,7 @@ export class QuestionCommentService {
     commentId: string,
     updateQuestionCommentDto: UpdateQuestionCommentDto,
     userId: string,
-  ): Promise<void> {
+  ): Promise<{ message: string }> {
     const question = await this.questionService.findOneByOptions({
       where: { id: questionId },
     });
@@ -70,6 +70,8 @@ export class QuestionCommentService {
     Object.assign(comment, updateQuestionCommentDto);
 
     await this.questionCommentRepository.save(comment);
+
+    return { message: '수정 성공' };
   }
 
   async delete(

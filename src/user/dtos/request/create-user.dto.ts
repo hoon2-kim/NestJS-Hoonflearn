@@ -1,4 +1,4 @@
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, PickType } from '@nestjs/swagger';
 import {
   IsEmail,
   IsNotEmpty,
@@ -30,3 +30,7 @@ export class CreateUserDto {
   @IsNotEmpty()
   password: string;
 }
+
+export class NicknameDto extends PickType(CreateUserDto, [
+  'nickname',
+] as const) {}

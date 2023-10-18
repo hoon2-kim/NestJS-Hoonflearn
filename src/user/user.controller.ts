@@ -10,15 +10,20 @@ import {
   UploadedFile,
   BadRequestException,
   Query,
+  HttpCode,
 } from '@nestjs/common';
 import { UserService } from '@src/user/user.service';
-import { CreateUserDto } from '@src/user/dtos/request/create-user.dto';
+import {
+  CreateUserDto,
+  NicknameDto,
+} from '@src/user/dtos/request/create-user.dto';
 import { UpdateUserDto } from '@src/user/dtos/request/update-user.dto';
 import { AtGuard } from '@src/auth/guards/at.guard';
 import { CurrentUser } from '@src/auth/decorators/current-user.decorator';
 import { UserEntity } from '@src/user/entities/user.entity';
 import { FileInterceptor } from '@nestjs/platform-express';
 import {
+  ApiCheckNicknameSwagger,
   ApiCreateUserSwagger,
   ApiGetMyCoursesSwagger,
   ApiGetMyQuestionsSwagger,
@@ -109,13 +114,22 @@ export class UserController {
     return this.userService.create(createUserDto);
   }
 
+  @ApiCheckNicknameSwagger('회원가입 시 닉네임 중복체크')
+  @Post('/checknick')
+  @HttpCode(200)
+  checkNickname(
+    @Body() nickNameDto: NicknameDto, //
+  ): Promise<{ message: string }> {
+    return this.userService.checkNick(nickNameDto);
+  }
+
   @ApiUpdateUserSwagger('유저 회원정보 수정')
   @Patch('/profile')
   @UseGuards(AtGuard)
   updateUserProfile(
     @CurrentUser('id') userId: string,
     @Body() updateUserDto: UpdateUserDto,
-  ): Promise<void> {
+  ): Promise<{ message: string }> {
     return this.userService.update(userId, updateUserDto);
   }
 

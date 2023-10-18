@@ -32,7 +32,13 @@ export class CourseUserEntity {
   @CreateDateColumn()
   created_at: Date;
 
-  @ManyToOne(() => UserEntity, (user) => user.coursesUsers, {
+  // @ManyToOne(() => UserEntity, (user) => user.coursesUsers, {
+  //   onDelete: 'CASCADE',
+  // })
+  // @JoinColumn({ name: 'fk_user_id' })
+  // user: UserEntity;
+
+  @ManyToOne(() => UserEntity, {
     onDelete: 'CASCADE',
   })
   @JoinColumn({ name: 'fk_user_id' })

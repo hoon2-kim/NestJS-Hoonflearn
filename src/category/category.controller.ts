@@ -63,7 +63,7 @@ export class CategoryController {
   updateCategoryOrSub(
     @Param('categoryId') categoryId: string,
     @Body() updateCategoryDto: UpdateCategoryDto,
-  ): Promise<void> {
+  ): Promise<{ message: string }> {
     return this.categoryService.update(categoryId, updateCategoryDto);
   }
 

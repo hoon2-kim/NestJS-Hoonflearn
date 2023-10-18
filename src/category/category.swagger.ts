@@ -66,7 +66,13 @@ export const ApiUpdateCategorySwagger = (summary: string) => {
   return applyDecorators(
     ApiOperation({ summary }),
     ApiOkResponse({
-      description: '수정 성공 / 아무것도 반환안함',
+      description: '수정 성공',
+      schema: {
+        type: 'object',
+        properties: {
+          message: { type: 'string' },
+        },
+      },
     }),
     ApiBadRequestResponse({ description: '카테고리 이름이 중복일 경우' }),
     ApiNotFoundResponse({ description: '해당 카테고리가 존재하지 않을 경우' }),

@@ -35,7 +35,7 @@ export class UserEntity {
   @Column({ type: 'text', nullable: true })
   description: string;
 
-  @Column({ type: 'varchar' })
+  @Column({ type: 'varchar', unique: true })
   phone: string;
 
   @Column({ type: 'varchar', nullable: true })
@@ -73,8 +73,8 @@ export class UserEntity {
   @OneToMany(() => ReviewEntity, (review) => review.user)
   reviews: ReviewEntity[];
 
-  @OneToMany(() => CourseUserEntity, (courseUser) => courseUser.user)
-  coursesUsers: CourseUserEntity[];
+  // @OneToMany(() => CourseUserEntity, (courseUser) => courseUser.user)
+  // coursesUsers: CourseUserEntity[];
 
   @OneToMany(() => QuestionEntity, (question) => question.user)
   questions: QuestionEntity[];

@@ -48,7 +48,7 @@ export class QuestionRecommentService {
     reCommentId: string,
     updateQuestionReCommentDto: UpdateQuestionReCommentDto,
     userId: string,
-  ): Promise<void> {
+  ): Promise<{ message: string }> {
     const reComment = await this.questionCommentRepository.findOne({
       where: { id: reCommentId },
     });
@@ -64,6 +64,8 @@ export class QuestionRecommentService {
     Object.assign(reComment, updateQuestionReCommentDto);
 
     await this.questionCommentRepository.save(reComment);
+
+    return { message: '수정 성공' };
   }
 
   async delete(reCommentId: string, userId: string): Promise<boolean> {

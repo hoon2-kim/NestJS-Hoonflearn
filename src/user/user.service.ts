@@ -1,11 +1,15 @@
 import {
   BadRequestException,
   Injectable,
+  InternalServerErrorException,
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { DataSource, FindOneOptions, Repository } from 'typeorm';
-import { CreateUserDto } from '@src/user/dtos/request/create-user.dto';
+import {
+  CreateUserDto,
+  NicknameDto,
+} from '@src/user/dtos/request/create-user.dto';
 import { UpdateUserDto } from '@src/user/dtos/request/update-user.dto';
 import { UserEntity } from '@src/user/entities/user.entity';
 import * as bcryptjs from 'bcryptjs';
@@ -46,45 +50,49 @@ export class UserService {
   async create(createUserDto: CreateUserDto): Promise<UserEntity> {
     const { email, password, nickname, phone } = createUserDto;
 
-    const isExistEmail = await this.findOneByOptions({
-      where: { email },
-    });
-
-    if (isExistEmail) {
-      throw new BadRequestException('해당하는 이메일이 이미 존재합니다.');
-    }
-
-    const isExistNickname = await this.findOneByOptions({
-      where: { nickname },
-    });
-
-    if (isExistNickname) {
-      throw new BadRequestException('닉네임이 이미 존재합니다.');
-    }
-
-    const isPhone = await this.findOneByOptions({
-      where: { phone },
-    });
-
-    if (isPhone) {
-      throw new BadRequestException('핸드폰 번호가 이미 존재합니다.');
-    }
-
     const hashedPassword = await bcryptjs.hash(password, 10);
 
-    const result = this.userRepository.create({
-      email,
-      phone,
-      nickname,
-      password: hashedPassword,
-    });
+    try {
+      const result = await this.userRepository.save({
+        email,
+        phone,
+        nickname,
+        password: hashedPassword,
+      });
 
-    await this.userRepository.save(result);
+      return result;
+    } catch (error) {
+      if (error.code === '23505') {
+        if (error.detail.includes('email')) {
+          throw new BadRequestException('해당하는 이메일이 이미 존재합니다.');
+        }
 
-    return result;
+        if (error.detail.includes('phone')) {
+          throw new BadRequestException('핸드폰 번호가 이미 존재합니다.');
+        }
+        throw new BadRequestException(error.detail);
+      } else {
+        throw new InternalServerErrorException('서버 오류');
+      }
+    }
   }
 
-  async update(userId: string, updateUserDto: UpdateUserDto): Promise<void> {
+  async checkNick(nickNameDto: NicknameDto): Promise<{ message: string }> {
+    const check = await this.findOneByOptions({
+      where: { nickname: nickNameDto.nickname },
+    });
+
+    if (check) {
+      throw new BadRequestException('해당 닉네임은 이미 사용중입니다.');
+    }
+
+    return { message: `해당 닉네임:${nickNameDto.nickname}은 사용가능합니다.` };
+  }
+
+  async update(
+    userId: string,
+    updateUserDto: UpdateUserDto,
+  ): Promise<{ message: string }> {
     const { nickname } = updateUserDto;
 
     const user = await this.findOneByOptions({
@@ -108,6 +116,8 @@ export class UserService {
     Object.assign(user, updateUserDto);
 
     await this.userRepository.save(user);
+
+    return { message: '수정 성공' };
   }
 
   async upload(userId: string, file: Express.Multer.File): Promise<string> {

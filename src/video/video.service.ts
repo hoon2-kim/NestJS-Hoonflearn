@@ -75,8 +75,6 @@ export class VideoService {
         fk_lesson_id: lessonId,
       });
 
-      console.log(videoTime);
-
       const section = await queryRunner.manager.findOne(SectionEntity, {
         where: { id: lesson.fk_section_id },
       });

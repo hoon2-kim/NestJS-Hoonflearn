@@ -50,7 +50,7 @@ export class QuestionRecommentController {
     @Param('reCommentId') reCommentId: string,
     @Body() updateQuestionReCommentDto: UpdateQuestionReCommentDto,
     @CurrentUser('id') userId: string,
-  ): Promise<void> {
+  ): Promise<{ message: string }> {
     return this.questionRecommentService.update(
       reCommentId,
       updateQuestionReCommentDto,

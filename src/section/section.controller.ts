@@ -46,7 +46,7 @@ export class SectionController {
     @Param('sectionId') sectionId: string,
     @Body() updateSectionDto: UpdateSectionDto,
     @CurrentUser() user: UserEntity,
-  ): Promise<void> {
+  ): Promise<{ message: string }> {
     return this.sectionService.update(sectionId, updateSectionDto, user);
   }
 
