@@ -100,7 +100,15 @@ export const ApiUpdateQuestionSwagger = (summary: string) => {
   return applyDecorators(
     ApiOperation({ summary }),
     ApiBearerAuth('access_token'),
-    ApiOkResponse({ description: '수정 성공 / 아무것도 반환 안함' }),
+    ApiOkResponse({
+      description: '수정 성공',
+      schema: {
+        type: 'object',
+        properties: {
+          message: { type: 'string' },
+        },
+      },
+    }),
     ApiNotFoundResponse({ description: '해당 질문글이 존재하지 않을 경우' }),
     ApiForbiddenResponse({
       description: '해당 질문글을 작성한 본인이 아닌 경우',

@@ -129,8 +129,14 @@ export const ApiWishCourseSwagger = (summary: string) => {
 export const ApiUpdateCourseSwagger = (summary: string) => {
   return applyDecorators(
     ApiOperation({ summary }),
-    ApiCreatedResponse({
-      description: '수정 성공 / 아무것도 반환 안함',
+    ApiOkResponse({
+      description: '수정 성공',
+      schema: {
+        type: 'object',
+        properties: {
+          message: { type: 'string' },
+        },
+      },
     }),
     ApiBadRequestResponse({
       description:

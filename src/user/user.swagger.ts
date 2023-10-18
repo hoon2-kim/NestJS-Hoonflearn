@@ -68,7 +68,15 @@ export const ApiUpdateUserSwagger = (summary: string) => {
   return applyDecorators(
     ApiOperation({ summary }),
     ApiBearerAuth('access_token'),
-    ApiOkResponse({ description: '수정 성공 / 아무것도 반환 안함' }),
+    ApiOkResponse({
+      description: '수정 성공',
+      schema: {
+        type: 'object',
+        properties: {
+          message: { type: 'string' },
+        },
+      },
+    }),
     ApiNotFoundResponse({
       description: '유저가 존재하지 않을 경우',
     }),

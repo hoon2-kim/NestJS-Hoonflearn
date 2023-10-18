@@ -44,7 +44,15 @@ export const ApiCreateLessonSwagger = (summary: string) => {
 export const ApiUpdateLessonSwagger = (summary: string) => {
   return applyDecorators(
     ApiOperation({ summary }),
-    ApiOkResponse({ description: '수정 성공 / 아무것도 반환 안함' }),
+    ApiOkResponse({
+      description: '수정 성공',
+      schema: {
+        type: 'object',
+        properties: {
+          message: { type: 'string' },
+        },
+      },
+    }),
     ApiNotFoundResponse({ description: '해당 수업이 존재하지 않는 경우' }),
     ApiForbiddenResponse({
       description:

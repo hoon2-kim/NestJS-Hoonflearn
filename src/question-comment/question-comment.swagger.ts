@@ -30,7 +30,15 @@ export const ApiUpdateQuestionCommentSwagger = (summary: string) => {
   return applyDecorators(
     ApiOperation({ summary }),
     ApiBearerAuth('access_token'),
-    ApiOkResponse({ description: '수정 성공 / 아무것도 반환 안함' }),
+    ApiOkResponse({
+      description: '수정 성공',
+      schema: {
+        type: 'object',
+        properties: {
+          message: { type: 'string' },
+        },
+      },
+    }),
     ApiNotFoundResponse({
       description:
         '해당 질문글이 존재하지 않는 경우 또는 해당 댓글이 존재하지 않는 경우',
@@ -77,7 +85,15 @@ export const ApiUpdateQuestionReCommentSwagger = (summary: string) => {
   return applyDecorators(
     ApiOperation({ summary }),
     ApiBearerAuth('access_token'),
-    ApiOkResponse({ description: '수정 성공 / 아무것도 반환 안함' }),
+    ApiOkResponse({
+      description: '수정 성공',
+      schema: {
+        type: 'object',
+        properties: {
+          message: { type: 'string' },
+        },
+      },
+    }),
     ApiNotFoundResponse({
       description: '해당 대댓글이 존재하지 않는 경우',
     }),

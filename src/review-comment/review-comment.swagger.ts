@@ -34,7 +34,15 @@ export const ApiUpdateReviewCommentSwagger = (summary: string) => {
   return applyDecorators(
     ApiOperation({ summary }),
     ApiBearerAuth('access_token'),
-    ApiOkResponse({ description: '수정 성공 / 아무것도 반환 안함' }),
+    ApiOkResponse({
+      description: '수정 성공',
+      schema: {
+        type: 'object',
+        properties: {
+          message: { type: 'string' },
+        },
+      },
+    }),
     ApiNotFoundResponse({
       description:
         '해당 리뷰가 존재하지 않는 경우 또는 수정하려는 리뷰 댓글이 존재하지 않는 경우',
