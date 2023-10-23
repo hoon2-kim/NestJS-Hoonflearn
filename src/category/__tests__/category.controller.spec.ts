@@ -1,20 +1,22 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { CategoryController } from '@src/category/category.controller';
 import { CategoryService } from '@src/category/category.service';
-import { CreateCategoryDto } from '@src/category/dtos/request/create-category.dto';
-import { UpdateCategoryDto } from '@src/category/dtos/request/update-category.dto';
 import { CategoryResponseDto } from '@src/category/dtos/response/category.response.dto';
 import {
-  mockCategory,
+  mockCreatedCategory,
   mockCategoryService,
-  mockCategoryWithSub,
+  mockCategoryList,
+  mockCreateCategoryDto,
+  mockUpdateCategoryDto,
 } from '@test/__mocks__/category.mock';
 
 describe('CategoryController', () => {
   let categoryController: CategoryController;
   let categoryService: CategoryService;
 
-  const mockCategoryLists = CategoryResponseDto.from(mockCategoryWithSub());
+  const categoryId = 'uuid';
+
+  const mockCategoryResponse = CategoryResponseDto.from(mockCategoryList);
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -42,63 +44,57 @@ describe('CategoryController', () => {
 
   describe('[CategoryController.createParent] - 메인 카테고리 생성', () => {
     it('메인 카테고리 생성 성공', async () => {
-      const createCategoryDto: CreateCategoryDto = { name: '메인' };
-
       jest
         .spyOn(categoryService, 'createParent')
-        .mockResolvedValue(mockCategory());
+        .mockResolvedValue(mockCreatedCategory);
 
       const result = await categoryController.createParentCategory(
-        createCategoryDto,
+        mockCreateCategoryDto,
       );
 
       expect(categoryService.createParent).toHaveBeenCalled();
-      expect(result).toEqual(mockCategory());
+      expect(result).toEqual(mockCreatedCategory);
     });
   });
 
   describe('[CategoryController.createSubCategory] - 서브 카테고리 생성', () => {
     it('서브 카테고리 생성 성공', async () => {
-      const createCategoryDto: CreateCategoryDto = { name: '서브' };
-      const categoryId = 'uuid';
-      const mockSubCategory = mockCategory();
-      mockSubCategory.fk_parent_category_id = categoryId;
+      const parentId = 'uuid';
+      const mockCreatedSubCategory = mockCreatedCategory;
+      mockCreatedSubCategory.fk_parent_category_id = parentId;
 
       jest
         .spyOn(categoryService, 'createSub')
-        .mockResolvedValue(mockSubCategory);
+        .mockResolvedValue(mockCreatedSubCategory);
 
       const result = await categoryController.createSubCategory(
-        categoryId,
-        createCategoryDto,
+        parentId,
+        mockCreateCategoryDto,
       );
 
       expect(categoryService.createSub).toHaveBeenCalled();
-      expect(result).toEqual(mockSubCategory);
+      expect(result).toEqual(mockCreatedSubCategory);
     });
   });
 
   describe('[CategoryController.updateCategoryOrSub] - 메인/서브 카테고리 수정', () => {
     it('메인/서브 카테고리 수정 성공', async () => {
-      const updateCategoryDto: UpdateCategoryDto = { name: '수정' };
-      const categoryId = 'uuid';
+      const mockUpdateResult = { message: '수정 성공' };
 
-      jest.spyOn(categoryService, 'update').mockResolvedValue(undefined);
+      jest.spyOn(categoryService, 'update').mockResolvedValue(mockUpdateResult);
 
       const result = await categoryController.updateCategoryOrSub(
         categoryId,
-        updateCategoryDto,
+        mockUpdateCategoryDto,
       );
 
       expect(categoryService.update).toHaveBeenCalled();
-      expect(result).toEqual(undefined);
+      expect(result).toEqual(mockUpdateResult);
     });
   });
 
   describe('[CategoryController.deleteCategoryOrSub] - 메인/서브 카테고리 삭제', () => {
     it('메인/서브 카테고리 삭제 성공', async () => {
-      const categoryId = 'uuid';
-
       jest.spyOn(categoryService, 'delete').mockResolvedValue(true);
 
       const result = await categoryController.deleteCategoryOrSub(categoryId);
@@ -112,12 +108,12 @@ describe('CategoryController', () => {
     it('모든 카테고리 조회 성공', async () => {
       jest
         .spyOn(categoryService, 'findAll')
-        .mockResolvedValue([mockCategoryLists]);
+        .mockResolvedValue([mockCategoryResponse]);
 
       const result = await categoryController.findAllCategories();
 
       expect(categoryService.findAll).toHaveBeenCalled();
-      expect(result).toEqual([mockCategoryLists]);
+      expect(result).toEqual([mockCategoryResponse]);
     });
   });
 
@@ -127,14 +123,14 @@ describe('CategoryController', () => {
 
       jest
         .spyOn(categoryService, 'findOneWithSub')
-        .mockResolvedValue(mockCategoryLists);
+        .mockResolvedValue(mockCategoryResponse);
 
       const result = await categoryController.findOneCategoryWithSub(
         categoryId,
       );
 
       expect(categoryService.findOneWithSub).toHaveBeenCalled();
-      expect(result).toEqual(mockCategoryLists);
+      expect(result).toEqual(mockCategoryResponse);
     });
   });
 });

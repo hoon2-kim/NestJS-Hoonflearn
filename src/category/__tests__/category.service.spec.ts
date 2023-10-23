@@ -2,19 +2,22 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { CategoryService } from '@src/category/category.service';
 import { CategoryEntity } from '@src/category/entities/category.entity';
-import { CreateCategoryDto } from '@src/category/dtos/request/create-category.dto';
 import { BadRequestException, NotFoundException } from '@nestjs/common';
-import { UpdateCategoryDto } from '@src/category/dtos/request/update-category.dto';
 import {
   mockCategoryRepository,
-  mockCategory,
-  mockCategoryWithSub,
+  mockCategoryList,
+  mockCreatedCategory,
+  mockCreateCategoryDto,
+  mockUpdateCategoryDto,
 } from '@test/__mocks__/category.mock';
 import { CategoryResponseDto } from '@src/category/dtos/response/category.response.dto';
-import { IsNull } from 'typeorm';
+import { IsNull, Repository } from 'typeorm';
 
 describe('CategoryService', () => {
   let categoryService: CategoryService;
+  let categoryRepository: Repository<CategoryEntity>;
+
+  const categoryId = 'uuid';
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -28,6 +31,9 @@ describe('CategoryService', () => {
     }).compile();
 
     categoryService = module.get<CategoryService>(CategoryService);
+    categoryRepository = module.get<Repository<CategoryEntity>>(
+      getRepositoryToken(CategoryEntity),
+    );
   });
 
   afterEach(() => {
@@ -36,19 +42,20 @@ describe('CategoryService', () => {
 
   it('should be defined', () => {
     expect(categoryService).toBeDefined();
+    expect(categoryRepository).toBeDefined();
   });
 
   describe('[카테고리 전체 조회]', () => {
-    const mockCategoryList = CategoryResponseDto.from(mockCategoryWithSub());
+    const mockCategoryResponse = CategoryResponseDto.from(mockCategoryList);
     it('카테고리 전체 조회 성공', async () => {
       jest
         .spyOn(mockCategoryRepository, 'find')
-        .mockResolvedValue([mockCategoryWithSub()]);
+        .mockResolvedValue([mockCategoryList]);
 
       const result = await categoryService.findAll();
 
-      expect(result).toEqual([mockCategoryList]);
-      expect(mockCategoryRepository.find).toBeCalledWith({
+      expect(result).toEqual([mockCategoryResponse]);
+      expect(categoryRepository.find).toBeCalledWith({
         where: {
           parent: IsNull(),
         },
@@ -66,17 +73,16 @@ describe('CategoryService', () => {
   });
 
   describe('[카테고리 상세조회]', () => {
-    const categoryId = 'uuid';
-    const mockCategoryList = CategoryResponseDto.from(mockCategoryWithSub());
+    const mockCategoryResponse = CategoryResponseDto.from(mockCategoryList);
 
     it('카테고리 상세 조회 성공', async () => {
       jest
         .spyOn(categoryService, 'findOneByOptions')
-        .mockResolvedValue(mockCategoryWithSub());
+        .mockResolvedValue(mockCategoryList);
 
       const result = await categoryService.findOneWithSub(categoryId);
 
-      expect(result).toEqual(mockCategoryList);
+      expect(result).toEqual(mockCategoryResponse);
       expect(categoryService.findOneByOptions).toBeCalledWith({
         where: {
           id: categoryId,
@@ -103,7 +109,7 @@ describe('CategoryService', () => {
     });
 
     it('카테고리 상세 조회 실패 - 해당 카테고리가 메인 카테고리가 아닌 경우(400에러)', async () => {
-      const mockCategoryNotMain = mockCategory();
+      const mockCategoryNotMain = mockCreatedCategory;
       mockCategoryNotMain.fk_parent_category_id = 'uuid';
 
       jest
@@ -119,31 +125,28 @@ describe('CategoryService', () => {
   });
 
   describe('[메인 카테고리 생성]', () => {
-    const createCategoryDto: CreateCategoryDto = {
-      name: '메인',
-    };
-
     it('메인 카테고리 생성 성공', async () => {
       jest
         .spyOn(mockCategoryRepository, 'save')
-        .mockResolvedValue(mockCategory());
+        .mockResolvedValue(mockCreatedCategory);
 
-      const result = await categoryService.createParent(createCategoryDto);
+      const result = await categoryService.createParent(mockCreateCategoryDto);
 
-      expect(mockCategoryRepository.save).toHaveBeenCalledTimes(1);
-      expect(mockCategoryRepository.save).toHaveBeenCalledWith(
-        createCategoryDto,
+      expect(categoryRepository.save).toHaveBeenCalledTimes(1);
+      expect(categoryRepository.save).toHaveBeenCalledWith(
+        mockCreateCategoryDto,
       );
-      expect(result).toEqual(mockCategory());
+
+      expect(result).toEqual(mockCreatedCategory);
     });
 
     it('메인 카테고리 생성 실패 - 이름이 이미 존재할 경우(400에러)', async () => {
       jest
         .spyOn(categoryService, 'findOneByOptions')
-        .mockResolvedValue(mockCategory());
+        .mockResolvedValue(mockCreatedCategory);
 
       try {
-        await categoryService.createParent(createCategoryDto);
+        await categoryService.createParent(mockCreateCategoryDto);
       } catch (error) {
         expect(error).toBeInstanceOf(BadRequestException);
       }
@@ -151,43 +154,39 @@ describe('CategoryService', () => {
   });
 
   describe('[서브 카테고리 생성]', () => {
-    const createCategoryDto: CreateCategoryDto = {
-      name: '서브',
-    };
-
-    const categoryId = 'parent-uuid';
-    const mockSubCategory = mockCategory();
-    mockSubCategory.fk_parent_category_id = categoryId;
+    const parentId = 'parent-uuid';
+    const mockCreatedSubCategory = mockCreatedCategory;
+    mockCreatedSubCategory.fk_parent_category_id = categoryId;
 
     it('서브 카테고리 생성 성공', async () => {
       jest
         .spyOn(categoryService, 'findOneByOptions')
-        .mockResolvedValueOnce(mockCategory())
+        .mockResolvedValueOnce(mockCreatedCategory)
         .mockResolvedValueOnce(null);
 
       jest
         .spyOn(mockCategoryRepository, 'save')
-        .mockResolvedValue(mockSubCategory);
+        .mockResolvedValue(mockCreatedSubCategory);
 
       const result = await categoryService.createSub(
-        categoryId,
-        createCategoryDto,
+        parentId,
+        mockCreateCategoryDto,
       );
 
       expect(categoryService.findOneByOptions).toHaveBeenCalledTimes(2);
-      expect(mockCategoryRepository.save).toHaveBeenCalledTimes(1);
-      expect(mockCategoryRepository.save).toHaveBeenCalledWith({
-        ...createCategoryDto,
-        parent: { id: categoryId },
+      expect(categoryRepository.save).toHaveBeenCalledTimes(1);
+      expect(categoryRepository.save).toHaveBeenCalledWith({
+        ...mockCreateCategoryDto,
+        parent: { id: parentId },
       });
-      expect(result).toEqual(mockSubCategory);
+      expect(result).toEqual(mockCreatedSubCategory);
     });
 
     it('서브 카테고리 생성 실패 - 부모 카테고리가 없을 경우(404에러)', async () => {
       jest.spyOn(categoryService, 'findOneByOptions').mockResolvedValue(null);
 
       try {
-        await categoryService.createSub(categoryId, createCategoryDto);
+        await categoryService.createSub(categoryId, mockCreateCategoryDto);
       } catch (error) {
         expect(error).toBeInstanceOf(NotFoundException);
       }
@@ -196,10 +195,10 @@ describe('CategoryService', () => {
     it('서브 카테고리 생성 실패 - 이름이 이미 존재할 경우(400에러)', async () => {
       jest
         .spyOn(categoryService, 'findOneByOptions')
-        .mockResolvedValue(mockSubCategory);
+        .mockResolvedValue(mockCreatedSubCategory);
 
       try {
-        await categoryService.createSub(categoryId, createCategoryDto);
+        await categoryService.createSub(categoryId, mockCreateCategoryDto);
       } catch (error) {
         expect(error).toBeInstanceOf(BadRequestException);
       }
@@ -207,23 +206,19 @@ describe('CategoryService', () => {
   });
 
   describe('[메인/서브 카테고리 수정]', () => {
-    const categoryId = 'uuid';
-    const updateCategoryDto: UpdateCategoryDto = {
-      name: '수정',
-    };
     const mockUpdateResult = { message: '수정 성공' };
 
     it('메인/서브 카테고리 수정 성공', async () => {
       jest
         .spyOn(categoryService, 'findOneByOptions')
-        .mockResolvedValueOnce(mockCategory())
+        .mockResolvedValueOnce(mockCreatedCategory)
         .mockResolvedValueOnce(null);
 
       jest.spyOn(mockCategoryRepository, 'save').mockResolvedValue(undefined);
 
       const result = await categoryService.update(
         categoryId,
-        updateCategoryDto,
+        mockUpdateCategoryDto,
       );
 
       expect(result).toEqual(mockUpdateResult);
@@ -233,10 +228,10 @@ describe('CategoryService', () => {
     it('메인/서브 카테고리 수정 실패 - 이름이 이미 존재할 경우(400에러)', async () => {
       jest
         .spyOn(categoryService, 'findOneByOptions')
-        .mockResolvedValue(mockCategory());
+        .mockResolvedValue(mockCreatedCategory);
 
       try {
-        await categoryService.update(categoryId, updateCategoryDto);
+        await categoryService.update(categoryId, mockUpdateCategoryDto);
       } catch (error) {
         expect(error).toBeInstanceOf(BadRequestException);
       }
@@ -246,7 +241,7 @@ describe('CategoryService', () => {
       jest.spyOn(categoryService, 'findOneByOptions').mockResolvedValue(null);
 
       try {
-        await categoryService.update(categoryId, updateCategoryDto);
+        await categoryService.update(categoryId, mockUpdateCategoryDto);
       } catch (error) {
         expect(error).toBeInstanceOf(NotFoundException);
       }
@@ -254,12 +249,10 @@ describe('CategoryService', () => {
   });
 
   describe('[메인/서브 카테고리 삭제]', () => {
-    const categoryId = 'uuid';
-
     it('메인/서브 카테고리 삭제 성공', async () => {
       jest
         .spyOn(categoryService, 'findOneByOptions')
-        .mockResolvedValue(mockCategory());
+        .mockResolvedValue(mockCreatedCategory);
 
       jest
         .spyOn(mockCategoryRepository, 'delete')

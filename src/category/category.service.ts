@@ -70,34 +70,6 @@ export class CategoryService {
     return category;
   }
 
-  // async findOneById(categoryId: string) {
-  //   const category = await this.categoryRepository.findOne({
-  //     where: { id: categoryId },
-  //   });
-
-  //   if (!category) {
-  //     throw new NotFoundException(
-  //       `카테고리:${categoryId} 가 존재하지 않습니다.`,
-  //     );
-  //   }
-
-  //   return category;
-  // }
-
-  // async findOneByName(categoryName: string) {
-  //   const category = await this.categoryRepository.findOne({
-  //     where: { name: categoryName },
-  //   });
-
-  //   if (category) {
-  //     throw new BadRequestException(
-  //       `해당 카테고리 이름:${categoryName} 이(가) 이미 존재합니다.`,
-  //     );
-  //   }
-
-  //   return category;
-  // }
-
   async findOneWithSub(categoryId: string): Promise<CategoryResponseDto> {
     const category = await this.findOneByOptions({
       where: {
@@ -125,6 +97,8 @@ export class CategoryService {
       );
     }
 
+    console.log(category);
+
     return CategoryResponseDto.from(category);
   }
 
@@ -134,6 +108,8 @@ export class CategoryService {
     const { name } = createCategoryDto;
 
     const isName = await this.findOneByOptions({ where: { name } });
+
+    console.log(isName);
 
     if (isName) {
       throw new BadRequestException(
