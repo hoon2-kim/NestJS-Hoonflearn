@@ -130,6 +130,10 @@ export class UserService {
         where: { id: userId },
       });
 
+      const folderName = `유저-${userId}/프로필이미지`;
+
+      const s3upload = await this.awsS3Service.uploadFileToS3(folderName, file);
+
       if (userInfo.profileAvatar) {
         const url = userInfo.profileAvatar;
         const parsedUrl = new URL(url);
@@ -137,10 +141,6 @@ export class UserService {
 
         await this.awsS3Service.deleteS3Object(fileKey);
       }
-
-      const folderName = `유저-${userId}/프로필이미지`;
-
-      const s3upload = await this.awsS3Service.uploadFileToS3(folderName, file);
 
       await queryRunner.manager.update(
         UserEntity,
@@ -173,6 +173,8 @@ export class UserService {
     const instructorProfile = await this.instructorProfileRepository.findOne({
       where: { fk_user_id: userId },
     });
+
+    console.log(instructorProfile);
 
     if (instructorProfile) {
       await this.instructorProfileRepository.softDelete({

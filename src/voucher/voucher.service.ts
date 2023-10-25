@@ -9,7 +9,7 @@ import { CourseUserService } from '@src/course_user/course-user.service';
 import { CourseUserEntity } from '@src/course_user/entities/course-user.entity';
 import { ECouresUserType } from '@src/course_user/enums/course-user.enum';
 import { EOrderAction } from '@src/order/enums/order.enum';
-import { Repository } from 'typeorm';
+import { DataSource, Repository } from 'typeorm';
 import { CreateVoucherDto } from '@src/voucher/dtos/create-voucher.dto';
 
 @Injectable()
@@ -17,6 +17,7 @@ export class VoucherService {
   constructor(
     private readonly courseService: CourseService,
     private readonly couresUserService: CourseUserService,
+    private readonly dataSource: DataSource,
 
     @InjectRepository(CourseUserEntity)
     private readonly courseUserRepository: Repository<CourseUserEntity>,
@@ -51,24 +52,22 @@ export class VoucherService {
       throw new BadRequestException('이미 등록하신 강의입니다.');
     }
 
-    return await this.courseUserRepository.manager.transaction(
-      async (manager) => {
-        const result = this.couresUserService.saveFreeCourseUserRepo(
-          courseId,
-          userId,
-          manager,
-        );
+    return await this.dataSource.transaction(async (manager) => {
+      const result = this.couresUserService.saveFreeCourseUserRepo(
+        courseId,
+        userId,
+        manager,
+      );
 
-        // 학생수 업데이트
-        await this.courseService.updateCourseStudents(
-          [courseId],
-          EOrderAction.Create,
-          manager,
-        );
+      // 학생수 업데이트
+      await this.courseService.updateCourseStudents(
+        [courseId],
+        EOrderAction.Create,
+        manager,
+      );
 
-        return result;
-      },
-    );
+      return result;
+    });
   }
 
   async delete(courseId: string, userId: string): Promise<boolean> {
@@ -84,21 +83,19 @@ export class VoucherService {
       throw new BadRequestException('무료 강의가 아닙니다.');
     }
 
-    return await this.courseUserRepository.manager.transaction(
-      async (manager) => {
-        const result = await this.couresUserService.cancelFreeCourseUserRepo(
-          courseId,
-          manager,
-        );
+    return await this.dataSource.transaction(async (manager) => {
+      const result = await this.couresUserService.cancelFreeCourseUserRepo(
+        courseId,
+        manager,
+      );
 
-        await this.courseService.updateCourseStudents(
-          [courseId],
-          EOrderAction.Delete,
-          manager,
-        );
+      await this.courseService.updateCourseStudents(
+        [courseId],
+        EOrderAction.Delete,
+        manager,
+      );
 
-        return result.affected ? true : false;
-      },
-    );
+      return result.affected ? true : false;
+    });
   }
 }

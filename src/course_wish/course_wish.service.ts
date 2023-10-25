@@ -6,7 +6,7 @@ import { CourseEntity } from '@src/course/entities/course.entity';
 import { ECourseChargeType } from '@src/course/enums/course.enum';
 import { UserWishQueryDto } from '@src/user/dtos/query/user.query.dto';
 import { EUserWishCourseSort } from '@src/user/enums/user.enum';
-import { FindOneOptions, Repository } from 'typeorm';
+import { DataSource, FindOneOptions, Repository } from 'typeorm';
 import { CourseWishListResponseDto } from '@src/course_wish/dtos/response/course-wish.reponse.dto';
 import { CourseWishEntity } from '@src/course_wish/entities/course-wish.entity';
 
@@ -15,6 +15,8 @@ export class CourseWishService {
   constructor(
     @InjectRepository(CourseWishEntity)
     private readonly courseWishRepository: Repository<CourseWishEntity>,
+
+    private readonly dataSource: DataSource,
   ) {}
 
   async findOneByOptions(
@@ -92,7 +94,7 @@ export class CourseWishService {
     userId: string,
     isWish: boolean,
   ): Promise<void> {
-    await this.courseWishRepository.manager.transaction(async (manager) => {
+    await this.dataSource.transaction(async (manager) => {
       if (isWish) {
         await manager.delete(CourseWishEntity, {
           fk_course_id: courseId,

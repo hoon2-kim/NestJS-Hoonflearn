@@ -42,8 +42,6 @@ export class CourseUserService {
 
     const [courses, count] = await query.getManyAndCount();
 
-    console.log(courses);
-
     const pageMeta = new PageMetaDto({
       pageOptionDto: userMyCourseQueryDto,
       itemCount: count,

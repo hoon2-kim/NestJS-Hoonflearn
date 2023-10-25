@@ -1,7 +1,7 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { QuestionEntity } from '@src/question/entities/question.entity';
-import { FindOneOptions, Repository } from 'typeorm';
+import { DataSource, FindOneOptions, Repository } from 'typeorm';
 import { QuestionVoteEntity } from '@src/question-vote/entities/question-vote.entity';
 import {
   EQuestionVoteDtoType,
@@ -20,6 +20,8 @@ export class QuestionVoteService {
   constructor(
     @InjectRepository(QuestionVoteEntity)
     private readonly questionVoteRepository: Repository<QuestionVoteEntity>,
+
+    private readonly dataSource: DataSource,
   ) {}
 
   async findOneByOptions(
@@ -74,7 +76,7 @@ export class QuestionVoteService {
     value: number,
     isChange: boolean,
   ): Promise<void> {
-    await this.questionVoteRepository.manager.transaction(async (manager) => {
+    await this.dataSource.transaction(async (manager) => {
       if (isChange) {
         await manager.update(
           QuestionVoteEntity,
@@ -129,7 +131,7 @@ export class QuestionVoteService {
         ? NONE_VOTE_M_VALUE
         : NONE_VOTE_P_VALUE;
 
-    await this.questionVoteRepository.manager.transaction(async (manager) => {
+    await this.dataSource.transaction(async (manager) => {
       await manager.delete(QuestionVoteEntity, {
         fk_question_id: questionId,
         fk_user_id: userId,

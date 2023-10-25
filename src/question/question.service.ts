@@ -198,8 +198,6 @@ export class QuestionService {
 
     const [questions, count] = await query.getManyAndCount();
 
-    console.log(questions);
-
     const pageMeta = new PageMetaDto({
       pageOptionDto: userQuestionQueryDto,
       itemCount: count,

@@ -13,7 +13,6 @@ import { InstructorProfileEntity } from '@src/instructor/entities/instructor-pro
 import { CourseEntity } from '@src/course/entities/course.entity';
 import { CourseWishEntity } from '@src/course_wish/entities/course-wish.entity';
 import { ReviewEntity } from '@src/review/entities/review.entity';
-import { CourseUserEntity } from '@src/course_user/entities/course-user.entity';
 import { ERoleType } from '@src/user/enums/user.enum';
 import { QuestionEntity } from '@src/question/entities/question.entity';
 
@@ -61,21 +60,19 @@ export class UserEntity {
   @OneToOne(
     () => InstructorProfileEntity,
     (instructorProfile) => instructorProfile.user,
+    { nullable: true },
   )
-  instructorProfile: InstructorProfileEntity;
+  instructorProfile?: InstructorProfileEntity;
 
   @OneToMany(() => CourseEntity, (course) => course.instructor)
-  madeCourses: CourseEntity[];
+  madeCourses?: CourseEntity[];
 
   @OneToMany(() => CourseWishEntity, (courseWish) => courseWish.user)
-  coursesWishs: CourseWishEntity[];
+  coursesWishs?: CourseWishEntity[];
 
   @OneToMany(() => ReviewEntity, (review) => review.user)
-  reviews: ReviewEntity[];
-
-  // @OneToMany(() => CourseUserEntity, (courseUser) => courseUser.user)
-  // coursesUsers: CourseUserEntity[];
+  reviews?: ReviewEntity[];
 
   @OneToMany(() => QuestionEntity, (question) => question.user)
-  questions: QuestionEntity[];
+  questions?: QuestionEntity[];
 }

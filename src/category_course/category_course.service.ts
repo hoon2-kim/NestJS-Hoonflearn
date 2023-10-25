@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { CategoryIdsDto } from '@src/course/dtos/request/create-course.dto';
-import { EntityManager, Repository } from 'typeorm';
+import { DataSource, EntityManager, Repository } from 'typeorm';
 import { CategoryCourseEntity } from '@src/category_course/entities/category-course.entitiy';
 
 @Injectable()
@@ -9,6 +9,8 @@ export class CategoryCourseService {
   constructor(
     @InjectRepository(CategoryCourseEntity)
     private readonly categoryCourseRepository: Repository<CategoryCourseEntity>,
+
+    private readonly dataSource: DataSource,
   ) {}
 
   async linkCourseToCategories(
@@ -38,7 +40,7 @@ export class CategoryCourseService {
     selectedCategoryIds: CategoryIdsDto[],
     courseId: string,
   ): Promise<void> {
-    await this.categoryCourseRepository.manager.transaction(async (manager) => {
+    await this.dataSource.transaction(async (manager) => {
       await manager.delete(CategoryCourseEntity, { fk_course_id: courseId });
 
       await this.linkCourseToCategories(selectedCategoryIds, courseId, manager);
