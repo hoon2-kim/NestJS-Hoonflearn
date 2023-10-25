@@ -3,7 +3,6 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { CourseService } from '@src/course/course.service';
 import { ELessonAction } from '@src/lesson/enums/lesson.enum';
-import { UserEntity } from '@src/user/entities/user.entity';
 import { EntityManager, FindOneOptions, Repository } from 'typeorm';
 import { CreateSectionDto } from '@src/section/dtos/request/create-section.dto';
 import { UpdateSectionDto } from '@src/section/dtos/request/update-section.dto';
@@ -32,9 +31,9 @@ export class SectionService {
 
   async create(
     createSectionDto: CreateSectionDto,
-    user: UserEntity,
+    userId: string,
   ): Promise<SectionEntity> {
-    const { courseId } = createSectionDto;
+    const { courseId, ...dto } = createSectionDto;
 
     const course = await this.courseService.findOneByOptions({
       where: { id: courseId },
@@ -45,12 +44,12 @@ export class SectionService {
       throw new NotFoundException('해당 강의가 존재하지 않습니다.');
     }
 
-    if (course.fk_instructor_id !== user.id) {
+    if (course.fk_instructor_id !== userId) {
       throw new ForbiddenException('해당 강의를 만든 지식공유자가 아닙니다.');
     }
 
     const section = await this.sectionRepository.save({
-      ...createSectionDto,
+      ...dto,
       fk_course_id: courseId,
     });
 
@@ -60,7 +59,7 @@ export class SectionService {
   async update(
     sectionId: string,
     updateSectionDto: UpdateSectionDto,
-    user: UserEntity,
+    userId: string,
   ): Promise<{ message: string }> {
     const section = await this.findOneByOptions({
       where: { id: sectionId },
@@ -70,7 +69,7 @@ export class SectionService {
       throw new NotFoundException('해당 섹션이 존재하지 않습니다.');
     }
 
-    await this.courseService.validateInstructor(section?.fk_course_id, user.id);
+    await this.courseService.validateInstructor(section.fk_course_id, userId);
 
     Object.assign(section, updateSectionDto);
 
@@ -79,7 +78,7 @@ export class SectionService {
     return { message: '수정 성공' };
   }
 
-  async delete(sectionId: string, user: UserEntity): Promise<boolean> {
+  async delete(sectionId: string, userId: string): Promise<boolean> {
     const section = await this.findOneByOptions({
       where: { id: sectionId },
     });
@@ -88,7 +87,7 @@ export class SectionService {
       throw new NotFoundException('해당 섹션이 존재하지 않습니다.');
     }
 
-    await this.courseService.validateInstructor(section?.fk_course_id, user.id);
+    await this.courseService.validateInstructor(section.fk_course_id, userId);
 
     const result = await this.sectionRepository.delete({ id: sectionId });
 

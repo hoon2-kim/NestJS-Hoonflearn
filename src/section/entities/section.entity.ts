@@ -46,5 +46,5 @@ export class SectionEntity {
   course: CourseEntity;
 
   @OneToMany(() => LessonEntity, (lesson) => lesson.section)
-  lessons: LessonEntity[];
+  lessons?: LessonEntity[];
 }
