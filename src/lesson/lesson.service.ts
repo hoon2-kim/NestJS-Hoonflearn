@@ -11,6 +11,7 @@ import { CourseUserService } from '@src/course_user/course-user.service';
 import { SectionEntity } from '@src/section/entities/section.entity';
 import { SectionService } from '@src/section/section.service';
 import {
+  DataSource,
   DeleteResult,
   EntityManager,
   FindOneOptions,
@@ -34,6 +35,7 @@ export class LessonService {
     private readonly courseService: CourseService,
     private readonly courseUserService: CourseUserService,
     private readonly awsS3Service: AwsS3Service,
+    private readonly dataSource: DataSource,
   ) {}
 
   async findOneByOptions(
@@ -88,7 +90,7 @@ export class LessonService {
     createLessonDto: CreateLessonDto,
     userId: string,
   ): Promise<LessonEntity> {
-    const { sectionId } = createLessonDto;
+    const { sectionId, ...dto } = createLessonDto;
 
     const section = await this.sectionService.findOneByOptions({
       where: { id: sectionId },
@@ -104,9 +106,9 @@ export class LessonService {
 
     let lesson: LessonEntity;
 
-    await this.lessonRepository.manager.transaction(async (manager) => {
+    await this.dataSource.transaction(async (manager) => {
       lesson = await manager.save(LessonEntity, {
-        ...createLessonDto,
+        ...dto,
         fk_section_id: sectionId,
       });
 
@@ -117,7 +119,7 @@ export class LessonService {
       );
 
       await this.courseService.updateTotalLessonCountInCourse(
-        section?.fk_course_id,
+        section.fk_course_id,
         ELessonAction.Create,
         manager,
       );
@@ -166,7 +168,7 @@ export class LessonService {
 
     let result: DeleteResult;
 
-    await this.lessonRepository.manager.transaction(async (manager) => {
+    await this.dataSource.transaction(async (manager) => {
       await this.sectionService.updateLessonCountInSection(
         lesson.fk_section_id,
         ELessonAction.Delete,
@@ -184,12 +186,14 @@ export class LessonService {
         const fileKey = decodeURIComponent(parsedUrl.pathname.substring(1));
 
         await this.awsS3Service.deleteS3Object(fileKey);
+
         await manager.decrement(
           SectionEntity,
           { id: lesson.fk_section_id },
           'totalSectionTime',
           lesson.video.videoTime,
         );
+
         await manager.decrement(
           CourseEntity,
           { id: courseId },

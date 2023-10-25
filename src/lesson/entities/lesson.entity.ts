@@ -46,5 +46,5 @@ export class LessonEntity {
     nullable: true,
     onDelete: 'CASCADE',
   })
-  video: VideoEntity;
+  video?: VideoEntity;
 }
