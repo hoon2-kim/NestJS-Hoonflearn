@@ -3,24 +3,20 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
 import { CourseService } from '@src/course/course.service';
 import { CourseUserService } from '@src/course_user/course-user.service';
 import { CourseUserEntity } from '@src/course_user/entities/course-user.entity';
 import { ECouresUserType } from '@src/course_user/enums/course-user.enum';
 import { EOrderAction } from '@src/order/enums/order.enum';
-import { DataSource, Repository } from 'typeorm';
+import { DataSource } from 'typeorm';
 import { CreateVoucherDto } from '@src/voucher/dtos/create-voucher.dto';
 
 @Injectable()
 export class VoucherService {
   constructor(
     private readonly courseService: CourseService,
-    private readonly couresUserService: CourseUserService,
+    private readonly coureUserService: CourseUserService,
     private readonly dataSource: DataSource,
-
-    @InjectRepository(CourseUserEntity)
-    private readonly courseUserRepository: Repository<CourseUserEntity>,
   ) {}
 
   async create(
@@ -41,7 +37,7 @@ export class VoucherService {
       throw new BadRequestException('해당 강의는 무료 강의가 아닙니다.');
     }
 
-    const isRegister = await this.couresUserService.findOneByOptions({
+    const isRegister = await this.coureUserService.findOneByOptions({
       where: {
         fk_course_id: courseId,
         fk_user_id: userId,
@@ -53,7 +49,7 @@ export class VoucherService {
     }
 
     return await this.dataSource.transaction(async (manager) => {
-      const result = this.couresUserService.saveFreeCourseUserRepo(
+      const result = this.coureUserService.saveFreeCourseUserRepo(
         courseId,
         userId,
         manager,
@@ -71,7 +67,7 @@ export class VoucherService {
   }
 
   async delete(courseId: string, userId: string): Promise<boolean> {
-    const courseUser = await this.couresUserService.findOneByOptions({
+    const courseUser = await this.coureUserService.findOneByOptions({
       where: { fk_course_id: courseId, fk_user_id: userId },
     });
 
@@ -84,7 +80,7 @@ export class VoucherService {
     }
 
     return await this.dataSource.transaction(async (manager) => {
-      const result = await this.couresUserService.cancelFreeCourseUserRepo(
+      const result = await this.coureUserService.cancelFreeCourseUserRepo(
         courseId,
         manager,
       );
