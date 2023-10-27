@@ -157,8 +157,8 @@ describe('UserController', () => {
     });
 
     it('이미지 업로드 실패 - 파일이 limit사이즈를 초과한 경우(400에러)', async () => {
-      const bigFile = file;
-      file.size = 1024 * 1024 * 2;
+      const bigFile = { ...file, size: 1024 * 1024 * 2 };
+
       try {
         await userController.uploadUserAvatar(userId, bigFile);
       } catch (error) {
@@ -167,8 +167,8 @@ describe('UserController', () => {
     });
 
     it('이미지 업로드 실패 - 이미지 확장자가 jpg,png,jpeg가 아닌 경우(400에러)', async () => {
-      const etcFile = file;
-      file.mimetype = 'image/gif';
+      const etcFile = { ...file, mimetype: 'image/gif' };
+
       try {
         await userController.uploadUserAvatar(userId, etcFile);
       } catch (error) {

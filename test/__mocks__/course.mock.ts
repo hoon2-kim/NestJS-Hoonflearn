@@ -1,28 +1,35 @@
 import { CourseEntity } from '@src/course/entities/course.entity';
 import { ECourseLevelType } from '@src/course/enums/course.enum';
-import { mockCreatedInstructor } from './user.mock';
+import { UserEntity } from '@src/user/entities/user.entity';
+import { ERoleType } from '@src/user/enums/user.enum';
 
-export const mockCreatedCourse = (): CourseEntity => {
-  const courseEntity = new CourseEntity();
-  courseEntity.id = 'uuid';
-  courseEntity.title = '강의제목';
-  courseEntity.summary = '강의요약';
-  courseEntity.description = '상세설명';
-  courseEntity.coverImage = null;
-  courseEntity.price = 10000;
-  courseEntity.learnable = ['자바스크립트', '타입스크립트'];
-  courseEntity.recommendedFor = ['개발입문자'];
-  courseEntity.prerequisite = ['html', 'css'];
-  courseEntity.level = ECourseLevelType.Beginner;
-  courseEntity.averageRating = 0;
-  courseEntity.reviewCount = 0;
-  courseEntity.wishCount = 0;
-  courseEntity.totalVideosTime = 0;
-  courseEntity.totalLessonCount = 0;
-  courseEntity.students = 0;
-  courseEntity.created_at = new Date('2023-10');
-  courseEntity.updated_at = new Date('2023-10');
-  courseEntity.instructor = mockCreatedInstructor();
-
-  return courseEntity;
-};
+export const mockCreatedCourse = {
+  id: 'uuid',
+  title: '강의1',
+  learnable: ['배움1', '배움2'],
+  recommendedFor: ['추천1', '추천2'],
+  prerequisite: ['선수지식'],
+  level: ECourseLevelType.Beginner,
+  summary: '요약',
+  description: '설명',
+  price: 50000,
+  coverImage: null,
+  averageRating: 0.0,
+  reviewCount: 0,
+  wishCount: 0,
+  totalVideosTime: 0,
+  totalLessonCount: 0,
+  students: 0,
+  created_at: new Date('2023-10'),
+  updated_at: new Date('2023-10'),
+  instructor: {
+    id: 'uuid',
+    email: 'ins1@a.com',
+    nickname: '강사',
+    description: null,
+    phone: '01012341234',
+    role: ERoleType.Instructor,
+    created_at: new Date('2023-10'),
+    updated_at: new Date('2023-10'),
+  } as UserEntity,
+} as CourseEntity;
