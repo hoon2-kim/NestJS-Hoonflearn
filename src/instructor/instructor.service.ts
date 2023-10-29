@@ -159,14 +159,12 @@ export class InstructorService {
       );
     }
 
-    const instructorProfile = this.instructorRepository.create({
+    await this.instructorRepository.save({
       contactEmail,
       nameOrBusiness,
       ...instructorInfo,
       user: { id: user.id },
     });
-
-    await this.instructorRepository.save(instructorProfile);
 
     const newAt = this.authService.getAccessToken(
       user.id,
