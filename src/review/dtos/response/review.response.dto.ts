@@ -1,4 +1,4 @@
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { SimpleCourseResponseDto } from '@src/course/dtos/response/course.response';
 import { ISimpleCourseResponse } from '@src/course/interfaces/course.interface';
 import { ReviewCommentResponseDto } from '@src/review-comment/dtos/response/review-comment.response.dto';
@@ -36,11 +36,11 @@ export class ReviewResponseWithoutCommentDto
   @ApiProperty({ description: '리뷰 작성자 정보', type: SimpleUserResponseDto })
   user: ISimpleUserResponse;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: '리뷰 작성한 강의 정보',
     type: SimpleCourseResponseDto,
   })
-  course: ISimpleCourseResponse;
+  course?: ISimpleCourseResponse;
 
   static from(review: ReviewEntity): ReviewResponseWithoutCommentDto {
     const dto = new ReviewResponseWithoutCommentDto();
@@ -53,7 +53,7 @@ export class ReviewResponseWithoutCommentDto
     dto.likeCount = likeCount;
     dto.created_at = created_at;
     dto.user = SimpleUserResponseDto.from(user);
-    dto.course = SimpleCourseResponseDto.from(course);
+    dto.course = course ? SimpleCourseResponseDto.from(course) : null;
 
     return dto;
   }

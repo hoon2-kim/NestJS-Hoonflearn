@@ -45,7 +45,7 @@ export class ReviewCommentController {
     @Param('commentId') commentId: string,
     @Body() updateReviewCommentDto: UpdateReviewCommentDto,
     @CurrentUser('id') userId: string,
-  ): Promise<void> {
+  ): Promise<{ message: string }> {
     return this.reviewCommentService.update(
       reviewId,
       commentId,

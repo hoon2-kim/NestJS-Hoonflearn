@@ -10,7 +10,7 @@ import { CourseUserService } from '@src/course_user/course-user.service';
 import { InstructorReviewQueryDto } from '@src/instructor/dtos/query/instructor.query.dto';
 import { EInstructorReviewSortBy } from '@src/instructor/enums/instructor.enum';
 import { ReviewLikeService } from '@src/review-like/review-like.service';
-import { FindOneOptions, Repository } from 'typeorm';
+import { DataSource, FindOneOptions, Repository } from 'typeorm';
 import { CreateReviewDto } from '@src/review/dtos/request/create-review.dto';
 import { ReviewListQueryDto } from '@src/review/dtos/query/review-list.query.dto';
 import { UpdateReviewDto } from '@src/review/dtos/request/update-review.dto';
@@ -30,6 +30,7 @@ export class ReviewService {
     private readonly courseService: CourseService,
     private readonly revivewLikeService: ReviewLikeService,
     private readonly courseUserService: CourseUserService,
+    private readonly dataSource: DataSource,
   ) {}
 
   async findAllByCourse(
@@ -49,8 +50,10 @@ export class ReviewService {
     const query = this.reviewRepository
       .createQueryBuilder('review')
       .leftJoinAndSelect('review.user', 'user')
-      .leftJoinAndSelect('review.course', 'course')
+      .leftJoin('review.course', 'course')
       .leftJoinAndSelect('review.reviewComments', 'comment')
+      .leftJoinAndSelect('comment.user', 'user2')
+      .where('course.id = :courseId', { courseId })
       .take(take)
       .skip(skip);
 
@@ -130,7 +133,7 @@ export class ReviewService {
     // 강의 구매 했는지
     await this.courseUserService.validateBoughtCourseByUser(userId, courseId);
 
-    return await this.reviewRepository.manager.transaction(async (manager) => {
+    return await this.dataSource.transaction(async (manager) => {
       // 별점
       const prevReviewCount = course.reviewCount;
       const averageCal =
@@ -215,7 +218,7 @@ export class ReviewService {
       where: { id: review.fk_course_id },
     });
 
-    return await this.reviewRepository.manager.transaction(async (manager) => {
+    return await this.dataSource.transaction(async (manager) => {
       const newAverage =
         (course.averageRating * course.reviewCount - review.rating) /
           course.reviewCount -

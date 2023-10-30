@@ -35,7 +35,7 @@ import {
   InstructorCourseQueryDto,
   InstructorQuestionQueryDto,
   InstructorReviewQueryDto,
-} from '../dtos/query/instructor.query.dto';
+} from '@src/instructor/dtos/query/instructor.query.dto';
 
 import { mockCreatedCourse } from '@test/__mocks__/course.mock';
 import { expectedQuestionByInstructor } from '@test/__mocks__/question.mock';
@@ -107,8 +107,6 @@ describe('InstructorService', () => {
     const mockResponse = {
       cookie: jest.fn().mockReturnThis(),
     } as unknown as Response;
-    // const at = 'access'
-    // const rt = 'refresh'
     const createdResponse: IInstructorTokens = {
       access_token: 'access',
       refresh_token: 'refresh',

@@ -118,7 +118,6 @@ describe('LessonService', () => {
         jest
           .spyOn(sectionService, 'updateLessonCountInSection')
           .mockResolvedValue(undefined);
-
         jest
           .spyOn(courseService, 'updateTotalLessonCountInCourse')
           .mockResolvedValue(undefined);
@@ -393,11 +392,9 @@ describe('LessonService', () => {
         jest
           .spyOn(sectionService, 'updateLessonCountInSection')
           .mockResolvedValue(undefined);
-
         jest
           .spyOn(courseService, 'updateTotalLessonCountInCourse')
           .mockResolvedValue(undefined);
-
         jest
           .spyOn(awsS3Service, 'deleteS3Object')
           .mockRejectedValue(new BadRequestException());
@@ -420,11 +417,9 @@ describe('LessonService', () => {
       jest
         .spyOn(lessonService, 'findOneByOptions')
         .mockResolvedValue(mockLessonWithVideo);
-
       jest
         .spyOn(lessonService, 'getCourseIdByLessonIdWithQueryBuilder')
         .mockResolvedValue(courseId);
-
       jest
         .spyOn(courseUserService, 'validateBoughtCourseByUser')
         .mockResolvedValue(undefined);
@@ -481,11 +476,9 @@ describe('LessonService', () => {
       jest
         .spyOn(lessonService, 'findOneByOptions')
         .mockResolvedValue(mockLessonWithVideo);
-
       jest
         .spyOn(lessonService, 'getCourseIdByLessonIdWithQueryBuilder')
         .mockResolvedValue(courseId);
-
       jest
         .spyOn(courseUserService, 'validateBoughtCourseByUser')
         .mockRejectedValue(

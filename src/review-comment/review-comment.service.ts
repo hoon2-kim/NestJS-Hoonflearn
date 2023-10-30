@@ -54,7 +54,7 @@ export class ReviewCommentService {
     commentId: string,
     updateReviewCommentDto: UpdateReviewCommentDto,
     userId: string,
-  ): Promise<void> {
+  ): Promise<{ message: string }> {
     const review = await this.reviewService.findOneByOptions({
       where: { id: reviewId },
     });
@@ -78,6 +78,8 @@ export class ReviewCommentService {
     Object.assign(comment, updateReviewCommentDto);
 
     await this.reviewCommentRepository.save(comment);
+
+    return { message: '수정 성공' };
   }
 
   async delete(

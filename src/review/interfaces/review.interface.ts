@@ -9,7 +9,7 @@ export interface IReviewWithOutCommentResponse {
   likeCount: number;
   created_at: Date;
   user: ISimpleUserResponse;
-  course: ISimpleCourseResponse;
+  course?: ISimpleCourseResponse;
 }
 
 export interface IReviewWithCommentResponse
