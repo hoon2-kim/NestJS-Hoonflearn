@@ -162,13 +162,13 @@ export const mockReviewWithComment: [ReviewEntity[], number] = [
   1,
 ];
 
-const pageMeta2 = new PageMetaDto({
+const pageMetaWithComment = new PageMetaDto({
   pageOptionDto: new ReviewListQueryDto(),
   itemCount: mockReviewWithComment[1],
 });
 export const expectedReviewsByCourse = new PageDto(
   mockReviewWithComment[0].map((r) => ReviewResponseWithCommentDto.from(r)),
-  pageMeta2,
+  pageMetaWithComment,
 );
 
 export const mockReviewRepository = {

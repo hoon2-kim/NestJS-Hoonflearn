@@ -144,11 +144,10 @@ export class QuestionService {
       .leftJoinAndSelect('question.user', 'user')
       .leftJoinAndSelect('question.questionComments', 'comment')
       .leftJoinAndSelect('comment.user', 'commentUser')
-      .leftJoinAndSelect('comment.parentComment', 'parent')
       .leftJoinAndSelect('comment.reComments', 're')
       .leftJoinAndSelect('re.user', 'reUser')
       .where('question.id = :questionId', { questionId })
-      .orWhere(
+      .andWhere(
         'comment.fk_question_id = :questionId AND comment.fk_question_comment_parentId IS NULL',
         { questionId },
       )
@@ -313,7 +312,7 @@ export class QuestionService {
     createQuestionDto: CreateQuestionDto,
     userId: string,
   ): Promise<QuestionEntity> {
-    const { courseId, ...qestion } = createQuestionDto;
+    const { courseId, ...question } = createQuestionDto;
 
     const course = await this.courseService.findOneByOptions({
       where: { id: courseId },
@@ -327,7 +326,7 @@ export class QuestionService {
     await this.courseUserService.validateBoughtCourseByUser(userId, courseId);
 
     const newQuestion = await this.questionRepository.save({
-      ...qestion,
+      ...question,
       fk_course_id: courseId,
       fk_user_id: userId,
     });
@@ -423,7 +422,7 @@ export class QuestionService {
     questionId: string,
     userId: string,
     questionVoteDto: QuestionVoteDto,
-  ) {
+  ): Promise<void> {
     const { vote } = questionVoteDto;
 
     const question = await this.findOneByOptions({ where: { id: questionId } });

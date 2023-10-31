@@ -69,7 +69,7 @@ export class QuestionVoteService {
     );
   }
 
-  private async upsertVote(
+  async upsertVote(
     questionId: string,
     userId: string,
     voteType: EQuestionVoteType,
@@ -100,11 +100,7 @@ export class QuestionVoteService {
     });
   }
 
-  // 리팩토링
-  private calculateVoteValue(
-    voteType: EQuestionVoteType,
-    isChange: boolean,
-  ): number {
+  calculateVoteValue(voteType: EQuestionVoteType, isChange: boolean): number {
     const voteValueMapping = {
       [EQuestionVoteType.UPVOTE]: isChange
         ? UPVOTE_CHANGE_VOTE_P_VALUE
@@ -117,7 +113,7 @@ export class QuestionVoteService {
     return voteValueMapping[voteType];
   }
 
-  private async deleteVote(
+  async deleteVote(
     questionId: string,
     userId: string,
     currentVote: EQuestionVoteType,
@@ -160,9 +156,7 @@ export class QuestionVoteService {
     return vote ? vote.voteType : null;
   }
 
-  private convertDtoTypeToEntityType(
-    dtoType: EQuestionVoteDtoType,
-  ): EQuestionVoteType {
+  convertDtoTypeToEntityType(dtoType: EQuestionVoteDtoType): EQuestionVoteType {
     switch (dtoType) {
       case EQuestionVoteDtoType.UPVOTE:
         return EQuestionVoteType.UPVOTE;

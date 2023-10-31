@@ -31,9 +31,9 @@ export class QuestionRecommentController {
   @ApiCreateQuestionReCommentSwagger(
     '질문글 댓글의 대댓글 생성(대댓글까지만 가능)',
   )
-  @Post('/comments/:commentId/re-comment')
+  @Post('/comments/:commentId/re-comments')
   createQuestionReComment(
-    @Param('comentId') commentId: string,
+    @Param('commentId') commentId: string,
     @Body() createQuestionReCommentDto: CreateQuestionReCommentDto,
     @CurrentUser('id') userId: string,
   ): Promise<QuestionCommentEntity> {
@@ -45,7 +45,7 @@ export class QuestionRecommentController {
   }
 
   @ApiUpdateQuestionReCommentSwagger('대댓글 수정')
-  @Patch('/re-comment/:reCommentId')
+  @Patch('/re-comments/:reCommentId')
   updateQuestionReComment(
     @Param('reCommentId') reCommentId: string,
     @Body() updateQuestionReCommentDto: UpdateQuestionReCommentDto,
@@ -59,7 +59,7 @@ export class QuestionRecommentController {
   }
 
   @ApiDeleteQuestionReCommentSwagger('대댓글 삭제')
-  @Delete('/re-comment/:reCommentId')
+  @Delete('/re-comments/:reCommentId')
   deleteQuestionReComment(
     @Param('reCommentId') reCommentId: string,
     @CurrentUser('id') userId: string,

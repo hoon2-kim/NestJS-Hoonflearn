@@ -69,7 +69,7 @@ jobs:
             fi
 
             docker pull $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
-            docker run -d --env-file ./.env -p 80:8080 $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+            docker run -d --env-file ./.env -p 8080:8080 $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
 
 # # ECR_CONTAINER_IDS=$(docker ps -a --format "{{.ID}} {{.Image}}" | awk '/hoonflearn/ {print $1}')
 # # docker ps -a 한 뒤 --format을 이용해 출력 형식 지정, awk명령어로 hoonflearn이 들어간거 필터링 후 $1(1행) 즉, ID만 출력해 변수에 저장

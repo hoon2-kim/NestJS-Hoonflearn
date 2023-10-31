@@ -115,7 +115,7 @@ describe('ReviewService', () => {
       ).toBeCalledTimes(1);
     });
 
-    it('조회 성공 - 검색 필터 호출 테스트(최신순)', async () => {
+    it('조회 성공 - 정렬 필터 호출 테스트(최신순)', async () => {
       query.sort = EReviewSortBy.Recent;
 
       await reviewService.findAllByCourse(courseId, query);
@@ -126,7 +126,7 @@ describe('ReviewService', () => {
       );
     });
 
-    it('조회 성공 - 검색 필터 호출 테스트(좋아요순)', async () => {
+    it('조회 성공 - 정렬 필터 호출 테스트(좋아요순)', async () => {
       query.sort = EReviewSortBy.Like;
 
       await reviewService.findAllByCourse(courseId, query);
@@ -141,7 +141,7 @@ describe('ReviewService', () => {
       );
     });
 
-    it('조회 성공 - 검색 필터 호출 테스트(리뷰점수높은순)', async () => {
+    it('조회 성공 - 정렬 필터 호출 테스트(리뷰점수높은순)', async () => {
       query.sort = EReviewSortBy.HighRating;
 
       await reviewService.findAllByCourse(courseId, query);
@@ -156,7 +156,7 @@ describe('ReviewService', () => {
       );
     });
 
-    it('조회 성공 - 검색 필터 호출 테스트(리뷰점수낮은순)', async () => {
+    it('조회 성공 - 정렬 필터 호출 테스트(리뷰점수낮은순)', async () => {
       query.sort = EReviewSortBy.LowRating;
 
       await reviewService.findAllByCourse(courseId, query);

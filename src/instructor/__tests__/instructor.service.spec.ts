@@ -38,7 +38,7 @@ import {
 } from '@src/instructor/dtos/query/instructor.query.dto';
 
 import { mockCreatedCourse } from '@test/__mocks__/course.mock';
-import { expectedQuestionByInstructor } from '@test/__mocks__/question.mock';
+import { expectedQuestionWithoutComment } from '@test/__mocks__/question.mock';
 import { expectedReviewByInstructor } from '@test/__mocks__/review.mock';
 
 describe('InstructorService', () => {
@@ -220,14 +220,14 @@ describe('InstructorService', () => {
         .mockResolvedValue(courseIds);
       jest
         .spyOn(questionService, 'findQuestionsByInstructorCourse')
-        .mockResolvedValue(expectedQuestionByInstructor);
+        .mockResolvedValue(expectedQuestionWithoutComment);
 
       const result = await instructorService.getQuestionsByMyCourses(
         query,
         user,
       );
 
-      expect(result).toEqual(expectedQuestionByInstructor);
+      expect(result).toEqual(expectedQuestionWithoutComment);
       expect(courseService.getCourseIdsByInstructor).toBeCalledTimes(1);
       expect(questionService.findQuestionsByInstructorCourse).toBeCalledTimes(
         1,
