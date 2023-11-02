@@ -198,8 +198,6 @@ export class CourseService {
     courseId: string,
     userId: string | null,
   ): Promise<{ isPurchased: boolean }> {
-    console.log(userId);
-
     const isPurchased = userId
       ? await this.courseUserService.checkBoughtCourseByUser(userId, courseId)
       : false;
@@ -261,13 +259,11 @@ export class CourseService {
         queryRunner.manager,
       );
 
-      const course = queryRunner.manager.create(CourseEntity, {
+      const result = await queryRunner.manager.save(CourseEntity, {
         title,
         ...info,
         instructor: user,
       });
-
-      const result = await queryRunner.manager.save(CourseEntity, course);
 
       /** 강의 - 카테고리 중간테이블 저장 */
       await this.categoryCourseService.linkCourseToCategories(
@@ -571,13 +567,13 @@ export class CourseService {
   }
 
   async calculateCoursePriceInCart(courseIds: string[]): Promise<number> {
-    const { result } = await this.courseRepository
+    const { total } = await this.courseRepository
       .createQueryBuilder('course')
       .whereInIds(courseIds)
       .select('SUM(course.price)', 'total')
       .getRawOne();
 
-    return Number(result || 0);
+    return Number(total || 0);
   }
 
   async updateCourseStudents(

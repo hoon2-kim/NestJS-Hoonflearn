@@ -24,7 +24,8 @@ export class CartResponseDto implements ICartResponse {
 
     dto.id = id;
     dto.total_price = total_price;
-    dto.course = cartsCourses.map((c) => CartCourseResponseDto.from(c.course));
+    dto.course =
+      cartsCourses?.map((c) => CartCourseResponseDto.from(c.course)) || [];
 
     return dto;
   }

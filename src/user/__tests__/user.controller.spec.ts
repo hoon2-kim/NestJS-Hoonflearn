@@ -5,6 +5,7 @@ import { CourseWishService } from '@src/course_wish/course_wish.service';
 import { QuestionService } from '@src/question/question.service';
 import { UserController } from '@src/user/user.controller';
 import { UserService } from '@src/user/user.service';
+import { expectedCourseWishList } from '@test/__mocks__/courseWish.mock';
 import {
   mockCourseUserService,
   mockCourseWishService,
@@ -16,6 +17,13 @@ import {
   mockUserProfile,
   mockUserService,
 } from '@test/__mocks__/user.mock';
+import {
+  UserWishQueryDto,
+  UserQuestionQueryDto,
+  UserMyCourseQueryDto,
+} from '@src/user/dtos/query/user.query.dto';
+import { expectedMyQuestionWithoutComment } from '@test/__mocks__/question.mock';
+import { expectedCourseUserList } from '@test/__mocks__/courseUser.mock';
 
 describe('UserController', () => {
   let userController: UserController;
@@ -186,6 +194,54 @@ describe('UserController', () => {
       expect(result).toBe(true);
       expect(userService.delete).toHaveBeenCalled();
       expect(userService.delete).toBeCalledWith(userId);
+    });
+  });
+
+  describe('[UserController.getMyWishCourses] - 찜한 강의 조회', () => {
+    it('조회 성공', async () => {
+      const query = new UserWishQueryDto();
+      jest
+        .spyOn(courseWishService, 'findWishCoursesByUser')
+        .mockResolvedValue(expectedCourseWishList);
+
+      const result = await userController.getMyWishCourses(query, userId);
+
+      expect(result).toEqual(expectedCourseWishList);
+      expect(courseWishService.findWishCoursesByUser).toBeCalled();
+      expect(courseWishService.findWishCoursesByUser).toBeCalledWith(
+        query,
+        userId,
+      );
+    });
+  });
+
+  describe('[UserController.getMyQuestions] - 유저가 작성한 질문글 조회', () => {
+    it('조회 성공', async () => {
+      const query = new UserQuestionQueryDto();
+      jest
+        .spyOn(questionService, 'findMyQuestions')
+        .mockResolvedValue(expectedMyQuestionWithoutComment);
+
+      const result = await userController.getMyQuestions(query, userId);
+
+      expect(result).toEqual(expectedMyQuestionWithoutComment);
+      expect(questionService.findMyQuestions).toBeCalled();
+      expect(questionService.findMyQuestions).toBeCalledWith(query, userId);
+    });
+  });
+
+  describe('[UserController.getMyCourses] - 유저가 수강하는 강의 조회', () => {
+    it('조회 성공', async () => {
+      const query = new UserMyCourseQueryDto();
+      jest
+        .spyOn(courseUserService, 'findMyCourses')
+        .mockResolvedValue(expectedCourseUserList);
+
+      const result = await userController.getMyCourses(query, userId);
+
+      expect(result).toEqual(expectedCourseUserList);
+      expect(courseUserService.findMyCourses).toBeCalled();
+      expect(courseUserService.findMyCourses).toBeCalledWith(query, userId);
     });
   });
 });

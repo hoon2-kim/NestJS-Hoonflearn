@@ -12,7 +12,7 @@ import {
   InstructorQuestionQueryDto,
   InstructorReviewQueryDto,
 } from '@src/instructor/dtos/query/instructor.query.dto';
-import { expectedQuestionByInstructor } from '@test/__mocks__/question.mock';
+import { expectedQuestionWithoutComment } from '@test/__mocks__/question.mock';
 import { expectedReviewByInstructor } from '@test/__mocks__/review.mock';
 import { Response } from 'express';
 import { IInstructorTokens } from '@src/instructor/interfaces/instructor.interface';
@@ -81,14 +81,14 @@ describe('InstructorController', () => {
     it('조회 성공', async () => {
       jest
         .spyOn(instructorService, 'getQuestionsByMyCourses')
-        .mockResolvedValue(expectedQuestionByInstructor);
+        .mockResolvedValue(expectedQuestionWithoutComment);
 
       const result = await instructorController.getQuestionsMyCourses(
         query,
         user,
       );
 
-      expect(result).toEqual(expectedQuestionByInstructor);
+      expect(result).toEqual(expectedQuestionWithoutComment);
       expect(instructorService.getQuestionsByMyCourses).toBeCalled();
       expect(instructorService.getQuestionsByMyCourses).toBeCalledWith(
         query,

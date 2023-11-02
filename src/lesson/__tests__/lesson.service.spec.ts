@@ -17,6 +17,7 @@ import {
   mockSectionService,
   mockUpdateLessonDto,
   mockLessonWithVideo,
+  mockLessonWithCourseId,
 } from '@test/__mocks__/lesson.mock';
 import { mockCreatedSection } from '@test/__mocks__/section.mock';
 import {
@@ -512,6 +513,26 @@ describe('LessonService', () => {
       } catch (error) {
         expect(error).toBeInstanceOf(ForbiddenException);
       }
+    });
+  });
+
+  describe('getCourseIdByLessonIdWithQueryBuilder 테스트 - 수업ID로 강의ID 가져오기', () => {
+    it('성공', async () => {
+      jest
+        .spyOn(lessonRepository.createQueryBuilder(), 'getOne')
+        .mockResolvedValue(mockLessonWithCourseId);
+
+      const result = await lessonService.getCourseIdByLessonIdWithQueryBuilder(
+        lessonId,
+      );
+
+      expect(result).toEqual(mockLessonWithCourseId.section.fk_course_id);
+      expect(
+        lessonRepository.createQueryBuilder().leftJoinAndSelect,
+      ).toBeCalledTimes(1);
+      expect(lessonRepository.createQueryBuilder().select).toBeCalledTimes(1);
+      expect(lessonRepository.createQueryBuilder().where).toBeCalledTimes(1);
+      expect(lessonRepository.createQueryBuilder().getOne).toBeCalledTimes(1);
     });
   });
 });

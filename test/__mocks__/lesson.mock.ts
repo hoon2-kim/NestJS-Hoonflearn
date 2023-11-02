@@ -1,6 +1,7 @@
 import { CreateLessonDto } from '@src/lesson/dtos/request/create-lesson.dto';
 import { UpdateLessonDto } from '@src/lesson/dtos/request/update-lesson.dto';
 import { LessonEntity } from '@src/lesson/entities/lesson.entity';
+import { SectionEntity } from '@src/section/entities/section.entity';
 import { VideoEntity } from '@src/video/entities/video.entity';
 
 export const mockCreateLessonDto: CreateLessonDto = {
@@ -44,15 +45,22 @@ export const mockLessonWithVideo = {
   } as VideoEntity,
 } as LessonEntity;
 
+export const mockLessonWithCourseId = {
+  id: 'uuid',
+  section: {
+    fk_course_id: 'uuid',
+  } as SectionEntity,
+} as LessonEntity;
+
 export const mockLessonRepository = {
   save: jest.fn(),
-  createQueryBuilder: jest.fn(() => ({
+  createQueryBuilder: jest.fn().mockReturnValue({
     leftJoinAndSelect: jest.fn().mockReturnThis(),
     where: jest.fn().mockReturnThis(),
     select: jest.fn().mockReturnThis(),
     setQueryRunner: jest.fn().mockReturnThis(),
     getOne: jest.fn().mockReturnThis(),
-  })),
+  }),
 };
 
 export const mockSectionService = {

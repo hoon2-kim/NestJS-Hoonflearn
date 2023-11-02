@@ -17,7 +17,7 @@ export class CategoryCourseService {
     selectedCategoryIds: CategoryIdsDto[],
     courseId: string,
     manager?: EntityManager,
-  ): Promise<void> {
+  ): Promise<CategoryCourseEntity[]> {
     const saveCategoryCourse = async (category: CategoryIdsDto) => {
       const isMain =
         category.subCategoryId === selectedCategoryIds[0].subCategoryId;
@@ -28,12 +28,12 @@ export class CategoryCourseService {
         isMain,
       };
 
-      manager
+      return manager
         ? await manager.save(CategoryCourseEntity, data)
         : await this.categoryCourseRepository.save(data);
     };
 
-    await Promise.all(selectedCategoryIds.map(saveCategoryCourse));
+    return await Promise.all(selectedCategoryIds.map(saveCategoryCourse));
   }
 
   async updateCourseToCategories(

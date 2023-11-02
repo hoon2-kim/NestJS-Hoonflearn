@@ -57,16 +57,3 @@ export const mockCategoryService = {
   update: jest.fn(),
   delete: jest.fn(),
 };
-
-// export const mockCategoryRepository1 = {
-//   createQueryBuilder: jest.fn().mockReturnValue({
-//     where: jest.fn().mockReturnThis(), // this는 createQueryBuilder를 가리킨다.
-//     leftJoinAndSelect: jest.fn().mockReturnThis(),
-//     orderBy: jest.fn().mockReturnThis(),
-//     getOne: jest.fn().mockReturnThis(),
-//   }),
-//   find: jest.fn(),
-//   findOne: jest.fn(),
-//   save: jest.fn(),
-//   delete: jest.fn(),
-// };

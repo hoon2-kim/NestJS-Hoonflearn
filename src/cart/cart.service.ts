@@ -41,7 +41,9 @@ export class CartService {
       cart = await this.createCart(userId);
     }
 
-    const courseIds = cart.cartsCourses.map((c) => c.fk_course_id) || [];
+    const courseIds = cart.cartsCourses
+      ? cart.cartsCourses.map((c) => c.fk_course_id)
+      : [];
 
     const total_price = await this.courseService.calculateCoursePriceInCart(
       courseIds,

@@ -83,7 +83,7 @@ export class CartCourseService {
         });
   }
 
-  private async findCourseInCart(
+  async findCourseInCart(
     cartId: string,
     courseId: string,
     manager?: EntityManager,

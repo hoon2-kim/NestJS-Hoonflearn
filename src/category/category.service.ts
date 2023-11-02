@@ -97,8 +97,6 @@ export class CategoryService {
       );
     }
 
-    console.log(category);
-
     return CategoryResponseDto.from(category);
   }
 
@@ -108,8 +106,6 @@ export class CategoryService {
     const { name } = createCategoryDto;
 
     const isName = await this.findOneByOptions({ where: { name } });
-
-    console.log(isName);
 
     if (isName) {
       throw new BadRequestException(

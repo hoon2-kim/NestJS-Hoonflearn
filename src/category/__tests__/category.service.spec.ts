@@ -12,6 +12,7 @@ import {
 } from '@test/__mocks__/category.mock';
 import { CategoryResponseDto } from '@src/category/dtos/response/category.response.dto';
 import { IsNull, Repository } from 'typeorm';
+import { CategoryIdsDto } from '@src/course/dtos/request/create-course.dto';
 
 describe('CategoryService', () => {
   let categoryService: CategoryService;
@@ -268,6 +269,67 @@ describe('CategoryService', () => {
 
       try {
         await categoryService.delete(categoryId);
+      } catch (error) {
+        expect(error).toBeInstanceOf(NotFoundException);
+      }
+    });
+  });
+
+  describe('validateCategoryOptionalTransaction 테스트 - 메인,서브 카테고리 검증 로직', () => {
+    it('성공', async () => {
+      const selectedCategoryIds: CategoryIdsDto[] = [
+        { parentCategoryId: 'uuid1', subCategoryId: 'uuid2' },
+        { parentCategoryId: 'uuid1', subCategoryId: 'uuid3' },
+      ];
+
+      jest
+        .spyOn(categoryService, 'validateCategory')
+        .mockResolvedValue(undefined);
+
+      await categoryService.validateCategoryOptionalTransaction(
+        selectedCategoryIds,
+      );
+
+      expect(categoryService.validateCategory).toBeCalledTimes(
+        selectedCategoryIds.length * 2,
+      );
+    });
+  });
+
+  describe('validateCategory 테스트 - 카테고리 검증 로직', () => {
+    it('메인 카테고리에 서브 카테고리를 넣은 경우(400에러)', async () => {
+      const mockCreatedSubCategory = {
+        ...mockCreatedCategory,
+        fk_parent_category_id: 'uuid',
+      };
+      jest
+        .spyOn(categoryService, 'findOneByOptions')
+        .mockResolvedValue(mockCreatedSubCategory);
+
+      try {
+        await categoryService.validateCategory(categoryId, true);
+      } catch (error) {
+        expect(error).toBeInstanceOf(BadRequestException);
+      }
+    });
+
+    it('서브 카테고리에 메인 카테고리를 넣은 경우(400에러)', async () => {
+      jest
+        .spyOn(categoryService, 'findOneByOptions')
+        .mockResolvedValue(mockCreatedCategory);
+
+      try {
+        await categoryService.validateCategory(categoryId, false);
+      } catch (error) {
+        expect(error).toBeInstanceOf(BadRequestException);
+      }
+    });
+
+    it('카테고리가 존재하지않는 경우(404에러)', async () => {
+      jest.spyOn(categoryService, 'findOneByOptions').mockResolvedValue(null);
+
+      try {
+        await categoryService.validateCategory(categoryId, true);
       } catch (error) {
         expect(error).toBeInstanceOf(NotFoundException);
       }

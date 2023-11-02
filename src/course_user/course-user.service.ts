@@ -57,7 +57,7 @@ export class CourseUserService {
     courseIds: string[],
     userId: string,
     manager?: EntityManager,
-  ): Promise<void> {
+  ): Promise<CourseUserEntity[]> {
     const datas = courseIds.map((courseId) => {
       return manager
         ? manager.save(CourseUserEntity, {
@@ -72,7 +72,7 @@ export class CourseUserService {
           });
     });
 
-    await Promise.all(datas);
+    return await Promise.all(datas);
   }
 
   async saveFreeCourseUserRepo(

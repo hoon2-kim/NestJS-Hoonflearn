@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { SectionService } from '@src/section/section.service';
-import { Repository } from 'typeorm';
+import { EntityManager, Repository } from 'typeorm';
 import { SectionEntity } from '@src/section/entities/section.entity';
 import { CourseService } from '@src/course/course.service';
 import { getRepositoryToken } from '@nestjs/typeorm';
@@ -13,6 +13,7 @@ import {
 } from '@test/__mocks__/section.mock';
 import { CourseEntity } from '@src/course/entities/course.entity';
 import { ForbiddenException, NotFoundException } from '@nestjs/common';
+import { ELessonAction } from '@src/lesson/enums/lesson.enum';
 
 describe('SectionService', () => {
   let sectionService: SectionService;
@@ -21,6 +22,10 @@ describe('SectionService', () => {
 
   const sectionId = 'uuid';
   const userId = 'uuid';
+  const mockEntityManager = {
+    increment: jest.fn(),
+    decrement: jest.fn(),
+  } as unknown as EntityManager;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -217,6 +222,50 @@ describe('SectionService', () => {
         expect(error).toBeInstanceOf(ForbiddenException);
         expect(error.message).toBe('해당 강의를 만든 지식공유자가 아닙니다.');
       }
+    });
+  });
+
+  describe('updateLessonCountInSection 테스트 - 수업 행동에 따라 섹션엔티티 수업 수 업데이트 로직', () => {
+    it('수업 생성인 경우 수업 수 증가', async () => {
+      const action = ELessonAction.Create;
+      jest
+        .spyOn(mockEntityManager, 'increment')
+        .mockResolvedValue({ generatedMaps: [], raw: [], affected: 1 });
+
+      const result = await sectionService.updateLessonCountInSection(
+        sectionId,
+        action,
+        mockEntityManager,
+      );
+
+      expect(result).toBeUndefined();
+      expect(mockEntityManager.increment).toBeCalledWith(
+        SectionEntity,
+        { id: sectionId },
+        'totalLessonBySectionCount',
+        1,
+      );
+    });
+
+    it('수업 삭제인 경우 수업 수 감소', async () => {
+      const action = ELessonAction.Delete;
+      jest
+        .spyOn(mockEntityManager, 'decrement')
+        .mockResolvedValue({ generatedMaps: [], raw: [], affected: 1 });
+
+      const result = await sectionService.updateLessonCountInSection(
+        sectionId,
+        action,
+        mockEntityManager,
+      );
+
+      expect(result).toBeUndefined();
+      expect(mockEntityManager.decrement).toBeCalledWith(
+        SectionEntity,
+        { id: sectionId },
+        'totalLessonBySectionCount',
+        1,
+      );
     });
   });
 });

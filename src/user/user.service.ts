@@ -174,8 +174,6 @@ export class UserService {
       where: { fk_user_id: userId },
     });
 
-    console.log(instructorProfile);
-
     if (instructorProfile) {
       await this.instructorProfileRepository.softDelete({
         id: instructorProfile.id,

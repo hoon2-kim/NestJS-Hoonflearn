@@ -22,8 +22,11 @@ import {
   mockQuestionWithComment,
   mockUpdateQuestionDto,
 } from '@test/__mocks__/question.mock';
-import { QuestionListQueryDto } from '../dtos/query/question-list.query.dto';
-import { EQuestionSortBy, EQuestionStatus } from '../enums/question.enum';
+import { QuestionListQueryDto } from '@src/question/dtos/query/question-list.query.dto';
+import {
+  EQuestionSortBy,
+  EQuestionStatus,
+} from '@src/question/enums/question.enum';
 import { mockCreatedCourse } from '@test/__mocks__/course.mock';
 import { ForbiddenException, NotFoundException } from '@nestjs/common';
 import { QuestionHitEvent } from '@src/question/events/question-hit.event';
@@ -33,8 +36,8 @@ import {
   EInstructorQuestionSortBy,
   EInstructorQuestionStatusBy,
 } from '@src/instructor/enums/instructor.enum';
-import { QuestionStatusDto } from '../dtos/request/question-status.dto';
-import { QuestionVoteDto } from '../dtos/request/question-vote.dto';
+import { QuestionStatusDto } from '@src/question/dtos/request/question-status.dto';
+import { QuestionVoteDto } from '@src/question/dtos/request/question-vote.dto';
 import { EQuestionVoteDtoType } from '@src/question-vote/enums/question-vote.enum';
 
 describe('QuestionService', () => {
