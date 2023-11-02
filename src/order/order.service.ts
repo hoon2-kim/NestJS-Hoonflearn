@@ -133,7 +133,7 @@ export class OrderService {
       );
 
       // 주문정보 저장
-      const order = queryRunner.manager.create(OrderEntity, {
+      const result = await queryRunner.manager.save(OrderEntity, {
         imp_uid,
         orderName,
         merchant_uid: getIamportPaymentData?.merchant_uid,
@@ -142,8 +142,6 @@ export class OrderService {
         orderStatus: EOrderStatus.COMPLETED,
         fk_user_id: userId,
       });
-
-      const result = await queryRunner.manager.save(OrderEntity, order);
 
       // 중간테이블 저장(주문-강의)
       await this.orderCourseService.saveOrderCourseRepoWithTransaction(
@@ -184,7 +182,7 @@ export class OrderService {
     }
   }
 
-  private async generateOrderName(
+  async generateOrderName(
     firstTitle: string,
     courseLength: number,
   ): Promise<string> {

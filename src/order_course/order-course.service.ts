@@ -16,14 +16,14 @@ export class OrderCourseService {
     orderId: string,
     entityManager: EntityManager,
   ): Promise<OrderCourseEntity[]> {
-    return await Promise.all(
-      courses.map(async (course) => {
-        return await entityManager.save(OrderCourseEntity, {
-          orderPrice: course.price,
-          fk_order_id: orderId,
-          fk_course_id: course.id,
-        });
-      }),
-    );
+    const datas = courses.map(async (course) => {
+      return await entityManager.save(OrderCourseEntity, {
+        orderPrice: course.price,
+        fk_order_id: orderId,
+        fk_course_id: course.id,
+      });
+    });
+
+    return await Promise.all(datas);
   }
 }
