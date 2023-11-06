@@ -25,6 +25,7 @@ import { OrderCourseModule } from '@src/order_course/order-course.module';
 import { VoucherModule } from '@src/voucher/voucher.module';
 import { EventEmitterModule } from '@nestjs/event-emitter';
 import { typeOrmModuleConfig } from '@src/config/database';
+import { testTypeOrmModuleConfig } from '@src/config/database-test';
 import { AppController } from '@src/app.controller';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { APP_GUARD } from '@nestjs/core';
@@ -41,7 +42,9 @@ import { APP_GUARD } from '@nestjs/core';
         limit: 10,
       },
     ]),
-    TypeOrmModule.forRootAsync(typeOrmModuleConfig),
+    process.env.NODE_ENV === 'test'
+      ? TypeOrmModule.forRootAsync(testTypeOrmModuleConfig)
+      : TypeOrmModule.forRootAsync(typeOrmModuleConfig),
     EventEmitterModule.forRoot(),
     UserModule,
     AuthModule,
