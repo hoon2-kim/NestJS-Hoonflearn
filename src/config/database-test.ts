@@ -18,6 +18,7 @@ export const testTypeOrmModuleConfig = {
     autoLoadEntities: true,
     synchronize: true,
     logging: false,
+    dropSchema: true,
   }),
   inject: [ConfigService],
 };

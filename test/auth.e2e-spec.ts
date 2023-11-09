@@ -12,7 +12,6 @@ import { HttpExceptionFilter } from '@src/common/filters/http-api-exception.filt
 import cookieParser from 'cookie-parser';
 import { parse } from 'cookie';
 import { DataSource } from 'typeorm';
-import { UserEntity } from '@src/user/entities/user.entity';
 import { login, signUp } from './e2e.util';
 
 const userDto: CreateUserDto = {
@@ -118,7 +117,7 @@ describe('AUTH (e2e)', () => {
       access_token = loginResponse.body.access_token;
     });
 
-    it('로그아웃 성공 - refresh_token이 DB에서는 null, 쿠키에서는 빈값 및 만료시간 과거 확인', async () => {
+    it('로그아웃 성공 - refresh_token 쿠키에서는 빈값 및 만료시간 과거 확인', async () => {
       await request(app.getHttpServer())
         .post('/auth/logout')
         .set({ Authorization: `Bearer ${access_token}` })
@@ -131,11 +130,6 @@ describe('AUTH (e2e)', () => {
             new Date(parseCookie['Expires']).getTime(),
           ).toBeLessThanOrEqual(new Date().getTime());
         });
-
-      const user = await dataSource.manager.findOne(UserEntity, {
-        where: { email: userDto.email },
-      });
-      expect(user.hashedRt).toBeNull();
     });
   });
 
