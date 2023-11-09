@@ -117,13 +117,11 @@ export const mockUserRepository = {
 
 export const mockUserService = {
   findOneByOptions: jest.fn(),
-  updateRefreshToken: jest.fn(),
 };
 
 export const mockAuthService = {
   getAccessToken: jest.fn().mockReturnValue('access'),
   getRefreshToken: jest.fn().mockReturnValue('refresh'),
-  hashData: jest.fn().mockResolvedValue('hash_rt'),
 };
 
 export const mockCourseService = {
@@ -144,4 +142,8 @@ export const mockInstructorService = {
   getQuestionsByMyCourses: jest.fn(),
   getReviewsByMyCourses: jest.fn(),
   create: jest.fn(),
+};
+
+export const mockJwtRedisService = {
+  setRefreshToken: jest.fn(),
 };

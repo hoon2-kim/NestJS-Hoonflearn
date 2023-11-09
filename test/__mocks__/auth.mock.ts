@@ -7,16 +7,21 @@ export const mockLoginUserDto: LoginUserDto = {
 
 export const mockJwtService = {
   sign: jest.fn(),
+  verifyAsync: jest.fn(),
 };
 
 export const mockUserService = {
   findOneByOptions: jest.fn(),
-  updateRefreshToken: jest.fn(),
-  removeRefreshToken: jest.fn(),
 };
 
 export const mockAuthService = {
   login: jest.fn(),
   logout: jest.fn(),
   restore: jest.fn(),
+};
+
+export const mockJwtRedisService = {
+  setRefreshToken: jest.fn(),
+  getRefreshToken: jest.fn(),
+  delRefreshToken: jest.fn(),
 };

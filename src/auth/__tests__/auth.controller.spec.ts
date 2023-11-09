@@ -2,8 +2,9 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { AuthController } from '@src/auth/auth.controller';
 import { AuthService } from '@src/auth/auth.service';
 import { mockAuthService, mockLoginUserDto } from '@test/__mocks__/auth.mock';
-import { IAuthLogin, IAuthRestore } from '@src/auth/interfaces/auth.interface';
 import { Request, Response } from 'express';
+import { mockCreatedUser } from '@test/__mocks__/user.mock';
+import { IAuthToken } from '../interfaces/auth.interface';
 
 describe('AuthController', () => {
   let authController: AuthController;
@@ -14,10 +15,10 @@ describe('AuthController', () => {
   } as unknown as Response;
   const mockRequest = {
     cookies: {
-      refreshToken: '',
+      refreshToken: 'refresh',
     },
   } as unknown as Request;
-  const userId = 'uuid';
+  const user = mockCreatedUser;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -40,7 +41,7 @@ describe('AuthController', () => {
 
   describe('[AuthController.loginUser] - 로그인', () => {
     it('로그인 성공', async () => {
-      const mockLoginResponse: IAuthLogin = {
+      const mockLoginResponse: IAuthToken = {
         access_token: 'access',
         refresh_token: 'refresh',
       };
@@ -61,29 +62,29 @@ describe('AuthController', () => {
     it('로그아웃 성공', async () => {
       jest.spyOn(authService, 'logout').mockResolvedValue('로그아웃 성공');
 
-      const result = await authController.logoutUser(userId, mockResponse);
+      const result = await authController.logoutUser(user, mockResponse);
 
       expect(result).toBe('로그아웃 성공');
       expect(authService.logout).toBeCalled();
-      expect(authService.logout).toBeCalledWith(userId, mockResponse);
+      expect(authService.logout).toBeCalledWith(user, mockResponse);
     });
   });
 
   describe('[AuthController.restoreAccessToken] - access_token 만료시 재발급', () => {
     it('재발급 성공', async () => {
-      const mockRestoreResponse: IAuthRestore = {
+      const mockRestoreResponse: IAuthToken = {
         access_token: 'acess',
+        refresh_token: 'refresh',
       };
       jest.spyOn(authService, 'restore').mockResolvedValue(mockRestoreResponse);
 
-      const result = await authController.restoreAccessToken(
-        userId,
-        mockRequest,
-      );
+      const result = await authController.restoreAccessToken(mockRequest);
 
       expect(result).toEqual(mockRestoreResponse);
       expect(authService.restore).toBeCalled();
-      expect(authService.restore).toBeCalledWith(userId, mockRequest);
+      expect(authService.restore).toBeCalledWith(
+        mockRequest.cookies.refreshToken,
+      );
     });
   });
 });

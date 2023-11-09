@@ -1,32 +1,32 @@
-import {
-  ForbiddenException,
-  HttpException,
-  HttpStatus,
-  UnauthorizedException,
-} from '@nestjs/common';
+import { UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { Test, TestingModule } from '@nestjs/testing';
 import { AuthService } from '@src/auth/auth.service';
 import { UserService } from '@src/user/user.service';
 import {
+  mockJwtRedisService,
   mockJwtService,
   mockLoginUserDto,
   mockUserService,
 } from '@test/__mocks__/auth.mock';
 import { mockCreatedUser } from '@test/__mocks__/user.mock';
 import bcryptjs from 'bcryptjs';
-import { Request, Response } from 'express';
-import { IAuthLogin } from '../interfaces/auth.interface';
+import { Response } from 'express';
+import { JwtRedisService } from '@src/auth/jwt-redis/jwt-redis.service';
+import { IAuthToken } from '@src/auth/interfaces/auth.interface';
+import { ERoleType } from '@src/user/enums/user.enum';
 
 describe('AuthService', () => {
   let authService: AuthService;
   let jwtService: JwtService;
   let userService: UserService;
+  let jwtRedisService: JwtRedisService;
 
   const mockAccessToken = 'access';
   const mockRefreshToken = 'refresh';
-  const mockRtHash = 'hash_refresh';
-  const userId = 'uuid';
+  const mockNewAt = 'new_at';
+  const mockNewRt = 'new_rt';
+  const user = mockCreatedUser;
   const mockResponse = {
     cookie: jest.fn().mockReturnThis(),
   } as unknown as Response;
@@ -37,22 +37,25 @@ describe('AuthService', () => {
         AuthService,
         { provide: JwtService, useValue: mockJwtService },
         { provide: UserService, useValue: mockUserService },
+        { provide: JwtRedisService, useValue: mockJwtRedisService },
       ],
     }).compile();
 
     authService = module.get<AuthService>(AuthService);
     jwtService = module.get<JwtService>(JwtService);
     userService = module.get<UserService>(UserService);
+    jwtRedisService = module.get<JwtRedisService>(JwtRedisService);
   });
 
   it('should be defined', () => {
     expect(authService).toBeDefined();
     expect(jwtService).toBeDefined();
     expect(userService).toBeDefined();
+    expect(jwtRedisService).toBeDefined();
   });
 
   describe('[로그인]', () => {
-    const mockLoginResponse: IAuthLogin = {
+    const mockLoginResponse: IAuthToken = {
       access_token: mockAccessToken,
       refresh_token: mockRefreshToken,
     };
@@ -68,10 +71,7 @@ describe('AuthService', () => {
       jest
         .spyOn(authService, 'getRefreshToken')
         .mockReturnValue(mockRefreshToken);
-      jest.spyOn(authService, 'hashData').mockResolvedValue(mockRtHash);
-      jest
-        .spyOn(userService, 'updateRefreshToken')
-        .mockResolvedValue(undefined);
+      jest.spyOn(jwtRedisService, 'setRefreshToken').mockResolvedValue('OK');
 
       const result = await authService.login(mockLoginUserDto, mockResponse);
 
@@ -86,9 +86,9 @@ describe('AuthService', () => {
         mockCreatedUser.email,
         mockCreatedUser.role,
       );
-      expect(userService.updateRefreshToken).toBeCalledWith(
-        mockCreatedUser.id,
-        mockRtHash,
+      expect(jwtRedisService.setRefreshToken).toBeCalledWith(
+        mockLoginUserDto.email,
+        mockRefreshToken,
       );
       expect(mockResponse.cookie).toBeCalledWith(
         'refreshToken',
@@ -131,10 +131,13 @@ describe('AuthService', () => {
   describe('[로그아웃]', () => {
     it('로그아웃 성공', async () => {
       jest
-        .spyOn(userService, 'removeRefreshToken')
+        .spyOn(jwtRedisService, 'getRefreshToken')
+        .mockResolvedValue(mockRefreshToken);
+      jest
+        .spyOn(jwtRedisService, 'delRefreshToken')
         .mockResolvedValue(undefined);
 
-      const result = await authService.logout(userId, mockResponse);
+      const result = await authService.logout(user, mockResponse);
 
       expect(result).toBe('로그아웃 성공');
       expect(mockResponse.cookie).toBeCalledWith('refreshToken', '', {
@@ -144,58 +147,60 @@ describe('AuthService', () => {
         path: '/',
         expires: new Date(0),
       });
-      expect(userService.removeRefreshToken).toBeCalled();
-      expect(userService.removeRefreshToken).toBeCalledWith(userId);
+      expect(jwtRedisService.getRefreshToken).toBeCalled();
+      expect(jwtRedisService.getRefreshToken).toBeCalledWith(user.email);
+      expect(jwtRedisService.delRefreshToken).toBeCalled();
+      expect(jwtRedisService.getRefreshToken).toBeCalledWith(user.email);
     });
 
-    it('로그아웃 실패 - 모종의 이유로 실패(500에러)', async () => {
-      jest
-        .spyOn(userService, 'removeRefreshToken')
-        .mockResolvedValue(undefined);
+    it('로그아웃 실패 - 이미 로그아웃한 경우(401에러)', async () => {
+      jest.spyOn(jwtRedisService, 'getRefreshToken').mockResolvedValue(null);
 
       try {
-        await authService.logout(userId, mockResponse);
+        await authService.logout(user, mockResponse);
       } catch (error) {
-        expect(error).toBeInstanceOf(HttpException);
-        expect(error.getStatus()).toBe(HttpStatus.INTERNAL_SERVER_ERROR);
-        expect(error.message).toBe('로그아웃 실패');
+        expect(error).toBeInstanceOf(UnauthorizedException);
+        expect(error.message).toBe('이미 로그아웃 하셨습니다.');
       }
     });
   });
 
   describe('[AccessToken 복구]', () => {
-    const mockNewAt = 'new_at';
-    const mockRequest = {
-      cookies: {
-        refreshToken: '',
-      },
-    } as unknown as Request;
+    const mockDecoded = {
+      id: 'uuid',
+      email: 'a@a.com',
+      role: ERoleType.User,
+      iat: 1699515836,
+      exp: 1700725436,
+    };
 
-    it('새로운 access_token 발급 성공', async () => {
+    it('새로운 access_token 발급 및 refresh_token 성공', async () => {
+      jest.spyOn(jwtService, 'verifyAsync').mockResolvedValue(mockDecoded);
       jest
-        .spyOn(userService, 'findOneByOptions')
-        .mockResolvedValue(mockCreatedUser);
-      jest.spyOn(bcryptjs, 'compare').mockImplementation(() => true);
+        .spyOn(jwtRedisService, 'getRefreshToken')
+        .mockResolvedValue(mockRefreshToken);
       jest.spyOn(authService, 'getAccessToken').mockReturnValue(mockNewAt);
+      jest.spyOn(authService, 'getRefreshToken').mockReturnValue(mockNewRt);
+      jest.spyOn(jwtRedisService, 'setRefreshToken').mockResolvedValue('OK');
 
-      const result = await authService.restore(userId, mockRequest);
+      const result = await authService.restore(mockRefreshToken);
 
-      expect(result).toEqual({ access_token: mockNewAt });
+      expect(result).toEqual({
+        access_token: mockNewAt,
+        refresh_token: mockNewRt,
+      });
     });
 
-    it('발급 실패 - DB와 쿠키의 토큰이 다른 경우(403에러)', async () => {
+    it('발급 실패 - invalid한 refresh_token인 경우(401에러)', async () => {
+      jest.spyOn(jwtService, 'verifyAsync').mockResolvedValue(mockDecoded);
       jest
-        .spyOn(userService, 'findOneByOptions')
-        .mockResolvedValue(mockCreatedUser);
-      jest.spyOn(bcryptjs, 'compare').mockImplementation(() => false);
+        .spyOn(jwtRedisService, 'getRefreshToken')
+        .mockRejectedValue(new UnauthorizedException());
 
       try {
-        await authService.restore(userId, mockRequest);
+        await authService.restore(mockRefreshToken);
       } catch (error) {
-        expect(error).toBeInstanceOf(ForbiddenException);
-        expect(error.message).toBe(
-          'DB의 refreshToken과 쿠키의 refreshToken이 다릅니다.',
-        );
+        expect(error).toBeInstanceOf(UnauthorizedException);
       }
     });
   });

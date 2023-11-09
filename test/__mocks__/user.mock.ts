@@ -30,7 +30,6 @@ export const mockCreatedUser: UserEntity = {
   password: '$2a$10$1xClQe8THgUp7uUqkNibluDgzDYwBTSvEBIDdkHh0V3Fnx0F8SOzW',
   description: null,
   profileAvatar: null,
-  hashedRt: null,
   deleted_at: null,
   role: ERoleType.User,
   created_at: new Date('2023-10'),
@@ -60,7 +59,6 @@ export const mockCreatedInstructor: UserEntity = {
   created_at: new Date('2023-10'),
   updated_at: new Date('2023-10'),
   password: '$2a$10$byo7Q5qA4f/d5kRe30FbX.wSs12O6hvJuREknY0JLj0sDeCBQqaWW',
-  hashedRt: null,
   deleted_at: null,
 };
 

@@ -17,6 +17,7 @@ import {
   mockInstructor,
   mockInstructorProfile,
   mockInstructorRepository,
+  mockJwtRedisService,
   mockMadeMyCourse,
   mockQuestionService,
   mockReviewService,
@@ -40,6 +41,7 @@ import {
 import { mockCreatedCourse } from '@test/__mocks__/course.mock';
 import { expectedQuestionWithoutComment } from '@test/__mocks__/question.mock';
 import { expectedReviewByInstructor } from '@test/__mocks__/review.mock';
+import { JwtRedisService } from '@src/auth/jwt-redis/jwt-redis.service';
 
 describe('InstructorService', () => {
   let instructorService: InstructorService;
@@ -50,6 +52,7 @@ describe('InstructorService', () => {
   let courseService: CourseService;
   let questionService: QuestionService;
   let reviewService: ReviewService;
+  let jwtRedisService: JwtRedisService;
 
   const user = mockCreatedInstructor;
 
@@ -70,6 +73,7 @@ describe('InstructorService', () => {
         { provide: CourseService, useValue: mockCourseService },
         { provide: QuestionService, useValue: mockQuestionService },
         { provide: ReviewService, useValue: mockReviewService },
+        { provide: JwtRedisService, useValue: mockJwtRedisService },
       ],
     }).compile();
 
@@ -85,6 +89,7 @@ describe('InstructorService', () => {
     courseService = module.get<CourseService>(CourseService);
     questionService = module.get<QuestionService>(QuestionService);
     reviewService = module.get<ReviewService>(ReviewService);
+    jwtRedisService = module.get<JwtRedisService>(JwtRedisService);
   });
 
   afterEach(() => {
@@ -100,6 +105,7 @@ describe('InstructorService', () => {
     expect(courseService).toBeDefined();
     expect(questionService).toBeDefined();
     expect(reviewService).toBeDefined();
+    expect(jwtRedisService).toBeDefined();
   });
 
   describe('[지식공유자 등록]', () => {
@@ -119,9 +125,7 @@ describe('InstructorService', () => {
       jest
         .spyOn(instructorRepository, 'save')
         .mockResolvedValue(mockInstructor);
-      jest
-        .spyOn(userService, 'updateRefreshToken')
-        .mockResolvedValue(undefined);
+      jest.spyOn(jwtRedisService, 'setRefreshToken').mockResolvedValue('OK');
 
       const result = await instructorService.create(
         mockCreateInstructorDto,
