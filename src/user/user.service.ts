@@ -14,7 +14,6 @@ import { UpdateUserDto } from '@src/user/dtos/request/update-user.dto';
 import { UserEntity } from '@src/user/entities/user.entity';
 import * as bcryptjs from 'bcryptjs';
 import { AwsS3Service } from '@src/aws-s3/aws-s3.service';
-import { ERoleType } from '@src/user/enums/user.enum';
 import { InstructorProfileEntity } from '@src/instructor/entities/instructor-profile.entity';
 import { CartService } from '@src/cart/cart.service';
 
@@ -184,20 +183,5 @@ export class UserService {
     await this.cartService.removeCart(userId);
 
     return result.affected ? true : false;
-  }
-
-  async updateRefreshToken(
-    userId: string,
-    rt: string,
-    roleType?: ERoleType.Instructor,
-  ): Promise<void> {
-    await this.userRepository.update(
-      { id: userId },
-      { hashedRt: rt, role: roleType },
-    );
-  }
-
-  async removeRefreshToken(userId: string): Promise<void> {
-    await this.userRepository.update({ id: userId }, { hashedRt: null });
   }
 }

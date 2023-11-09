@@ -15,10 +15,9 @@ export const testTypeOrmModuleConfig = {
     password: configService.get('DB_PASSWORD'),
     database: configService.get('DB_DATABASE'),
     entities: [__dirname + './../**/**.entity{.ts,.js}'],
-    synchronize: true,
     autoLoadEntities: true,
+    synchronize: true,
     logging: false,
-    dropSchema: true,
   }),
   inject: [ConfigService],
 };

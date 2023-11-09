@@ -1,4 +1,4 @@
-import { ForbiddenException, Injectable } from '@nestjs/common';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { Request } from 'express';
 import { ExtractJwt, Strategy } from 'passport-jwt';
@@ -29,7 +29,7 @@ export class JwtRtStrategy extends PassportStrategy(Strategy, 'refresh') {
     const refreshToken = req?.cookies['refreshToken'];
 
     if (!refreshToken) {
-      throw new ForbiddenException('Refresh token is missing');
+      throw new UnauthorizedException('Refresh token is missing');
     }
 
     return {

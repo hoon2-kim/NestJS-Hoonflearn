@@ -26,6 +26,7 @@ import { ERoleType } from '@src/user/enums/user.enum';
 import { CourseListByInstructorResponseDto } from '@src/course/dtos/response/course.response';
 import { QuestionListResponseDto } from '@src/question/dtos/response/question.response.dto';
 import { ReviewResponseWithoutCommentDto } from '@src/review/dtos/response/review.response.dto';
+import { JwtRedisService } from '@src/auth/jwt-redis/jwt-redis.service';
 
 @Injectable()
 export class InstructorService {
@@ -40,6 +41,7 @@ export class InstructorService {
     private readonly courseService: CourseService,
     private readonly questionService: QuestionService,
     private readonly reviewService: ReviewService,
+    private readonly jwtRedisService: JwtRedisService,
   ) {}
 
   async findOneById(instructorId: string): Promise<InstructorProfileEntity> {
@@ -177,20 +179,14 @@ export class InstructorService {
       user.role,
     );
 
-    const rtHash = await this.authService.hashData(newRt);
-
-    await this.userService.updateRefreshToken(
-      user.id,
-      rtHash,
-      ERoleType.Instructor,
-    );
-
     res.cookie('refreshToken', newRt, {
       httpOnly: true,
       secure: false, // https 환경에서는 true
       sameSite: 'none',
       path: '/',
     });
+
+    await this.jwtRedisService.setRefreshToken(user.email, newRt);
 
     return {
       access_token: newAt,

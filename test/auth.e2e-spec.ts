@@ -15,11 +15,18 @@ import { DataSource } from 'typeorm';
 import { UserEntity } from '@src/user/entities/user.entity';
 import { login, signUp } from './e2e.util';
 
+const userDto: CreateUserDto = {
+  email: 'test@test.com',
+  password: '1234',
+  nickname: '테스트1',
+  phone: '00000000000',
+};
+
 describe('AUTH (e2e)', () => {
   let app: INestApplication;
   let access_token: string;
   let refresh_token: string;
-  let dataSourse: DataSource;
+  let dataSource: DataSource;
 
   beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -33,28 +40,19 @@ describe('AUTH (e2e)', () => {
       new ClassSerializerInterceptor(app.get(Reflector)),
     );
     app.useGlobalFilters(new HttpExceptionFilter());
+
     await app.init();
 
-    dataSourse = moduleFixture.get<DataSource>(DataSource);
+    dataSource = moduleFixture.get<DataSource>(DataSource);
+
+    await signUp(app, userDto);
   });
 
   afterAll(async () => {
     await app.close();
   });
 
-  const userDto: CreateUserDto = {
-    email: 'e2e@e2e.com',
-    password: '1234',
-    nickname: '테스트',
-    phone: '00000000000',
-  };
-
   describe('/auth/login [POST]', () => {
-    beforeAll(async () => {
-      // 회원가입 먼저
-      await signUp(app, userDto);
-    });
-
     it('로그인 성공 - access_token, refresh_token 반환', async () => {
       await request(app.getHttpServer())
         .post('/auth/login')
@@ -79,7 +77,7 @@ describe('AUTH (e2e)', () => {
       await request(app.getHttpServer())
         .post('/auth/login')
         .send({
-          email: 'test@test.com',
+          email: 'test1@test.com',
           password: userDto.password,
         })
         .expect(HttpStatus.UNAUTHORIZED)
@@ -111,7 +109,7 @@ describe('AUTH (e2e)', () => {
   });
 
   describe('/auth/logout [POST]', () => {
-    beforeAll(async () => {
+    beforeEach(async () => {
       const loginResponse = await login(app, {
         email: userDto.email,
         password: userDto.password,
@@ -134,7 +132,7 @@ describe('AUTH (e2e)', () => {
           ).toBeLessThanOrEqual(new Date().getTime());
         });
 
-      const user = await dataSourse.manager.findOne(UserEntity, {
+      const user = await dataSource.manager.findOne(UserEntity, {
         where: { email: userDto.email },
       });
       expect(user.hashedRt).toBeNull();

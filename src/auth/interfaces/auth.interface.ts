@@ -1,8 +1,4 @@
-export interface IAuthLogin {
+export interface IAuthToken {
   access_token: string;
   refresh_token: string;
-}
-
-export interface IAuthRestore {
-  access_token: string;
 }

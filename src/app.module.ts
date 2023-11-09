@@ -29,6 +29,7 @@ import { testTypeOrmModuleConfig } from '@src/config/database-test';
 import { AppController } from '@src/app.controller';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { APP_GUARD } from '@nestjs/core';
+import { JwtRedisModule } from '@src/auth/jwt-redis/jwt-redis.module';
 
 @Module({
   imports: [
@@ -39,13 +40,14 @@ import { APP_GUARD } from '@nestjs/core';
     ThrottlerModule.forRoot([
       {
         ttl: 60000,
-        limit: 10,
+        limit: 30,
       },
     ]),
     process.env.NODE_ENV === 'test'
       ? TypeOrmModule.forRootAsync(testTypeOrmModuleConfig)
       : TypeOrmModule.forRootAsync(typeOrmModuleConfig),
     EventEmitterModule.forRoot(),
+    JwtRedisModule,
     UserModule,
     AuthModule,
     CategoryModule,

@@ -43,10 +43,6 @@ export class UserEntity {
   @Column({ type: 'enum', enum: ERoleType, default: ERoleType.User })
   role: ERoleType;
 
-  @Exclude()
-  @Column({ type: 'varchar', default: null })
-  hashedRt: string;
-
   @CreateDateColumn({ type: 'timestamptz' })
   created_at: Date;
 
