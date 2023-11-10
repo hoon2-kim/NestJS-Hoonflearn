@@ -82,7 +82,13 @@ export class AuthService {
 
     const redisRt = await this.jwtRedisService.getRefreshToken(decoded.email);
 
-    if (cookieRt !== redisRt || !redisRt) {
+    if (!redisRt) {
+      throw new UnauthorizedException('이미 로그아웃 하셨습니다.');
+    }
+
+    if (cookieRt !== redisRt) {
+      /** 로그아웃 처리 */
+      await this.jwtRedisService.delRefreshToken(decoded.email);
       throw new UnauthorizedException('invalid refresh_token');
     }
 
