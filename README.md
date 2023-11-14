@@ -21,9 +21,11 @@
 - NestJS
 - TypeScript
 - PostgreSQL
+- Redis
 - TypeORM
 - Docker
-- AWS EC2, RDS, S3, Route 53, ECR
+- Jest
+- AWS EC2, RDS, S3, Route 53, ECR, Elasticache
 - Github Actions
 
 ---
@@ -72,11 +74,33 @@ $ yarn start:dev / npm run start:dev
 
 ---
 
-### ERD
+## ERD
 
 ![erd](https://github.com/hoon2-kim/nestjs-postgresql-graphql-survey/assets/107983013/d574ebde-dda7-4f0f-95f0-5882be723958)
 
 ---
+
+## 시퀀스 다이어그램(JWT)
+
+![시퀀스다이어그램](https://github.com/hoon2-kim/NestJS-Hoonflearn/assets/107983013/dc5092df-b142-40df-8988-cda25cf4f374)
+
+## 프로젝트 고찰 및 문제점 해결방안
+
+- 확장성, 느슨한 결합, 쉬운 유지관리를 위한 아키텍처를 제공해주는 NestJS 선택
+  - @nestjs/swagger 를 이용하여 편하게 Swagger 작성
+  - TypeORM을 이용하여 DB와 연결
+- 부트캠프에서 GCP Bucket경험이 있어 이미지 및 영상 클라우드 저장소로 AWS S3을 채택
+- JWT를 사용하여 로그인 프로세스를 구현하고, 이를 통해 일반 사용자 및 지식공유자의 권한(Authorization)을 처리하며, 동시에 RoleGuard를 활용하여 지식공유자의 권한을 확인
+- 강의의 영상 길이를 추출하기 위해 fluent-ffmpeg 라이브러리 활용
+- 에러 수집을 및 분석을 위한 Sentry 설정 및 Slack으로 알림기능 구현
+- Jest를 이용하여 각 API의 Controller와 Service 레이어에 대한 유닛테스트 케이스를 작성
+
+- AWS EC2 프리티어 사용으로 인한 배포시 메모리 부족문제
+
+  - 해결방안 : Docker를 통해 이미지 빌드 후 ECR에 push 한 뒤 EC2에서 pull -> run
+
+- CI/CD
+  - github action을 통해 배포 자동화 구축
 
 ### 폴더 구조
 
