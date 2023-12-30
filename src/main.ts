@@ -16,7 +16,6 @@ async function bootstrap() {
     enabled: process.env.NODE_ENV === 'production',
   });
 
-  // app.setGlobalPrefix('api');
   app.enableCors({
     origin: true,
     credentials: true,
