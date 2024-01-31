@@ -41,9 +41,12 @@ export class AuthController {
   @ApiRestoreAccessTokenSwagger('access_token 만료시 재발급')
   @Post('/refresh')
   @UseGuards(RtGuard)
-  restoreAccessToken(@Req() req: Request): Promise<IAuthToken> {
+  restoreAccessToken(
+    @Req() req: Request,
+    @Res({ passthrough: true }) res: Response,
+  ): Promise<IAuthToken> {
     const cookieRt = req.cookies?.refreshToken;
 
-    return this.authService.restore(cookieRt);
+    return this.authService.restore(cookieRt, res);
   }
 }

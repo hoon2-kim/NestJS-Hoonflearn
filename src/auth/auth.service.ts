@@ -75,7 +75,7 @@ export class AuthService {
     return '로그아웃 성공';
   }
 
-  async restore(cookieRt: string): Promise<IAuthToken> {
+  async restore(cookieRt: string, res: Response): Promise<IAuthToken> {
     const decoded = await this.jwtService.verifyAsync(cookieRt, {
       secret: process.env.JWT_RT_SECRET,
     });
@@ -89,7 +89,15 @@ export class AuthService {
     if (cookieRt !== redisRt) {
       /** 로그아웃 처리 */
       await this.jwtRedisService.delRefreshToken(decoded.email);
-      throw new UnauthorizedException('invalid refresh_token');
+      res.cookie('refreshToken', '', {
+        httpOnly: true,
+        secure: false,
+        sameSite: 'none',
+        path: '/',
+        expires: new Date(0),
+      });
+
+      throw new UnauthorizedException('invalid refresh_token - 로그아웃 처리');
     }
 
     const newAt = this.getAccessToken(decoded.id, decoded.email, decoded.role);

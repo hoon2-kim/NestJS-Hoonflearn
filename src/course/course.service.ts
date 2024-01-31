@@ -20,6 +20,7 @@ import { PageMetaDto } from '@src/common/dtos/page-meta.dto';
 import { PageDto } from '@src/common/dtos/page.dto';
 import {
   ECourseChargeType,
+  ECourseLevelType,
   ECourseSortBy,
 } from '@src/course/enums/course.enum';
 import {
