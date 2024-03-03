@@ -108,7 +108,7 @@ export class QuestionDetailResponseDto implements IQuestionDetailResponse {
   views: number;
 
   @ApiProperty({
-    description: '질문근 생성일',
+    description: '질문글 생성일',
     type: 'string',
     format: 'date-time',
   })

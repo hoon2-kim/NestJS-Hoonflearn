@@ -123,6 +123,10 @@ export class UserController {
     return this.userService.checkNick(nickNameDto);
   }
 
+  // POST - 핸드폰 인증번호
+
+  // POST - 인증번호 체크 및 저장
+
   @ApiUpdateUserSwagger('유저 회원정보 수정')
   @Patch('/profile')
   @UseGuards(AtGuard)

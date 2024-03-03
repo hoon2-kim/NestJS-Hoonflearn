@@ -202,7 +202,6 @@ export class CourseService {
     const isPurchased = userId
       ? await this.courseUserService.checkBoughtCourseByUser(userId, courseId)
       : false;
-
     return { isPurchased };
   }
 
