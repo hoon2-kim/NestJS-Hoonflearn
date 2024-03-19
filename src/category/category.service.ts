@@ -4,13 +4,11 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { CategoryIdsDto } from '@src/course/dtos/request/create-course.dto';
-import { EntityManager, FindOneOptions, IsNull, Repository } from 'typeorm';
-import { CreateCategoryDto } from '@src/category/dtos/request/create-category.dto';
-import { UpdateCategoryDto } from '@src/category/dtos/request/update-category.dto';
-import { CategoryResponseDto } from '@src/category/dtos/response/category.response.dto';
+import { CategoryIdsDto } from '@src/course/dtos/create-course.dto';
+import { EntityManager, FindOneOptions, In, IsNull, Repository } from 'typeorm';
+import { CreateCategoryDto } from '@src/category/dtos/create-category.dto';
+import { UpdateCategoryDto } from '@src/category/dtos/update-category.dto';
 import { CategoryEntity } from '@src/category/entities/category.entity';
-import { ICategoryResponse } from './interfaces/category.interface';
 
 @Injectable()
 export class CategoryService {
@@ -19,7 +17,7 @@ export class CategoryService {
     private readonly categoryRepository: Repository<CategoryEntity>,
   ) {}
 
-  async findAll(): Promise<CategoryResponseDto[]> {
+  async findAll(): Promise<CategoryEntity[]> {
     const categories = await this.categoryRepository.find({
       where: {
         parent: IsNull(),
@@ -33,28 +31,9 @@ export class CategoryService {
           name: 'asc',
         },
       },
-      // select: {
-      //   id: true,
-      //   name: true,
-      //   children: {
-      //     id: true,
-      //     name: true,
-      //     fk_parent_category_id: true,
-      //   },
-      // },
     });
 
-    // return categories.map((category) => ({
-    //   id: category.id,
-    //   name: category.name,
-    //   sub_category: category.children?.map((child) => ({
-    //     id: child.id,
-    //     fk_parent_category_id: child.fk_parent_category_id,
-    //     name: child.name,
-    //   })),
-    // }));
-
-    return categories.map((category) => CategoryResponseDto.from(category));
+    return categories;
   }
 
   async findOneByOptions(
@@ -70,7 +49,7 @@ export class CategoryService {
     return category;
   }
 
-  async findOneWithSub(categoryId: string): Promise<CategoryResponseDto> {
+  async findOneWithSub(categoryId: string): Promise<CategoryEntity> {
     const category = await this.findOneByOptions({
       where: {
         id: categoryId,
@@ -97,7 +76,7 @@ export class CategoryService {
       );
     }
 
-    return CategoryResponseDto.from(category);
+    return category;
   }
 
   async createParent(
@@ -155,7 +134,7 @@ export class CategoryService {
   async update(
     categoryId: string,
     updateCategoryDto: UpdateCategoryDto,
-  ): Promise<{ message: string }> {
+  ): Promise<void> {
     const { name } = updateCategoryDto;
 
     const category = await this.findOneByOptions({
@@ -183,11 +162,9 @@ export class CategoryService {
     Object.assign(category, updateCategoryDto);
 
     await this.categoryRepository.save(category);
-
-    return { message: '수정 성공' };
   }
 
-  async delete(categoryId: string): Promise<boolean> {
+  async delete(categoryId: string): Promise<void> {
     const category = await this.findOneByOptions({
       where: { id: categoryId },
     });
@@ -198,50 +175,53 @@ export class CategoryService {
       );
     }
 
-    const result = await this.categoryRepository.delete({ id: categoryId });
-
-    return result.affected ? true : false;
-  }
-
-  async validateCategoryOptionalTransaction(
-    selectedCategoryIds: CategoryIdsDto[],
-    manager?: EntityManager,
-  ) {
-    return Promise.all(
-      selectedCategoryIds.map(async (category) => {
-        await this.validateCategory(category.parentCategoryId, true, manager);
-        await this.validateCategory(category.subCategoryId, false, manager);
-      }),
-    );
+    await this.categoryRepository.delete({ id: categoryId });
   }
 
   async validateCategory(
-    categoryId: string,
-    isMainCategory: boolean,
+    selectedCategoryIds: CategoryIdsDto[],
     manager?: EntityManager,
   ): Promise<void> {
-    const category = await this.findOneByOptions(
+    const parentCategoryIds = selectedCategoryIds.map(
+      (c) => c.parentCategoryId,
+    );
+    const subCategoryIds = selectedCategoryIds.map((c) => c.subCategoryId);
+
+    const parentCategory = await this.findOneByOptions(
       {
-        where: { id: categoryId },
+        where: { id: In(parentCategoryIds) },
       },
       manager,
     );
 
-    if (!category) {
-      throw new NotFoundException(
-        `해당 카테고리ID:${categoryId} 는 존재하지 않습니다.`,
+    if (!parentCategory) {
+      throw new BadRequestException('해당 메인 카테고리가 존재하지 않습니다.');
+    }
+
+    if (parentCategory.fk_parent_category_id !== null) {
+      throw new BadRequestException(
+        '해당 카테고리는 메인 카테고리가 아닙니다.',
       );
     }
 
-    if (isMainCategory && category.fk_parent_category_id !== null) {
+    const subCategory = await this.findOneByOptions(
+      {
+        where: {
+          id: In(subCategoryIds),
+        },
+      },
+      manager,
+    );
+
+    if (!subCategory) {
       throw new BadRequestException(
-        `해당 메인 카테고리ID:${categoryId} 는 메인 카테고리가 아닙니다.`,
+        '해당 서브 카테고리가 존재하지 않거나 메인 카테고리와 서브 카테고리가 불일치 합니다.',
       );
     }
 
-    if (!isMainCategory && category.fk_parent_category_id === null) {
+    if (subCategory.fk_parent_category_id !== parentCategory.id) {
       throw new BadRequestException(
-        `해당 카테고리ID:${categoryId} 는 메인 카테고리 입니다.`,
+        '서브 카테고리와 메인 카테고리가 일치하지 않습니다.',
       );
     }
   }
