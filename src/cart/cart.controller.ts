@@ -9,8 +9,7 @@ import {
   ApiGetMyCartSwagger,
   ApiInsertCourseInCartSwagger,
 } from '@src/cart/cart.swagger';
-import { CreateCartDto } from '@src/cart/dtos/request/create-cart.dto';
-import { CartResponseDto } from '@src/cart/dtos/response/cart.response.dto';
+import { CreateCartDto } from '@src/cart/dtos/create-cart.dto';
 import { CartEntity } from '@src/cart/entities/cart.entity';
 
 @ApiTags('CART')
@@ -21,28 +20,28 @@ export class CartController {
 
   @ApiGetMyCartSwagger('내 장바구니 조회')
   @Get()
-  findCartByUser(
+  async findCartByUser(
     @CurrentUser('id') userId: string, //
-  ): Promise<CartResponseDto> {
-    return this.cartService.findMyCart(userId);
+  ): Promise<CartEntity> {
+    return await this.cartService.findMyCart(userId);
   }
 
   @ApiInsertCourseInCartSwagger('장바구니에 강의 담기')
   @Post()
-  insertCourseInCart(
+  async insertCourseInCart(
     @Body() createCartDto: CreateCartDto,
     @CurrentUser('id') userId: string,
   ): Promise<CartEntity> {
-    return this.cartService.create(createCartDto, userId);
+    return await this.cartService.create(createCartDto, userId);
   }
 
-  /** 선택삭제를 위한 DELETE 대신 POST 고려 */
+  /** 고민 : 선택삭제를 위한 DELETE 대신 POST 고려 */
   @ApiDeleteCourseInCartSwagger('장바구니의 강의 삭제')
   @Delete('courses/:courseId')
-  deleteCourseInCart(
+  async deleteCourseInCart(
     @Param('courseId') courseId: string,
     @CurrentUser('id') userId: string,
-  ): Promise<boolean> {
-    return this.cartService.delete(courseId, userId);
+  ): Promise<void> {
+    return await this.cartService.delete(courseId, userId);
   }
 }

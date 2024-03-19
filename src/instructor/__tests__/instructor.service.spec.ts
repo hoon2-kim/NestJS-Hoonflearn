@@ -36,12 +36,12 @@ import {
   InstructorCourseQueryDto,
   InstructorQuestionQueryDto,
   InstructorReviewQueryDto,
-} from '@src/instructor/dtos/query/instructor.query.dto';
+} from '@src/instructor/dtos/instructor.query.dto';
 
 import { mockCreatedCourse } from '@test/__mocks__/course.mock';
 import { expectedQuestionWithoutComment } from '@test/__mocks__/question.mock';
 import { expectedReviewByInstructor } from '@test/__mocks__/review.mock';
-import { JwtRedisService } from '@src/auth/jwt-redis/jwt-redis.service';
+import { JwtRedisService } from '@src/redis/redis.service';
 
 describe('InstructorService', () => {
   let instructorService: InstructorService;

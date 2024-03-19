@@ -1,6 +1,6 @@
 import { Exclude } from 'class-transformer';
 import { CourseEntity } from '@src/course/entities/course.entity';
-import { QuestionCommentEntity } from '@src/question-comment/entities/question-comment.entity';
+import { QuestionCommentEntity } from '@src/question/question-comment/entities/question-comment.entity';
 import { UserEntity } from '@src/user/entities/user.entity';
 import {
   Column,

@@ -25,19 +25,19 @@ export class VoucherController {
 
   @ApiRegisterFreeCourseSwagger('무료강의 수강 신청')
   @Post()
-  registerFreeCourse(
+  async registerFreeCourse(
     @Body() createVoucherDto: CreateVoucherDto,
     @CurrentUser('id') userId: string,
   ): Promise<CourseUserEntity> {
-    return this.voucherService.create(createVoucherDto, userId);
+    return await this.voucherService.create(createVoucherDto, userId);
   }
 
   @ApiCancelFreeCourseSwagger('수강 신청한 무료강의 취소')
   @Delete('/:courseId')
-  cancelFreeCourse(
+  async cancelFreeCourse(
     @Param('courseId') courseId: string,
     @CurrentUser('id') userId: string,
-  ): Promise<boolean> {
-    return this.voucherService.delete(courseId, userId);
+  ): Promise<void> {
+    return await this.voucherService.delete(courseId, userId);
   }
 }

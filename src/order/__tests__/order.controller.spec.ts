@@ -7,8 +7,8 @@ import {
   mockCreatedOrder,
   mockCreateOrderDto,
   mockOrderService,
-} from '@test/__mocks__/order.mock';
-import { OrderListQueryDto } from '@src/order/dtos/query/order-list.query.dto';
+} from '@test/__mocks__/asd/order.mock';
+import { OrderListQueryDto } from '@src/order/dtos/order-list.query.dto';
 
 describe('OrderController', () => {
   let orderController: OrderController;

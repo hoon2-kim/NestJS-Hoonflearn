@@ -13,7 +13,7 @@ import { URL } from 'url';
 import { SectionEntity } from '@src/section/entities/section.entity';
 import { CourseEntity } from '@src/course/entities/course.entity';
 import { AwsS3Service } from '@src/aws-s3/aws-s3.service';
-import { getVideoDuration } from '@src/common/helpers/getVideoDuration.helper';
+import { getVideoDuration } from '@src/common/utils/getVideoDuration';
 
 @Injectable()
 export class VideoService {
@@ -106,7 +106,7 @@ export class VideoService {
     }
   }
 
-  async delete(videoId: string, user: UserEntity): Promise<boolean> {
+  async delete(videoId: string, user: UserEntity): Promise<void> {
     const queryRunner = this.dataSource.createQueryRunner();
     await queryRunner.connect();
     await queryRunner.startTransaction();
@@ -141,10 +141,6 @@ export class VideoService {
 
       await this.awsS3Service.deleteS3Object(fileKey);
 
-      const result = await queryRunner.manager.delete(VideoEntity, {
-        id: videoId,
-      });
-
       const section = await queryRunner.manager.findOne(SectionEntity, {
         where: { id: existVideo.lesson.fk_section_id },
       });
@@ -168,9 +164,11 @@ export class VideoService {
         existVideo.videoTime,
       );
 
-      await queryRunner.commitTransaction();
+      await queryRunner.manager.delete(VideoEntity, {
+        id: videoId,
+      });
 
-      return result.affected ? true : false;
+      await queryRunner.commitTransaction();
     } catch (error) {
       await queryRunner.rollbackTransaction();
       throw error;

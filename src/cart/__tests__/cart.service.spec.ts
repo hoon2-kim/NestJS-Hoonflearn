@@ -6,19 +6,24 @@ import { CourseService } from '@src/course/course.service';
 import { CourseUserService } from '@src/course_user/course-user.service';
 import { EntityManager, Repository } from 'typeorm';
 import { CartEntity } from '@src/cart/entities/cart.entity';
+import { BadRequestException, NotFoundException } from '@nestjs/common';
+import { mockCartRepository } from '@test/__mocks__/mock-repository';
 import {
-  mockCart,
-  expectedMyCart,
   mockCartCourseService,
-  mockCartRepository,
   mockCourseService,
   mockCourseUserService,
-  mockCreatedCart,
+} from '@test/__mocks__/mock-service';
+import {
+  mockCart,
+  mockCartCourse,
   mockCreateCartDto,
-} from '@test/__mocks__/cart.mock';
-import { mockCourse } from '@test/__mocks__/course.mock';
-import { mockCartCourse } from '@test/__mocks__/cartCourse.mock';
-import { BadRequestException, NotFoundException } from '@nestjs/common';
+  mockFreeCourse,
+  mockPaidCourse,
+} from '@test/__mocks__/mock-data';
+
+const mockEntityManager = {
+  findOne: jest.fn(),
+} as unknown as EntityManager;
 
 describe('CartService', () => {
   let cartService: CartService;
@@ -26,12 +31,6 @@ describe('CartService', () => {
   let cartCourseService: CartCourseService;
   let courseService: CourseService;
   let courseUserService: CourseUserService;
-
-  const userId = 'uuid';
-  const courseId = 'uuid';
-  const mockEntityManager = {
-    findOne: jest.fn(),
-  } as unknown as EntityManager;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -70,16 +69,15 @@ describe('CartService', () => {
 
   describe('[내 장바구니 조회]', () => {
     it('조회 성공', async () => {
+      const userId = 'uuid';
+
       jest
         .spyOn(cartRepository.createQueryBuilder(), 'getOne')
         .mockResolvedValue(mockCart);
-      jest
-        .spyOn(courseService, 'calculateCoursePriceInCart')
-        .mockResolvedValue(10000);
 
       const result = await cartService.findMyCart(userId);
 
-      expect(result).toEqual(expectedMyCart);
+      expect(result).toEqual(mockCart);
       expect(
         cartRepository.createQueryBuilder().leftJoinAndSelect,
       ).toBeCalledTimes(3);
@@ -88,11 +86,13 @@ describe('CartService', () => {
     });
 
     it('장바구니가 없다면 생성해주는지 호출 확인', async () => {
+      const userId = 'uuid';
+
       jest
         .spyOn(cartRepository.createQueryBuilder(), 'getOne')
         .mockResolvedValue(null);
 
-      jest.spyOn(cartService, 'createCart').mockResolvedValue(mockCreatedCart);
+      jest.spyOn(cartService, 'createCart').mockResolvedValue(mockCart);
 
       await cartService.findMyCart(userId);
 
@@ -100,24 +100,14 @@ describe('CartService', () => {
     });
   });
 
-  describe('createCart 테스트 - 장바구니 초기 생성', () => {
-    it('생성 성공', async () => {
-      jest.spyOn(cartRepository, 'save').mockResolvedValue(mockCreatedCart);
-
-      const result = await cartService.createCart(userId);
-
-      expect(result).toEqual(mockCreatedCart);
-    });
-  });
-
   describe('[장바구니에 강의 담기]', () => {
     it('강의 담기 성공', async () => {
-      jest
-        .spyOn(cartService, 'findOneByOptions')
-        .mockResolvedValue(mockCreatedCart);
+      const userId = 'uuid';
+
+      jest.spyOn(cartService, 'findOneByOptions').mockResolvedValue(mockCart);
       jest
         .spyOn(courseService, 'findOneByOptions')
-        .mockResolvedValue(mockCourse);
+        .mockResolvedValue(mockPaidCourse);
       jest
         .spyOn(courseUserService, 'checkBoughtCourseByUser')
         .mockResolvedValue(false);
@@ -127,15 +117,17 @@ describe('CartService', () => {
 
       const result = await cartService.create(mockCreateCartDto, userId);
 
-      expect(result).toEqual(mockCreatedCart);
+      expect(result).toEqual(mockCart);
       expect(courseService.findOneByOptions).toBeCalledTimes(1);
       expect(courseUserService.checkBoughtCourseByUser).toBeCalledTimes(1);
       expect(cartCourseService.insertCourseInCart).toBeCalledTimes(1);
     });
 
     it('초기 장바구니가 없다면 생성 호출 확인', async () => {
+      const userId = 'uuid';
+
       jest.spyOn(cartService, 'findOneByOptions').mockResolvedValue(null);
-      jest.spyOn(cartService, 'createCart').mockResolvedValue(mockCreatedCart);
+      jest.spyOn(cartService, 'createCart').mockResolvedValue(mockCart);
 
       await cartService.create(mockCreateCartDto, userId);
 
@@ -143,10 +135,9 @@ describe('CartService', () => {
     });
 
     it('강의 담기 실패 - 무료 강의를 담는 경우(400에러)', async () => {
-      const mockFreeCourse = { ...mockCourse, price: 0 };
-      jest
-        .spyOn(cartService, 'findOneByOptions')
-        .mockResolvedValue(mockCreatedCart);
+      const userId = 'uuod';
+
+      jest.spyOn(cartService, 'findOneByOptions').mockResolvedValue(mockCart);
       jest
         .spyOn(courseService, 'findOneByOptions')
         .mockResolvedValue(mockFreeCourse);
@@ -159,12 +150,12 @@ describe('CartService', () => {
     });
 
     it('강의 담기 실패 - 이미 구매한 강의인 경우(400에러)', async () => {
-      jest
-        .spyOn(cartService, 'findOneByOptions')
-        .mockResolvedValue(mockCreatedCart);
+      const userId = 'uuod';
+
+      jest.spyOn(cartService, 'findOneByOptions').mockResolvedValue(mockCart);
       jest
         .spyOn(courseService, 'findOneByOptions')
-        .mockResolvedValue(mockCourse);
+        .mockResolvedValue(mockPaidCourse);
       jest
         .spyOn(courseUserService, 'checkBoughtCourseByUser')
         .mockResolvedValue(true);
@@ -179,23 +170,27 @@ describe('CartService', () => {
 
   describe('[장바구니에 담은 강의 삭제]', () => {
     it('삭제 성공', async () => {
-      jest
-        .spyOn(cartService, 'findOneByOptions')
-        .mockResolvedValue(mockCreatedCart);
+      const courseId = 'uuid';
+      const userId = 'uuid';
+
+      jest.spyOn(cartService, 'findOneByOptions').mockResolvedValue(mockCart);
       jest
         .spyOn(cartCourseService, 'deleteCourseInCart')
         .mockResolvedValue({ raw: [], affected: 1 });
 
       const result = await cartService.delete(courseId, userId);
 
-      expect(result).toBe(true);
+      expect(result).toBeUndefined();
       expect(cartCourseService.deleteCourseInCart).toBeCalledWith(
-        mockCreatedCart.id,
+        mockCart.id,
         courseId,
       );
     });
 
     it('삭제 실패 - 장바구니가 없는 경우(404에러)', async () => {
+      const courseId = 'uuid';
+      const userId = 'uuid';
+
       jest.spyOn(cartService, 'findOneByOptions').mockResolvedValue(null);
 
       try {
@@ -206,13 +201,24 @@ describe('CartService', () => {
     });
   });
 
-  describe('clearCartWithTransaction 테스트 - 주문 완료 후 장바구니 비우기', () => {
-    const courseIds = ['uuid1', 'uuid2'];
+  describe('createCart 테스트 - 장바구니 초기 생성', () => {
+    it('생성 성공', async () => {
+      const userId = 'uuid';
 
+      jest.spyOn(cartRepository, 'save').mockResolvedValue(mockCart);
+
+      const result = await cartService.createCart(userId);
+
+      expect(result).toEqual(mockCart);
+    });
+  });
+
+  describe('clearCartWithTransaction 테스트 - 주문 완료 후 장바구니 비우기', () => {
     it('비우기 성공', async () => {
-      jest
-        .spyOn(mockEntityManager, 'findOne')
-        .mockResolvedValue(mockCreatedCart);
+      const userId = 'uuid';
+      const courseIds = ['uuid1', 'uuid2'];
+
+      jest.spyOn(mockEntityManager, 'findOne').mockResolvedValue(mockCart);
       jest
         .spyOn(cartCourseService, 'deleteCourseInCart')
         .mockResolvedValue({ raw: [], affected: 1 });
@@ -226,7 +232,7 @@ describe('CartService', () => {
       expect(result).toBeUndefined();
       for (const courseId of courseIds) {
         expect(cartCourseService.deleteCourseInCart).toBeCalledWith(
-          mockCreatedCart.id,
+          mockCart.id,
           courseId,
           mockEntityManager,
         );
@@ -234,6 +240,9 @@ describe('CartService', () => {
     });
 
     it('비우기 실패 - 장바구니가 없는 경우(404에러)', async () => {
+      const userId = 'uuid';
+      const courseIds = ['uuid1', 'uuid2'];
+
       jest.spyOn(mockEntityManager, 'findOne').mockResolvedValue(null);
 
       try {
@@ -250,6 +259,8 @@ describe('CartService', () => {
 
   describe('removeCart 테스트 - 회원탈퇴시 장바구니 제거', () => {
     it('제거 성공', async () => {
+      const userId = 'uuid';
+
       jest
         .spyOn(cartRepository, 'delete')
         .mockResolvedValue({ raw: [], affected: 1 });

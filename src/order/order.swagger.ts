@@ -11,10 +11,6 @@ import {
   getSchemaPath,
 } from '@nestjs/swagger';
 import { PageMetaDto } from '@src/common/dtos/page-meta.dto';
-import {
-  OrderDetailResponseDto,
-  OrdersResponseDto,
-} from '@src/order/dtos/response/order.response.dto';
 import { OrderEntity } from '@src/order/entities/order.entity';
 
 export const ApiGetMyOrdersSwagger = (summary: string) => {
@@ -26,7 +22,7 @@ export const ApiGetMyOrdersSwagger = (summary: string) => {
         properties: {
           data: {
             type: 'array',
-            items: { $ref: getSchemaPath(OrdersResponseDto) },
+            items: { $ref: getSchemaPath(OrderEntity) },
           },
           meta: { $ref: getSchemaPath(PageMetaDto) },
         },
@@ -40,7 +36,7 @@ export const ApiGetMyOrdersSwagger = (summary: string) => {
 export const ApiGetMyOrderDetailSwagger = (summary: string) => {
   return applyDecorators(
     ApiOperation({ summary }),
-    ApiOkResponse({ description: '조회 성공', type: OrderDetailResponseDto }),
+    ApiOkResponse({ description: '조회 성공', type: OrderEntity }),
     ApiNotFoundResponse({ description: '해당 주문기록이 존재하지 않을 경우' }),
     ApiUnauthorizedResponse({ description: '로그인하지 않은 경우' }),
     ApiInternalServerErrorResponse({ description: '서버 오류' }),

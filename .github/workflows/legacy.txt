@@ -1,0 +1,86 @@
+# 이전 ci/cd yml
+
+name: 배포 (AWS EC2 / ECR)
+
+on:
+  push:
+    branches:
+      - master
+  # pull_request:
+  #   branches:
+  #     - master
+  #   types: [closed]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read # github actions의 워크플로우에서 읽기 권한만 허용
+
+    steps:
+      - name: 저장소 확인
+        uses: actions/checkout@v3
+
+      - name: Install dependencies
+        run: yarn install
+
+      - name: AWS 자격 증명
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_KEY }}
+          aws-region: ap-northeast-2
+
+      - name: ECR 로그인
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v1
+
+      - name: 도커 이미지 빌드, ECR 푸시
+        id: build-image
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          ECR_REPOSITORY: hoonflearn
+          IMAGE_TAG: ${{ github.sha }}
+        run: |
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+
+      - name: EC2 배포
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          ECR_REPOSITORY: hoonflearn
+          IMAGE_TAG: ${{ github.sha }}
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.EC2_PUBLIC_IP }}
+          username: ${{ secrets.EC2_USERNAME }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          envs: ECR_REGISTRY,ECR_REPOSITORY,IMAGE_TAG
+          script: |
+            aws ecr get-login-password --region ap-northeast-2 | docker login --username AWS --password-stdin $ECR_REGISTRY
+
+            ECR_CONTAINER_IDS=$(docker ps -a --format "{{.ID}} {{.Image}}" | awk '/hoonflearn/ {print $1}')
+            for ECR_CONTAINER_ID in $ECR_CONTAINER_IDS; do
+              docker stop "$ECR_CONTAINER_ID"
+              docker rm "$ECR_CONTAINER_ID"
+            done
+            ECR_IMAGE_IDS=$(docker images --format "{{.ID}} {{.Repository}}" | awk '$2 ~ /hoonflearn/ {print $1}')
+
+            if [ -n "$ECR_IMAGE_IDS" ]; then
+              for ECR_IMAGE_ID in $ECR_IMAGE_IDS; do
+                docker rmi -f "$ECR_IMAGE_ID"
+              done
+            else
+              echo "No images found matching the pattern *hoonflearn*"
+            fi
+
+            docker pull $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+            docker run -d --env-file ./.env -p 80:8080 $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+
+# # ECR_CONTAINER_IDS=$(docker ps -a --format "{{.ID}} {{.Image}}" | awk '/hoonflearn/ {print $1}')
+# # docker ps -a 한 뒤 --format을 이용해 출력 형식 지정, awk명령어로 hoonflearn이 들어간거 필터링 후 $1(1행) 즉, ID만 출력해 변수에 저장
+# # 그 후 for를 통해 docker 컨테이너 stop 및 삭제
+
+# # ECR_IMAGE_IDS=$(docker images --format "{{.ID}} {{.Repository}}" | awk '$2 ~ /hoonflearn/ {print $1}')
+# # 위와 비슷하고 awk명령어로 $2(2행)에서 hoonflearn이 들어간걸 필터링 후 1행 출력 후 저장
+# # if else문으로 있다면 이미지 삭제

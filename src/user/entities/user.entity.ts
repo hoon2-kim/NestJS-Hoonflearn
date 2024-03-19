@@ -11,7 +11,7 @@ import {
 import { Exclude } from 'class-transformer';
 import { InstructorProfileEntity } from '@src/instructor/entities/instructor-profile.entity';
 import { CourseEntity } from '@src/course/entities/course.entity';
-import { CourseWishEntity } from '@src/course_wish/entities/course-wish.entity';
+import { CourseWishEntity } from '@src/course/course-wish/entities/course-wish.entity';
 import { ReviewEntity } from '@src/review/entities/review.entity';
 import { ERoleType } from '@src/user/enums/user.enum';
 import { QuestionEntity } from '@src/question/entities/question.entity';
@@ -34,7 +34,7 @@ export class UserEntity {
   @Column({ type: 'text', nullable: true })
   description: string;
 
-  @Column({ type: 'varchar', unique: true })
+  @Column({ type: 'varchar', nullable: true })
   phone: string;
 
   @Column({ type: 'varchar', nullable: true })
@@ -42,6 +42,9 @@ export class UserEntity {
 
   @Column({ type: 'enum', enum: ERoleType, default: ERoleType.User })
   role: ERoleType;
+
+  @Column({ type: 'varchar', length: 20, default: 'email' })
+  loginType: string;
 
   @CreateDateColumn({ type: 'timestamptz' })
   created_at: Date;
@@ -61,14 +64,14 @@ export class UserEntity {
   instructorProfile?: InstructorProfileEntity;
 
   @OneToMany(() => CourseEntity, (course) => course.instructor)
-  madeCourses?: CourseEntity[];
+  madeCourses: CourseEntity[];
 
   @OneToMany(() => CourseWishEntity, (courseWish) => courseWish.user)
-  coursesWishs?: CourseWishEntity[];
+  coursesWishs: CourseWishEntity[];
 
   @OneToMany(() => ReviewEntity, (review) => review.user)
-  reviews?: ReviewEntity[];
+  reviews: ReviewEntity[];
 
   @OneToMany(() => QuestionEntity, (question) => question.user)
-  questions?: QuestionEntity[];
+  questions: QuestionEntity[];
 }

@@ -8,7 +8,7 @@ import {
   mockReviewService,
   mockUpdateReviewDto,
 } from '@test/__mocks__/review.mock';
-import { ReviewListQueryDto } from '@src/review/dtos/query/review-list.query.dto';
+import { ReviewListQueryDto } from '@src/review/dtos/review-list.query.dto';
 
 describe('ReviewController', () => {
   let reviewController: ReviewController;

@@ -11,7 +11,7 @@ import {
   InstructorCourseQueryDto,
   InstructorQuestionQueryDto,
   InstructorReviewQueryDto,
-} from '@src/instructor/dtos/query/instructor.query.dto';
+} from '@src/instructor/dtos/instructor.query.dto';
 import { expectedQuestionWithoutComment } from '@test/__mocks__/question.mock';
 import { expectedReviewByInstructor } from '@test/__mocks__/review.mock';
 import { Response } from 'express';

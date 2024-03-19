@@ -3,7 +3,7 @@ import { QuestionService } from '@src/question/question.service';
 import { Repository } from 'typeorm';
 import { QuestionEntity } from '@src/question/entities/question.entity';
 import { CourseService } from '@src/course/course.service';
-import { QuestionVoteService } from '@src/question-vote/question-vote.service';
+import { QuestionVoteService } from '@src/question/question-vote/question-vote.service';
 import { CourseUserService } from '@src/course_user/course-user.service';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { getRepositoryToken } from '@nestjs/typeorm';
@@ -22,7 +22,7 @@ import {
   mockQuestionWithComment,
   mockUpdateQuestionDto,
 } from '@test/__mocks__/question.mock';
-import { QuestionListQueryDto } from '@src/question/dtos/query/question-list.query.dto';
+import { QuestionListQueryDto } from '@src/question/dtos/question-list.query.dto';
 import {
   EQuestionSortBy,
   EQuestionStatus,
@@ -30,15 +30,15 @@ import {
 import { mockCreatedCourse } from '@test/__mocks__/course.mock';
 import { ForbiddenException, NotFoundException } from '@nestjs/common';
 import { QuestionHitEvent } from '@src/question/events/question-hit.event';
-import { UserQuestionQueryDto } from '@src/user/dtos/query/user.query.dto';
-import { InstructorQuestionQueryDto } from '@src/instructor/dtos/query/instructor.query.dto';
+import { UserQuestionQueryDto } from '@src/user/dtos/user.query.dto';
+import { InstructorQuestionQueryDto } from '@src/instructor/dtos/instructor.query.dto';
 import {
   EInstructorQuestionSortBy,
   EInstructorQuestionStatusBy,
 } from '@src/instructor/enums/instructor.enum';
-import { QuestionStatusDto } from '@src/question/dtos/request/question-status.dto';
-import { QuestionVoteDto } from '@src/question/dtos/request/question-vote.dto';
-import { EQuestionVoteDtoType } from '@src/question-vote/enums/question-vote.enum';
+import { QuestionStatusDto } from '@src/question/dtos/question-status.dto';
+import { QuestionVoteDto } from '@src/question/dtos/question-vote.dto';
+import { EQuestionVoteDtoType } from '@src/question/question-vote/enums/question-vote.enum';
 
 describe('QuestionService', () => {
   let questionService: QuestionService;

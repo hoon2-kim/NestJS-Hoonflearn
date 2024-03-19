@@ -12,7 +12,7 @@ import {
   mockUpdateCourseDto,
 } from '@test/__mocks__/course.mock';
 import { mockCreatedInstructor } from '@test/__mocks__/user.mock';
-import { CourseListQueryDto } from '@src/course/dtos/query/course-list.query.dto';
+import { CourseListQueryDto } from '@src/course/dtos/course-list.query.dto';
 
 describe('CourseController', () => {
   let courseController: CourseController;
