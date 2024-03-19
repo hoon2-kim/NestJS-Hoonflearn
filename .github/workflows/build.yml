@@ -1,0 +1,40 @@
+name: 이미지 빌드 및 S3 저장
+
+on:
+  pull_request:
+    branches:
+      - develop
+    types: [closed]
+
+# merged가 true일 경우 발동
+jobs:
+  deploy:
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 저장소 확인
+        uses: actions/checkout@v3
+
+      - name: AWS 자격 증명
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_KEY }}
+          aws-region: ap-northeast-2
+
+      - name: ECR 로그인
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Extract branch names
+        id: branch-name
+        uses: tj-actions/branch-name@v4.9
+
+      - name: 도커 이미지 빌드, ECR 푸시
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          IMAGE_TAG: ${{ steps.branch-name.outputs.base_ref_branch }}
+        run: |
+          docker build -t $ECR_REGISTRY/hoonflearn:$IMAGE_TAG .
+          docker push $ECR_REGISTRY/hoonflearn:$IMAGE_TAG

@@ -7,7 +7,6 @@ import {
   ApiOkResponse,
   ApiOperation,
 } from '@nestjs/swagger';
-import { CategoryResponseDto } from '@src/category/dtos/response/category.response.dto';
 import { CategoryEntity } from '@src/category/entities/category.entity';
 
 export const ApiGetAllCategoriesSwagger = (summary: string) => {
@@ -18,7 +17,7 @@ export const ApiGetAllCategoriesSwagger = (summary: string) => {
     }),
     ApiOkResponse({
       description: '조회 성공',
-      type: CategoryResponseDto,
+      type: [CategoryEntity],
       isArray: true,
     }),
     ApiInternalServerErrorResponse({ description: '서버 오류' }),
@@ -30,7 +29,7 @@ export const ApiGetCategorySwagger = (summary: string) => {
     ApiOperation({ summary }),
     ApiOkResponse({
       description: '조회 성공',
-      type: CategoryResponseDto,
+      type: CategoryEntity,
     }),
     ApiBadRequestResponse({ description: '서브 카테고리 ID를 넣은 경우' }),
     ApiNotFoundResponse({ description: '해당 카테고리가 존재하지 않을 경우' }),
