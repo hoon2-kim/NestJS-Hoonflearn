@@ -34,7 +34,7 @@ jobs:
       - name: 도커 이미지 빌드, ECR 푸시
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-          IMAGE_TAG: ${{ steps.branch-name.outputs.base_ref_branch }}
+          IMAGE_TAG: ${{ steps.branch-name.outputs.head_ref_branch }}
         run: |
           docker build -t $ECR_REGISTRY/hoonflearn:$IMAGE_TAG .
           docker push $ECR_REGISTRY/hoonflearn:$IMAGE_TAG
