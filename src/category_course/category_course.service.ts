@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { CategoryIdsDto } from '@src/course/dtos/request/create-course.dto';
+import { CategoryIdsDto } from '@src/course/dtos/create-course.dto';
 import { DataSource, EntityManager, Repository } from 'typeorm';
 import { CategoryCourseEntity } from '@src/category_course/entities/category-course.entitiy';
 

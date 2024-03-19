@@ -12,11 +12,6 @@ import {
   getSchemaPath,
 } from '@nestjs/swagger';
 import { PageMetaDto } from '@src/common/dtos/page-meta.dto';
-import {
-  CourseDashBoardResponseDto,
-  CourseDetailResponseDto,
-  CourseListResponseDto,
-} from '@src/course/dtos/response/course.response';
 import { CourseEntity } from '@src/course/entities/course.entity';
 
 export const ApiGetCourseDetailSwagger = (summary: string) => {
@@ -24,7 +19,7 @@ export const ApiGetCourseDetailSwagger = (summary: string) => {
     ApiOperation({ summary }),
     ApiOkResponse({
       description: '조회 성공',
-      type: CourseDetailResponseDto,
+      type: CourseEntity,
     }),
     ApiNotFoundResponse({ description: '해당 강의가 존재하지 않을 경우' }),
     ApiInternalServerErrorResponse({ description: '서버 오류' }),
@@ -56,7 +51,7 @@ export const ApiGetCourseDashBoardSwagger = (summary: string) => {
     ApiOperation({ summary }),
     ApiOkResponse({
       description: '조회 성공',
-      type: CourseDashBoardResponseDto,
+      type: CourseEntity,
     }),
     ApiNotFoundResponse({ description: '해당 강의가 존재하지 않을 경우' }),
     ApiForbiddenResponse({ description: '해당 강의를 구매하지 않은 경우' }),
@@ -79,13 +74,17 @@ export const ApiGetCourseListSwagger = (summary: string) => {
     ApiOkResponse({
       description: '조회 성공',
       schema: {
-        properties: {
-          data: {
-            type: 'array',
-            items: { $ref: getSchemaPath(CourseListResponseDto) },
+        allOf: [
+          { $ref: getSchemaPath(PageMetaDto) },
+          {
+            properties: {
+              data: {
+                type: 'array',
+                items: { $ref: getSchemaPath(CourseEntity) },
+              },
+            },
           },
-          meta: { $ref: getSchemaPath(PageMetaDto) },
-        },
+        ],
       },
     }),
     ApiInternalServerErrorResponse({ description: '서버 오류' }),

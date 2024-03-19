@@ -1,11 +1,9 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { CategoryCourseService } from '@src/category_course/category_course.service';
-import { CategoryIdsDto } from '@src/course/dtos/request/create-course.dto';
-import {
-  mockCategoryCourse,
-  mockCategoryCourseRepository,
-} from '@test/__mocks__/categoryCourse.mock';
+import { CategoryIdsDto } from '@src/course/dtos/create-course.dto';
+import { mockCategoryCourse } from '@test/__mocks__/mock-data';
+import { mockCategoryCourseRepository } from '@test/__mocks__/mock-repository';
 import { DataSource, EntityManager, Repository } from 'typeorm';
 import { CategoryCourseEntity } from '../entities/category-course.entitiy';
 
@@ -63,17 +61,18 @@ describe('CategoryCourseService', () => {
     it('저장 성공 - EntityManger없이', async () => {
       jest
         .spyOn(categoryCourseRepository, 'save')
-        .mockResolvedValueOnce(mockCategoryCourse[0]);
-      jest
-        .spyOn(categoryCourseRepository, 'save')
-        .mockResolvedValueOnce(mockCategoryCourse[1]);
+        .mockResolvedValueOnce(mockCategoryCourse)
+        .mockResolvedValueOnce({ ...mockCategoryCourse, isMain: false });
 
       const result = await categoryCourseService.linkCourseToCategories(
         selectedCategoryIds,
         courseId,
       );
 
-      expect(result).toEqual(mockCategoryCourse);
+      expect(result).toEqual([
+        mockCategoryCourse,
+        { ...mockCategoryCourse, isMain: false },
+      ]);
       expect(categoryCourseRepository.save).toBeCalledTimes(
         selectedCategoryIds.length,
       );
@@ -92,10 +91,8 @@ describe('CategoryCourseService', () => {
     it('저장 성공 - EntityManger', async () => {
       jest
         .spyOn(mockEntityManager, 'save')
-        .mockResolvedValueOnce(mockCategoryCourse[0]);
-      jest
-        .spyOn(mockEntityManager, 'save')
-        .mockResolvedValueOnce(mockCategoryCourse[1]);
+        .mockResolvedValueOnce(mockCategoryCourse)
+        .mockResolvedValueOnce({ ...mockCategoryCourse, isMain: false });
 
       const result = await categoryCourseService.linkCourseToCategories(
         selectedCategoryIds,
@@ -103,7 +100,10 @@ describe('CategoryCourseService', () => {
         mockEntityManager,
       );
 
-      expect(result).toEqual(mockCategoryCourse);
+      expect(result).toEqual([
+        mockCategoryCourse,
+        { ...mockCategoryCourse, isMain: false },
+      ]);
       expect(mockEntityManager.save).toBeCalledTimes(
         selectedCategoryIds.length,
       );
@@ -131,7 +131,10 @@ describe('CategoryCourseService', () => {
       dataSource.transaction = jest.fn().mockImplementation(async (cb) => {
         jest
           .spyOn(categoryCourseService, 'linkCourseToCategories')
-          .mockResolvedValue(mockCategoryCourse);
+          .mockResolvedValue([
+            mockCategoryCourse,
+            { ...mockCategoryCourse, isMain: false },
+          ]);
 
         return await cb({ delete: mockDelete });
       });

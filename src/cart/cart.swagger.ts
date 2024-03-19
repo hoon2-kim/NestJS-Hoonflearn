@@ -9,13 +9,13 @@ import {
   ApiOperation,
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
-import { CartResponseDto } from '@src/cart/dtos/response/cart.response.dto';
+import { CartEntity } from './entities/cart.entity';
 
 export const ApiGetMyCartSwagger = (summary: string) => {
   return applyDecorators(
     ApiOperation({ summary }),
     ApiBearerAuth('access_token'),
-    ApiOkResponse({ description: '조회 성공', type: CartResponseDto }),
+    ApiOkResponse({ description: '조회 성공', type: [CartEntity] }),
     ApiUnauthorizedResponse({ description: '로그인을 하지 않은 경우' }),
     ApiInternalServerErrorResponse({ description: '서버 오류' }),
   );

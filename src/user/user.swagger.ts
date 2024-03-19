@@ -12,18 +12,17 @@ import {
   ApiUnauthorizedResponse,
   getSchemaPath,
 } from '@nestjs/swagger';
-import { UserResponseDto } from '@src/user/dtos/response/user.response';
-import { CourseWishListResponseDto } from '@src/course_wish/dtos/response/course-wish.reponse.dto';
-import { QuestionListResponseDto } from '@src/question/dtos/response/question.response.dto';
-import { CourseUserListResponseDto } from '@src/course_user/dtos/response/course-user.response.dto';
 import { UserEntity } from '@src/user/entities/user.entity';
 import { PageMetaDto } from '@src/common/dtos/page-meta.dto';
+import { QuestionEntity } from '@src/question/entities/question.entity';
+import { CourseEntity } from '@src/course/entities/course.entity';
+import { CourseWishEntity } from '@src/course/course-wish/entities/course-wish.entity';
 
 export const ApiProfileUserSwagger = (summary: string) => {
   return applyDecorators(
     ApiOperation({ summary }),
     ApiBearerAuth('access_token'),
-    ApiOkResponse({ description: '프로필 조회 성공', type: UserResponseDto }),
+    ApiOkResponse({ description: '프로필 조회 성공', type: UserEntity }),
     ApiUnauthorizedResponse({
       description: '로그인 하지 않았을 경우',
     }),
@@ -59,6 +58,30 @@ export const ApiCheckNicknameSwagger = (summary: string) => {
     }),
     ApiBadRequestResponse({
       description: '닉네임 중복 오류',
+    }),
+    ApiInternalServerErrorResponse({ description: '서버 오류' }),
+  );
+};
+
+export const ApisendCoolsmsSwagger = (summary: string) => {
+  return applyDecorators(
+    ApiOperation({ summary }),
+    ApiCreatedResponse({
+      description: '핸드폰 인증번호 전송 성공',
+    }),
+    ApiInternalServerErrorResponse({ description: '서버 오류' }),
+  );
+};
+
+export const ApicheckTokenSwagger = (summary: string) => {
+  return applyDecorators(
+    ApiOperation({ summary }),
+    ApiCreatedResponse({
+      description: '핸드폰 인증번호 인증 성공',
+    }),
+    ApiBadRequestResponse({
+      description:
+        '인증번호를 하지않은 경우 또는 인증번호가 일치하지 않은 경우',
     }),
     ApiInternalServerErrorResponse({ description: '서버 오류' }),
   );
@@ -137,7 +160,7 @@ export const ApiGetUserWishCoursesSwagger = (summary: string) => {
         properties: {
           data: {
             type: 'array',
-            items: { $ref: getSchemaPath(CourseWishListResponseDto) },
+            items: { $ref: getSchemaPath(CourseWishEntity) },
           },
           meta: { $ref: getSchemaPath(PageMetaDto) },
         },
@@ -160,7 +183,7 @@ export const ApiGetMyQuestionsSwagger = (summary: string) => {
         properties: {
           data: {
             type: 'array',
-            items: { $ref: getSchemaPath(QuestionListResponseDto) },
+            items: { $ref: getSchemaPath(QuestionEntity) },
           },
           meta: { $ref: getSchemaPath(PageMetaDto) },
         },
@@ -183,7 +206,7 @@ export const ApiGetMyCoursesSwagger = (summary: string) => {
         properties: {
           data: {
             type: 'array',
-            items: { $ref: getSchemaPath(CourseUserListResponseDto) },
+            items: { $ref: getSchemaPath(CourseEntity) },
           },
           meta: { $ref: getSchemaPath(PageMetaDto) },
         },

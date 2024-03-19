@@ -2,7 +2,7 @@ import { Exclude } from 'class-transformer';
 import { CartCourseEntity } from '@src/cart_course/entities/cart-course.entity';
 import { CategoryCourseEntity } from '@src/category_course/entities/category-course.entitiy';
 import { CourseUserEntity } from '@src/course_user/entities/course-user.entity';
-import { CourseWishEntity } from '@src/course_wish/entities/course-wish.entity';
+import { CourseWishEntity } from '@src/course/course-wish/entities/course-wish.entity';
 import { QuestionEntity } from '@src/question/entities/question.entity';
 import { ReviewEntity } from '@src/review/entities/review.entity';
 import { SectionEntity } from '@src/section/entities/section.entity';

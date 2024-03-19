@@ -9,7 +9,7 @@ import { CourseModule } from '@src/course/course.module';
 import { QuestionModule } from '@src/question/question.module';
 import { UserEntity } from '@src/user/entities/user.entity';
 import { ReviewModule } from '@src/review/review.module';
-import { JwtRedisService } from '@src/auth/jwt-redis/jwt-redis.service';
+import { RedisService } from '@src/redis/redis.service';
 
 @Module({
   imports: [
@@ -21,6 +21,6 @@ import { JwtRedisService } from '@src/auth/jwt-redis/jwt-redis.service';
     ReviewModule,
   ],
   controllers: [InstructorController],
-  providers: [InstructorService, JwtRedisService],
+  providers: [InstructorService, RedisService],
 })
 export class InstructorModule {}

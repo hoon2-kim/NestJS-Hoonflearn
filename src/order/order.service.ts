@@ -12,16 +12,11 @@ import { CourseEntity } from '@src/course/entities/course.entity';
 import { CourseUserService } from '@src/course_user/course-user.service';
 import { OrderCourseService } from '@src/order_course/order-course.service';
 import { DataSource, Repository } from 'typeorm';
-import { CreateOrderDto } from '@src/order/dtos/request/create-order.dto';
-import { OrderListQueryDto } from '@src/order/dtos/query/order-list.query.dto';
+import { CreateOrderDto } from '@src/order/dtos/create-order.dto';
+import { OrderListQueryDto } from '@src/order/dtos/order-list.query.dto';
 import { OrderEntity } from '@src/order/entities/order.entity';
 import { IamportService } from '@src/order/iamport.service';
 import { EOrderAction, EOrderStatus } from '@src/order/enums/order.enum';
-import { ICoursesTotalPrice } from '@src/course/interfaces/course.interface';
-import {
-  OrderDetailResponseDto,
-  OrdersResponseDto,
-} from '@src/order/dtos/response/order.response.dto';
 import { CourseService } from '@src/course/course.service';
 
 @Injectable()
@@ -41,7 +36,7 @@ export class OrderService {
   async findOrders(
     orderListQueryDto: OrderListQueryDto,
     userId: string,
-  ): Promise<PageDto<OrdersResponseDto>> {
+  ): Promise<PageDto<OrderEntity>> {
     const { take, skip } = orderListQueryDto;
 
     const [orders, count] = await this.orderRepository.findAndCount({
@@ -56,16 +51,10 @@ export class OrderService {
       itemCount: count,
     });
 
-    return new PageDto(
-      orders.map((o) => OrdersResponseDto.from(o)),
-      pageMeta,
-    );
+    return new PageDto(orders, pageMeta);
   }
 
-  async findOrderDetail(
-    orderId: string,
-    userId: string,
-  ): Promise<OrderDetailResponseDto> {
+  async findOrderDetail(orderId: string, userId: string): Promise<OrderEntity> {
     const order = await this.orderRepository
       .createQueryBuilder('order')
       .leftJoinAndSelect('order.ordersCourses', 'orderCourse')
@@ -78,7 +67,7 @@ export class OrderService {
       throw new NotFoundException('해당 주문기록이 존재하지 않습니다.');
     }
 
-    return OrderDetailResponseDto.from(order);
+    return order;
   }
 
   async create(
@@ -87,16 +76,16 @@ export class OrderService {
   ): Promise<OrderEntity> {
     const { imp_uid, price, courseIds } = createOrderDto;
 
-    const getIamportPaymentData = await this.iamportService.getPaymentData(
-      imp_uid,
-      price,
-    );
-
     const queryRunner = this.dataSource.createQueryRunner();
     await queryRunner.connect();
     await queryRunner.startTransaction();
 
     try {
+      const getIamportPaymentData = await this.iamportService.getPaymentData(
+        imp_uid,
+        price,
+      );
+
       const checkOrder = await queryRunner.manager.findOne(OrderEntity, {
         where: {
           imp_uid,
@@ -119,7 +108,7 @@ export class OrderService {
         throw new BadRequestException('등록되지 않은 일부의 강의가 있습니다.');
       }
 
-      const coursesPrice: ICoursesTotalPrice = await coursesQuery
+      const coursesPrice = await coursesQuery
         .select('SUM(course.price) as total_price')
         .getRawOne();
 
@@ -136,9 +125,9 @@ export class OrderService {
       const result = await queryRunner.manager.save(OrderEntity, {
         imp_uid,
         orderName,
-        merchant_uid: getIamportPaymentData?.merchant_uid,
-        totalOrderPrice: getIamportPaymentData?.amount,
-        paymentMethod: getIamportPaymentData?.pay_method,
+        merchant_uid: getIamportPaymentData.merchant_uid,
+        totalOrderPrice: getIamportPaymentData.amount,
+        paymentMethod: getIamportPaymentData.pay_method,
         orderStatus: EOrderStatus.COMPLETED,
         fk_user_id: userId,
       });

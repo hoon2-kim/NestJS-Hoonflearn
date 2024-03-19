@@ -10,16 +10,9 @@ import { CourseEntity } from '@src/course/entities/course.entity';
 import { CourseUserService } from '@src/course_user/course-user.service';
 import { SectionEntity } from '@src/section/entities/section.entity';
 import { SectionService } from '@src/section/section.service';
-import {
-  DataSource,
-  DeleteResult,
-  EntityManager,
-  FindOneOptions,
-  Repository,
-} from 'typeorm';
-import { CreateLessonDto } from '@src/lesson/dtos/request/create-lesson.dto';
-import { UpdateLessonDto } from '@src/lesson/dtos/request/update-lesson.dto';
-import { LessonResponseDto } from '@src/lesson/dtos/response/lesson.response.dto';
+import { DataSource, EntityManager, FindOneOptions, Repository } from 'typeorm';
+import { CreateLessonDto } from '@src/lesson/dtos/create-lesson.dto';
+import { UpdateLessonDto } from '@src/lesson/dtos/update-lesson.dto';
 import { LessonEntity } from '@src/lesson/entities/lesson.entity';
 import { ELessonAction } from '@src/lesson/enums/lesson.enum';
 import { UserEntity } from '@src/user/entities/user.entity';
@@ -51,10 +44,7 @@ export class LessonService {
     return lesson;
   }
 
-  async viewLesson(
-    lessonId: string,
-    user: UserEntity,
-  ): Promise<LessonResponseDto> {
+  async viewLesson(lessonId: string, user: UserEntity): Promise<LessonEntity> {
     const lesson = await this.findOneByOptions({
       where: { id: lessonId },
       relations: {
@@ -83,7 +73,7 @@ export class LessonService {
       }
     }
 
-    return LessonResponseDto.from(lesson);
+    return lesson;
   }
 
   async create(
@@ -132,7 +122,7 @@ export class LessonService {
     lessonId: string,
     updateLessonDto: UpdateLessonDto,
     userId: string,
-  ): Promise<{ message: string }> {
+  ): Promise<LessonEntity> {
     const lesson = await this.findOneByOptions({
       where: { id: lessonId },
     });
@@ -147,12 +137,10 @@ export class LessonService {
 
     Object.assign(lesson, updateLessonDto);
 
-    await this.lessonRepository.save(lesson);
-
-    return { message: '수정 성공' };
+    return await this.lessonRepository.save(lesson);
   }
 
-  async delete(lessonId: string, userId: string): Promise<boolean> {
+  async delete(lessonId: string, userId: string): Promise<void> {
     const lesson = await this.findOneByOptions({
       where: { id: lessonId },
       relations: ['video'],
@@ -165,8 +153,6 @@ export class LessonService {
     const courseId = await this.getCourseIdByLessonIdWithQueryBuilder(lessonId);
 
     await this.courseService.validateInstructor(courseId, userId);
-
-    let result: DeleteResult;
 
     await this.dataSource.transaction(async (manager) => {
       await this.sectionService.updateLessonCountInSection(
@@ -202,10 +188,8 @@ export class LessonService {
         );
       }
 
-      result = await manager.delete(LessonEntity, { id: lessonId });
+      await manager.delete(LessonEntity, { id: lessonId });
     });
-
-    return result.affected ? true : false;
   }
 
   async getCourseIdByLessonIdWithQueryBuilder(
@@ -219,12 +203,12 @@ export class LessonService {
       .select(['lesson.id', 'section.fk_course_id']);
 
     if (manager) {
-      // 트랜잭션 범위 설정
+      // 트랜잭션 사용하라고 명령
       queryBuilder = queryBuilder.setQueryRunner(manager.queryRunner);
     }
 
     const lesson = await queryBuilder.getOne();
 
-    return lesson.section.fk_course_id;
+    return lesson?.section.fk_course_id;
   }
 }

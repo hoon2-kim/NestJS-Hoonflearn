@@ -8,19 +8,18 @@ import {
   Query,
 } from '@nestjs/common';
 import { InstructorService } from '@src/instructor/instructor.service';
-import { CreateInstructorDto } from '@src/instructor/dtos/request/create-instructor.dto';
+import { CreateInstructorDto } from '@src/instructor/dtos/create-instructor.dto';
 import { Roles } from '@src/auth/decorators/role-protected.decorator';
 import { AtGuard } from '@src/auth/guards/at.guard';
 import { RoleGuard } from '@src/auth/guards/role.guard';
 import { CurrentUser } from '@src/auth/decorators/current-user.decorator';
 import { Response } from 'express';
-import { IInstructorTokens } from '@src/instructor/interfaces/instructor.interface';
 import { UserEntity } from '@src/user/entities/user.entity';
 import {
   InstructorCourseQueryDto,
   InstructorQuestionQueryDto,
   InstructorReviewQueryDto,
-} from '@src/instructor/dtos/query/instructor.query.dto';
+} from '@src/instructor/dtos/instructor.query.dto';
 import { ApiTags } from '@nestjs/swagger';
 import { ERoleType } from '@src/user/enums/user.enum';
 import {
@@ -30,9 +29,7 @@ import {
   ApiRegisterInstructorSwagger,
 } from '@src/instructor/instructor.swagger';
 import { PageDto } from '@src/common/dtos/page.dto';
-import { CourseListByInstructorResponseDto } from '@src/course/dtos/response/course.response';
-import { QuestionListResponseDto } from '@src/question/dtos/response/question.response.dto';
-import { ReviewResponseWithoutCommentDto } from '@src/review/dtos/response/review.response.dto';
+import { IAuthToken, IJwtPayload } from '@src/auth/interfaces/auth.interface';
 
 @ApiTags('INSTRUCTOR')
 @Controller('instructors')
@@ -43,11 +40,11 @@ export class InstructorController {
   @Get('/courses')
   @Roles(ERoleType.Instructor)
   @UseGuards(AtGuard, RoleGuard)
-  findMyCourses(
+  async findMyCourses(
     @Query() instructorCourseQueryDto: InstructorCourseQueryDto,
-    @CurrentUser() user: UserEntity,
-  ): Promise<PageDto<CourseListByInstructorResponseDto>> {
-    return this.instructorService.getMyCoursesByInstructor(
+    @CurrentUser() user: IJwtPayload,
+  ): Promise<PageDto<any>> {
+    return await this.instructorService.getMyCoursesByInstructor(
       instructorCourseQueryDto,
       user,
     );
@@ -57,11 +54,11 @@ export class InstructorController {
   @Get('/questions')
   @Roles(ERoleType.Instructor)
   @UseGuards(AtGuard, RoleGuard)
-  getQuestionsMyCourses(
+  async getQuestionsMyCourses(
     @Query() instructorQuestionQueryDto: InstructorQuestionQueryDto,
-    @CurrentUser() user: UserEntity,
-  ): Promise<PageDto<QuestionListResponseDto>> {
-    return this.instructorService.getQuestionsByMyCourses(
+    @CurrentUser() user: IJwtPayload,
+  ): Promise<PageDto<any>> {
+    return await this.instructorService.getQuestionsByMyCourses(
       instructorQuestionQueryDto,
       user,
     );
@@ -71,11 +68,11 @@ export class InstructorController {
   @Get('/reviews')
   @Roles(ERoleType.Instructor)
   @UseGuards(AtGuard, RoleGuard)
-  getReviewsMyCourses(
+  async getReviewsMyCourses(
     @Query() instructorReviewQueryDto: InstructorReviewQueryDto,
-    @CurrentUser() user: UserEntity,
-  ): Promise<PageDto<ReviewResponseWithoutCommentDto>> {
-    return this.instructorService.getReviewsByMyCourses(
+    @CurrentUser() user: IJwtPayload,
+  ): Promise<PageDto<any>> {
+    return await this.instructorService.getReviewsByMyCourses(
       instructorReviewQueryDto,
       user,
     );
@@ -84,11 +81,11 @@ export class InstructorController {
   @ApiRegisterInstructorSwagger('지식공유자 등록')
   @Post('/register')
   @UseGuards(AtGuard)
-  registerInstructor(
+  async registerInstructor(
     @Body() createInstructorDto: CreateInstructorDto,
-    @CurrentUser() user: UserEntity,
+    @CurrentUser() user: IJwtPayload,
     @Res({ passthrough: true }) res: Response,
-  ): Promise<IInstructorTokens> {
-    return this.instructorService.create(createInstructorDto, user, res);
+  ): Promise<IAuthToken> {
+    return await this.instructorService.create(createInstructorDto, user, res);
   }
 }

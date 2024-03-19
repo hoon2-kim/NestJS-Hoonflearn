@@ -5,7 +5,7 @@ import { CategoryService } from '@src/category/category.service';
 import { CategoryCourseService } from '@src/category_course/category_course.service';
 import { CourseService } from '@src/course/course.service';
 import { CourseUserService } from '@src/course_user/course-user.service';
-import { CourseWishService } from '@src/course_wish/course_wish.service';
+import { CourseWishService } from '@src/course/course-wish/course-wish.service';
 import { QuestionEntity } from '@src/question/entities/question.entity';
 import { DataSource, EntityManager, QueryRunner, Repository } from 'typeorm';
 import { CourseEntity } from '@src/course/entities/course.entity';
@@ -27,7 +27,7 @@ import {
   mockCreateCourseDto,
   mockUpdateCourseDto,
 } from '@test/__mocks__/course.mock';
-import { CourseListQueryDto } from '@src/course/dtos/query/course-list.query.dto';
+import { CourseListQueryDto } from '@src/course/dtos/course-list.query.dto';
 import {
   ECourseChargeType,
   ECourseLevelType,

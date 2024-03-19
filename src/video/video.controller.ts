@@ -17,7 +17,7 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { CurrentUser } from '@src/auth/decorators/current-user.decorator';
 import { ApiTags } from '@nestjs/swagger';
 import { ERoleType } from '@src/user/enums/user.enum';
-import { videoFileFilter } from '@src/common/helpers/fileFilter.helper';
+import { videoFileFilter } from '@src/common/utils/fileFilter';
 import {
   ApiDeleteVideoSwagger,
   ApiUploadVideoSwagger,
@@ -38,7 +38,7 @@ export class VideoController {
       fileFilter: videoFileFilter,
     }),
   )
-  uploadVideo(
+  async uploadVideo(
     @Param('lessonId') lessonId: string,
     @UploadedFile() file: Express.Multer.File,
     @CurrentUser() user: UserEntity,
@@ -47,15 +47,15 @@ export class VideoController {
       throw new BadRequestException('파일이 없습니다.');
     }
 
-    return this.videoService.upload(lessonId, file, user);
+    return await this.videoService.upload(lessonId, file, user);
   }
 
   @ApiDeleteVideoSwagger('영상 업로드 삭제')
   @Delete('/videos/:videoId')
-  deleteVideo(
+  async deleteVideo(
     @Param('videoId') videoId: string, //
     @CurrentUser() user: UserEntity,
-  ): Promise<boolean> {
-    return this.videoService.delete(videoId, user);
+  ): Promise<void> {
+    return await this.videoService.delete(videoId, user);
   }
 }

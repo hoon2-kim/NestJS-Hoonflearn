@@ -1,7 +1,7 @@
 import { BadRequestException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { CourseUserService } from '@src/course_user/course-user.service';
-import { CourseWishService } from '@src/course_wish/course_wish.service';
+import { CourseWishService } from '@src/course/course-wish/course-wish.service';
 import { QuestionService } from '@src/question/question.service';
 import { UserController } from '@src/user/user.controller';
 import { UserService } from '@src/user/user.service';
@@ -21,7 +21,7 @@ import {
   UserWishQueryDto,
   UserQuestionQueryDto,
   UserMyCourseQueryDto,
-} from '@src/user/dtos/query/user.query.dto';
+} from '@src/user/dtos/user.query.dto';
 import { expectedMyQuestionWithoutComment } from '@test/__mocks__/question.mock';
 import { expectedCourseUserList } from '@test/__mocks__/courseUser.mock';
 

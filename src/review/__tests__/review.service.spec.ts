@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { CourseService } from '@src/course/course.service';
 import { CourseUserService } from '@src/course_user/course-user.service';
-import { ReviewLikeService } from '@src/review-like/review-like.service';
+import { ReviewLikeService } from '@src/review/review-like/review-like.service';
 import { ReviewService } from '@src/review/review.service';
 import { DataSource, Repository } from 'typeorm';
 import { ReviewEntity } from '@src/review/entities/review.entity';
@@ -18,7 +18,7 @@ import {
   mockReviewWithoutComment,
   mockUpdateReviewDto,
 } from '@test/__mocks__/review.mock';
-import { ReviewListQueryDto } from '@src/review/dtos/query/review-list.query.dto';
+import { ReviewListQueryDto } from '@src/review/dtos/review-list.query.dto';
 import { mockCreatedCourse } from '@test/__mocks__/course.mock';
 import { mockReviewWithComment } from '@test/__mocks__/review.mock';
 import {
@@ -28,7 +28,7 @@ import {
 } from '@nestjs/common';
 import { EReviewSortBy } from '../enums/review.enum';
 import { mockReviewLike } from '@test/__mocks__/reviewLike.mock';
-import { InstructorReviewQueryDto } from '@src/instructor/dtos/query/instructor.query.dto';
+import { InstructorReviewQueryDto } from '@src/instructor/dtos/instructor.query.dto';
 import { EInstructorReviewSortBy } from '@src/instructor/enums/instructor.enum';
 
 describe('ReviewService', () => {

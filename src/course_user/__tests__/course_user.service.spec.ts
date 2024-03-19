@@ -10,7 +10,7 @@ import {
   mockCreatedCourseUserWithPaid,
   mockCreatedCourseUserWithFree,
 } from '@test/__mocks__/courseUser.mock';
-import { UserMyCourseQueryDto } from '@src/user/dtos/query/user.query.dto';
+import { UserMyCourseQueryDto } from '@src/user/dtos/user.query.dto';
 import { ForbiddenException } from '@nestjs/common';
 
 describe('CourseUserService', () => {

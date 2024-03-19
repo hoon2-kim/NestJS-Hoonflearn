@@ -8,7 +8,6 @@ import {
   ApiOperation,
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
-import { LessonResponseDto } from '@src/lesson/dtos/response/lesson.response.dto';
 import { LessonEntity } from '@src/lesson/entities/lesson.entity';
 
 export const ApiViewLessonSwagger = (summary: string) => {
@@ -16,7 +15,7 @@ export const ApiViewLessonSwagger = (summary: string) => {
     ApiOperation({ summary }),
     ApiOkResponse({
       description: '수업 조회 성공',
-      type: LessonResponseDto,
+      type: LessonEntity,
     }),
     ApiNotFoundResponse({ description: '해당 수업이 존재하지 않는 경우' }),
     ApiForbiddenResponse({

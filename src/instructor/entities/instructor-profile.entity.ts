@@ -20,7 +20,11 @@ export class InstructorProfileEntity {
   @Column({ type: 'varchar', unique: true, comment: '연락받을 이메일' })
   contactEmail: string;
 
-  @Column({ type: 'varchar', comment: '지식공유자 실명 또는 사업체명' })
+  @Column({
+    type: 'varchar',
+    unique: true,
+    comment: '지식공유자 실명 또는 사업체명',
+  })
   nameOrBusiness: string;
 
   @Column({ type: 'enum', enum: EFieldOfHopeType, comment: '희망하는 분야' })
