@@ -5,12 +5,12 @@ import { JwtModule } from '@nestjs/jwt';
 import { JwtAtStrategy } from '@src/auth/strategies/jwt-at.strategy';
 import { JwtRtStrategy } from '@src/auth/strategies/jwt-rt.strategy';
 import { UserModule } from '@src/user/user.module';
-import { JwtRedisService } from '@src/auth/jwt-redis/jwt-redis.service';
+import { RedisModule } from '@src/redis/redis.module';
 
 @Module({
-  imports: [JwtModule.register({}), UserModule],
+  imports: [JwtModule.register({}), UserModule, RedisModule],
   controllers: [AuthController],
-  providers: [AuthService, JwtAtStrategy, JwtRtStrategy, JwtRedisService],
+  providers: [AuthService, JwtAtStrategy, JwtRtStrategy],
   exports: [AuthService],
 })
 export class AuthModule {}

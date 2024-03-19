@@ -2,7 +2,7 @@ import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import { UserService } from '@src/user/user.service';
-import { JwtPayload } from '@src/auth/interfaces/jwt-payload.interface';
+import { IJwtPayload } from '@src/auth/interfaces/auth.interface';
 import { ConfigService } from '@nestjs/config';
 
 @Injectable()
@@ -18,7 +18,7 @@ export class JwtAtStrategy extends PassportStrategy(Strategy, 'access') {
     });
   }
 
-  async validate(payload: JwtPayload) {
+  async validate(payload: IJwtPayload) {
     const { email } = payload;
 
     const user = await this.userService.findOneByOptions({
@@ -29,6 +29,6 @@ export class JwtAtStrategy extends PassportStrategy(Strategy, 'access') {
       throw new UnauthorizedException('유저가 존재하지 않습니다.');
     }
 
-    return user;
+    return payload;
   }
 }
