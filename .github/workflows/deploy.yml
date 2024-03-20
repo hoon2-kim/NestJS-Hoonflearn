@@ -39,14 +39,21 @@ jobs:
           docker push $ECR_REGISTRY/hoonflearn:$IMAGE_TAG
 
       - name: EC2에서 ECR 로그인
-        env:
-          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-        run: |
-          echo $ECR_REGISTRY
-          aws ecr get-login-password --region ap-northeast-2 | docker login --username AWS --password-stdin $ECR_REGISTRY
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.EC2_PUBLIC_IP }}
+          username: ${{ secrets.EC2_USERNAME }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            aws ecr get-login-password --region ap-northeast-2 | docker login --username AWS --password-stdin ${{ secrets.ECR_URI }}
 
       - name: 도커 stop 및 삭제
-        run: |
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.EC2_PUBLIC_IP }}
+          username: ${{ secrets.EC2_USERNAME }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+        script: |
           CONTAINER_IDS=$(sudo docker ps -a -q)
           for id in $CONTAINER_IDS 
           do
