@@ -50,7 +50,7 @@ jobs:
 
       - name: EC2에서 ECR 로그인
         env:
-          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          ECR_REGISTRY: ${{ secrets.ECR_URI }}
         run: |
           aws ecr get-login-password --region ap-northeast-2 | docker login --username AWS --password-stdin $ECR_REGISTRY
 
@@ -97,7 +97,7 @@ jobs:
 
       - name: EC2 배포
         env:
-          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          ECR_REGISTRY: ${{ secrets.ECR_URI }}
           ECR_REPOSITORY: hoonflearn
           IMAGE_TAG: ${{ github.sha }}
         uses: appleboy/ssh-action@master
