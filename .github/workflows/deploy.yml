@@ -39,7 +39,7 @@ jobs:
   deploy:
     needs: build
     name: deploy
-
+    runs-on: ubuntu-latest
     steps:
       - name: ECR 로그인
         env:
