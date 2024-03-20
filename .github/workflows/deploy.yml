@@ -1,10 +1,12 @@
 name: 배포
 
 on:
-  pull_request:
-    branches:
-      - master
-    types: [closed]
+  # pull_request:
+  #   branches:
+  #     - master
+  #   types: [closed]
+  push:
+    - develop
 
 jobs:
   build_and_deploy:
@@ -30,11 +32,10 @@ jobs:
         id: build-image
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-          ECR_REPOSITORY: hoonflearn
           IMAGE_TAG: ${{ github.sha }}
         run: |
-          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
-          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+          docker build -t $ECR_REGISTRY/hoonflearn:$IMAGE_TAG .
+          docker push $ECR_REGISTRY/hoonflearn:$IMAGE_TAG
 
       - name: EC2에서 ECR 로그인
         env:
@@ -86,7 +87,6 @@ jobs:
       - name: ssh로 EC2 접속 및 배포
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-          ECR_REPOSITORY: hoonflearn
           IMAGE_TAG: ${{ github.sha }}
         uses: appleboy/ssh-action@master
         with:
@@ -94,5 +94,5 @@ jobs:
           username: ${{ secrets.EC2_USERNAME }}
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
-            docker pull $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
-            docker run -d --env-file ./.env -p 8080:8080 $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+            docker pull $ECR_REGISTRY/hoonflearn:$IMAGE_TAG
+            docker run -d --env-file ./.env -p 8080:8080 $ECR_REGISTRY/hoonflearn:$IMAGE_TAG
