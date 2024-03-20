@@ -62,7 +62,6 @@ jobs:
         with:
           envkey_NODE_ENV: ${{ secrets.NODE_ENV }}
           envkey_SERVER_PORT: ${{ secrets.SERVER_PORT }}
-          envkey_TZ: ${{ secrets.Asia/Seoul }}
           envkey_JWT_AT_SECRET: ${{ secrets.JWT_AT_SECRET }}
           envkey_JWT_AT_EXPIRESIN: ${{ secrets.JWT_AT_EXPIRESIN }}
           envkey_JWT_AT_SECONDS: ${{ secrets.JWT_AT_SECONDS }}
