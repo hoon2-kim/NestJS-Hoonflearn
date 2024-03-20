@@ -36,22 +36,6 @@ jobs:
           docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
 
-      - name: EC2에서 ECR 로그인
-        env:
-          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-        run: |
-          aws ecr get-login-password --region ap-northeast-2 | docker login --username AWS --password-stdin $ECR_REGISTRY
-
-      - name: 도커 stop 및 삭제
-        run: |
-          CONTAINER_IDS=$(sudo docker ps -a -q)
-          for id in $CONTAINER_IDS 
-          do
-            sudo docker stop "$id" && sudo docker rm "$id"
-          done
-
-          docker image prune --force
-
       - name: env 파일 생성
         uses: SpicyPizza/create-envfile@v2.0
         with:
@@ -94,8 +78,5 @@ jobs:
           username: ${{ secrets.EC2_USERNAME }}
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
-            echo $ECR_REGISTRY
-            echo $ECR_REPOSITORY
-            echo $IMAGE_TAG
             docker pull $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
             docker run -d --env-file ./.env -p 8080:8080 $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
