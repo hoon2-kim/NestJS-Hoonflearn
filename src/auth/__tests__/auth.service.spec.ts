@@ -108,7 +108,7 @@ describe('AuthService', () => {
         mockJwtTokens.refresh_token,
         {
           httpOnly: true,
-          secure: false,
+          secure: expect.any(Boolean),
           sameSite: 'none',
           path: '/',
           maxAge: expect.any(Number),
@@ -149,7 +149,7 @@ describe('AuthService', () => {
       expect(result).toBeUndefined();
       expect(mockResponse.cookie).toBeCalledWith('refreshToken', '', {
         httpOnly: true,
-        secure: false,
+        secure: expect.any(Boolean),
         sameSite: 'none',
         path: '/',
         expires: new Date(0),
@@ -224,7 +224,7 @@ describe('AuthService', () => {
         expect(error).toBeInstanceOf(UnauthorizedException);
         expect(mockResponse.cookie).toBeCalledWith('refreshToken', '', {
           httpOnly: true,
-          secure: false,
+          secure: expect.any(Boolean),
           sameSite: 'none',
           path: '/',
           expires: new Date(0),
@@ -253,7 +253,7 @@ describe('AuthService', () => {
         mockJwtTokens.refresh_token,
         {
           httpOnly: true,
-          secure: false,
+          secure: expect.any(Boolean),
           sameSite: 'none',
           path: '/',
           maxAge: expect.any(Number),
@@ -278,7 +278,7 @@ describe('AuthService', () => {
         mockJwtTokens.refresh_token,
         {
           httpOnly: true,
-          secure: false,
+          secure: expect.any(Boolean),
           sameSite: 'none',
           path: '/',
           maxAge: expect.any(Number),

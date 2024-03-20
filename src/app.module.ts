@@ -25,11 +25,11 @@ import { OrderCourseModule } from '@src/order_course/order-course.module';
 import { VoucherModule } from '@src/voucher/voucher.module';
 import { EventEmitterModule } from '@nestjs/event-emitter';
 import { typeOrmModuleConfig } from '@src/common/configs/db/database';
-import { testTypeOrmModuleConfig } from '@src/common/configs/db/database-test';
 import { AppController } from '@src/app.controller';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { APP_GUARD } from '@nestjs/core';
 import { RedisModule } from '@src/redis/redis.module';
+import { testTypeOrmModuleConfig } from '@src/common/configs/db/database-test';
 
 @Module({
   imports: [

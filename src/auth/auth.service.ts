@@ -67,7 +67,7 @@ export class AuthService {
     /** refreshToken 쿠키 설정 */
     res.cookie('refreshToken', tokens.refresh_token, {
       httpOnly: true,
-      secure: false, // https 환경에서는 true
+      secure: process.env.NODE_ENV === 'development' ? false : true, // https 환경에서는 true
       sameSite: 'none',
       path: '/',
       maxAge: parseInt(process.env.JWT_RT_COOKIE_MAX_AGE),
@@ -108,7 +108,7 @@ export class AuthService {
 
       res.cookie('refreshToken', tokens.refresh_token, {
         httpOnly: true,
-        secure: false, // https 환경에서는 true
+        secure: process.env.NODE_ENV === 'development' ? false : true, // https 환경에서는 true
         sameSite: 'none',
         path: '/',
         maxAge: parseInt(process.env.JWT_RT_COOKIE_MAX_AGE),
@@ -127,7 +127,7 @@ export class AuthService {
 
       res.cookie('refreshToken', tokens.refresh_token, {
         httpOnly: true,
-        secure: false, // https 환경에서는 true
+        secure: process.env.NODE_ENV === 'development' ? false : true, // https 환경에서는 true
         sameSite: 'none',
         path: '/',
         maxAge: parseInt(process.env.JWT_RT_COOKIE_MAX_AGE),
@@ -175,7 +175,7 @@ export class AuthService {
       await this.redisService.del(jwtRefreshTokenKey(decoded.email));
       res.cookie('refreshToken', '', {
         httpOnly: true,
-        secure: false,
+        secure: process.env.NODE_ENV === 'development' ? false : true,
         sameSite: 'none',
         path: '/',
         expires: new Date(0),

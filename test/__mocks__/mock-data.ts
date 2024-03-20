@@ -110,7 +110,7 @@ export const mockMainCategory = {
 } as CategoryEntity;
 
 export const mockSubCategory = {
-  id: 'uuid',
+  id: 'uuid2',
   name: '서브 카테고리',
   created_at: new Date(),
   updated_at: new Date(),

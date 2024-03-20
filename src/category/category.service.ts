@@ -5,10 +5,17 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { CategoryIdsDto } from '@src/course/dtos/create-course.dto';
-import { EntityManager, FindOneOptions, In, IsNull, Repository } from 'typeorm';
+import {
+  EntityManager,
+  FindOneOptions,
+  In,
+  IsNull,
+  Not,
+  Repository,
+} from 'typeorm';
 import { CreateCategoryDto } from '@src/category/dtos/create-category.dto';
-import { UpdateCategoryDto } from '@src/category/dtos/update-category.dto';
 import { CategoryEntity } from '@src/category/entities/category.entity';
+import { UpdateCategoryDto } from '@src/category/dtos/update-category.dto';
 
 @Injectable()
 export class CategoryService {
@@ -208,6 +215,7 @@ export class CategoryService {
       {
         where: {
           id: In(subCategoryIds),
+          fk_parent_category_id: Not(IsNull()),
         },
       },
       manager,
@@ -215,7 +223,7 @@ export class CategoryService {
 
     if (!subCategory) {
       throw new BadRequestException(
-        '해당 서브 카테고리가 존재하지 않거나 메인 카테고리와 서브 카테고리가 불일치 합니다.',
+        '해당 서브 카테고리가 존재하지 않거나 서브 카테고리가 아닙니다.',
       );
     }
 
