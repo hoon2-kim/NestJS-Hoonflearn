@@ -7,8 +7,8 @@ on:
     types: [closed]
 
 jobs:
-  build:
-    name: build
+  build_and_deploy:
+    name: build_and_deploy
     runs-on: ubuntu-latest
 
     steps:
@@ -35,18 +35,6 @@ jobs:
         run: |
           docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
-
-  deploy:
-    needs: build
-    name: deploy
-    runs-on: ubuntu-latest
-    steps:
-      - name: AWS 자격 증명
-        uses: aws-actions/configure-aws-credentials@v1
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_KEY }}
-          aws-region: ap-northeast-2
 
       - name: EC2에서 ECR 로그인
         env:
@@ -96,16 +84,14 @@ jobs:
           envkey_COOLSMS_SENDER: ${{ secrets.COOLSMS_SENDER }}
 
       - name: ssh로 EC2 접속 및 배포
-        env:
-          ECR_REGISTRY: ${{ secrets.ECR_URI }}
-          ECR_REPOSITORY: hoonflearn
-          IMAGE_TAG: ${{ github.sha }}
         uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.EC2_PUBLIC_IP }}
           username: ${{ secrets.EC2_USERNAME }}
           key: ${{ secrets.EC2_SSH_KEY }}
-          envs: ECR_REGISTRY,ECR_REPOSITORY,IMAGE_TAG
+          ECR_REGISTRY: ${{ secrets.ECR_URI }}
+          ECR_REPOSITORY: hoonflearn
+          IMAGE_TAG: ${{ github.sha }}
           script: |
             docker pull $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
             docker run -d --env-file ./.env -p 8080:8080 $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
