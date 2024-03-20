@@ -52,8 +52,6 @@ jobs:
             sudo docker stop "$id" && sudo docker rm "$id"
           done
 
-          docker image prune --force
-
       - name: env 파일 생성
         uses: SpicyPizza/create-envfile@v2.0
         with:
