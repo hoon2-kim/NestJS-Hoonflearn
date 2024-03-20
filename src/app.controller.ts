@@ -1,9 +1,4 @@
-import {
-  BadRequestException,
-  Controller,
-  Get,
-  InternalServerErrorException,
-} from '@nestjs/common';
+import { Controller, Get } from '@nestjs/common';
 import { ApiExcludeController } from '@nestjs/swagger';
 
 @ApiExcludeController()
@@ -11,7 +6,6 @@ import { ApiExcludeController } from '@nestjs/swagger';
 export class AppController {
   @Get()
   ping() {
-    // throw new InternalServerErrorException('500 에러 테스트');
     return 'pong';
   }
 }
