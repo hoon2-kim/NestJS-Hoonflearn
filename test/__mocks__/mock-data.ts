@@ -190,7 +190,7 @@ export const mockCourseUserWithFree = {
   created_at: new Date(),
 } as CourseUserEntity;
 
-export const mockCreatedCourseUserWithPaid = {
+export const mockCourseUserWithPaid = {
   ...mockCourseUserWithFree,
   type: ECouresUserType.Paid,
 } as CourseUserEntity;
