@@ -10,9 +10,9 @@ import {
   getSchemaPath,
 } from '@nestjs/swagger';
 import { PageMetaDto } from '@src/common/dtos/page-meta.dto';
-import { CourseListByInstructorResponseDto } from '@src/course/dtos/response/course.response';
-import { QuestionListResponseDto } from '@src/question/dtos/response/question.response.dto';
-import { ReviewResponseWithoutCommentDto } from '@src/review/dtos/response/review.response.dto';
+import { CourseEntity } from '@src/course/entities/course.entity';
+import { QuestionEntity } from '@src/question/entities/question.entity';
+import { ReviewEntity } from '@src/review/entities/review.entity';
 
 export const ApiGetMyCoursesByInstructorSwagger = (summary: string) => {
   return applyDecorators(
@@ -23,7 +23,7 @@ export const ApiGetMyCoursesByInstructorSwagger = (summary: string) => {
         properties: {
           data: {
             type: 'array',
-            items: { $ref: getSchemaPath(CourseListByInstructorResponseDto) },
+            items: { $ref: getSchemaPath(CourseEntity) },
           },
           meta: { $ref: getSchemaPath(PageMetaDto) },
         },
@@ -44,7 +44,7 @@ export const ApiGetQuestionsByMyCourseSwagger = (summary: string) => {
         properties: {
           data: {
             type: 'array',
-            items: { $ref: getSchemaPath(QuestionListResponseDto) },
+            items: { $ref: getSchemaPath(QuestionEntity) },
           },
           meta: { $ref: getSchemaPath(PageMetaDto) },
         },
@@ -65,7 +65,7 @@ export const ApiGetReviewsByMyCourseSwagger = (summary: string) => {
         properties: {
           data: {
             type: 'array',
-            items: { $ref: getSchemaPath(ReviewResponseWithoutCommentDto) },
+            items: { $ref: getSchemaPath(ReviewEntity) },
           },
           meta: { $ref: getSchemaPath(PageMetaDto) },
         },

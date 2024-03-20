@@ -16,8 +16,10 @@ import { UserService } from '@src/user/user.service';
 import {
   CreateUserDto,
   NicknameDto,
-} from '@src/user/dtos/request/create-user.dto';
-import { UpdateUserDto } from '@src/user/dtos/request/update-user.dto';
+  PhoneCheckDto,
+  PhoneDto,
+} from '@src/user/dtos/create-user.dto';
+import { UpdateUserDto } from '@src/user/dtos/update-user.dto';
 import { AtGuard } from '@src/auth/guards/at.guard';
 import { CurrentUser } from '@src/auth/decorators/current-user.decorator';
 import { UserEntity } from '@src/user/entities/user.entity';
@@ -29,6 +31,7 @@ import {
   ApiGetMyQuestionsSwagger,
   ApiGetUserWishCoursesSwagger,
   ApiProfileUserSwagger,
+  ApisendCoolsmsSwagger,
   ApiUpdateUserSwagger,
   ApiUploadUserAvataSwagger,
   ApiWithdrawalUserSwagger,
@@ -37,16 +40,13 @@ import {
   UserMyCourseQueryDto,
   UserQuestionQueryDto,
   UserWishQueryDto,
-} from '@src/user/dtos/query/user.query.dto';
+} from '@src/user/dtos/user.query.dto';
 import { ApiTags } from '@nestjs/swagger';
-import { CourseWishListResponseDto } from '@src/course_wish/dtos/response/course-wish.reponse.dto';
-import { QuestionListResponseDto } from '@src/question/dtos/response/question.response.dto';
-import { CourseUserListResponseDto } from '@src/course_user/dtos/response/course-user.response.dto';
-import { imageFileFilter } from '@src/common/helpers/fileFilter.helper';
-import { PageDto } from '@src/common/dtos/page.dto';
+import { imageFileFilter } from '@src/common/utils/fileFilter';
 import { QuestionService } from '@src/question/question.service';
-import { CourseWishService } from '@src/course_wish/course_wish.service';
+import { CourseWishService } from '@src/course/course-wish/course-wish.service';
 import { CourseUserService } from '@src/course_user/course-user.service';
+import { IJwtPayload } from '@src/auth/interfaces/auth.interface';
 
 @ApiTags('USER')
 @Controller('users')
@@ -61,10 +61,10 @@ export class UserController {
   @ApiProfileUserSwagger('유저 프로필 조회')
   @Get('/profile')
   @UseGuards(AtGuard)
-  getMyProfile(
+  async getMyProfile(
     @CurrentUser('id') userId: string, //
   ): Promise<UserEntity> {
-    return this.userService.getProfile(userId);
+    return await this.userService.getProfile(userId);
   }
 
   @ApiGetUserWishCoursesSwagger('유저의 찜한 강의 조회')
@@ -73,7 +73,7 @@ export class UserController {
   async getMyWishCourses(
     @Query() userWishQueryDto: UserWishQueryDto,
     @CurrentUser('id') userId: string,
-  ): Promise<PageDto<CourseWishListResponseDto>> {
+  ) {
     return await this.courseWishService.findWishCoursesByUser(
       userWishQueryDto,
       userId,
@@ -86,7 +86,7 @@ export class UserController {
   async getMyQuestions(
     @Query() userQuestionQueryDto: UserQuestionQueryDto,
     @CurrentUser('id') userId: string,
-  ): Promise<PageDto<QuestionListResponseDto>> {
+  ) {
     return await this.questionService.findMyQuestions(
       userQuestionQueryDto,
       userId,
@@ -99,7 +99,7 @@ export class UserController {
   async getMyCourses(
     @Query() userMyCourseQueryDto: UserMyCourseQueryDto,
     @CurrentUser('id') userId: string,
-  ): Promise<PageDto<CourseUserListResponseDto>> {
+  ) {
     return await this.courseUserService.findMyCourses(
       userMyCourseQueryDto,
       userId,
@@ -108,33 +108,48 @@ export class UserController {
 
   @ApiCreateUserSwagger('유저 회원가입')
   @Post('/signup')
-  registerUser(
+  async registerUser(
     @Body() createUserDto: CreateUserDto, //
   ): Promise<UserEntity> {
-    return this.userService.create(createUserDto);
+    return await this.userService.create(createUserDto);
   }
 
   @ApiCheckNicknameSwagger('회원가입 시 닉네임 중복체크')
   @Post('/checknick')
   @HttpCode(200)
-  checkNickname(
+  async checkNickname(
     @Body() nickNameDto: NicknameDto, //
-  ): Promise<{ message: string }> {
-    return this.userService.checkNick(nickNameDto);
+  ) {
+    return await this.userService.checkNick(nickNameDto);
   }
 
-  // POST - 핸드폰 인증번호
+  @ApisendCoolsmsSwagger('핸드폰 번호 등록시 인증번호 요청')
+  @Post('/sms/send')
+  @UseGuards(AtGuard)
+  async sendCoolSMS(
+    @Body() phoneDto: PhoneDto, //
+  ) {
+    return await this.userService.sendSMS(phoneDto);
+  }
 
-  // POST - 인증번호 체크 및 저장
+  @ApiCheckNicknameSwagger('핸드폰 인증번호 체크')
+  @Post('/sms/check')
+  @UseGuards(AtGuard)
+  async checkCoolSMSToken(
+    @CurrentUser('id') id: string,
+    @Body() phoneCheckDto: PhoneCheckDto,
+  ) {
+    return await this.userService.checkToken(id, phoneCheckDto);
+  }
 
   @ApiUpdateUserSwagger('유저 회원정보 수정')
   @Patch('/profile')
   @UseGuards(AtGuard)
-  updateUserProfile(
+  async updateUserProfile(
     @CurrentUser('id') userId: string,
     @Body() updateUserDto: UpdateUserDto,
-  ): Promise<{ message: string }> {
-    return this.userService.update(userId, updateUserDto);
+  ) {
+    return await this.userService.update(userId, updateUserDto);
   }
 
   @ApiUploadUserAvataSwagger('유저 프로필 이미지 업로드')
@@ -146,7 +161,7 @@ export class UserController {
       fileFilter: imageFileFilter,
     }),
   )
-  uploadUserAvatar(
+  async uploadUserAvatar(
     @CurrentUser('id') userId: string,
     @UploadedFile() file: Express.Multer.File,
   ): Promise<string> {
@@ -154,15 +169,15 @@ export class UserController {
       throw new BadRequestException('파일이 없습니다.');
     }
 
-    return this.userService.upload(userId, file);
+    return await this.userService.upload(userId, file);
   }
 
   @ApiWithdrawalUserSwagger('유저 회원 탈퇴')
   @Delete('/withdrawal')
   @UseGuards(AtGuard)
-  withdrawalUser(
-    @CurrentUser('id') userId: string, //
-  ): Promise<boolean> {
-    return this.userService.delete(userId);
+  async withdrawalUser(
+    @CurrentUser() user: IJwtPayload, //
+  ): Promise<void> {
+    return await this.userService.delete(user);
   }
 }

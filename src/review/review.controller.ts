@@ -9,12 +9,12 @@ import {
   Query,
 } from '@nestjs/common';
 import { ReviewService } from '@src/review/review.service';
-import { CreateReviewDto } from '@src/review/dtos/request/create-review.dto';
-import { UpdateReviewDto } from '@src/review/dtos/request/update-review.dto';
+import { CreateReviewDto } from '@src/review/dtos/create-review.dto';
+import { UpdateReviewDto } from '@src/review/dtos/update-review.dto';
 import { UseGuards } from '@nestjs/common';
 import { AtGuard } from '@src/auth/guards/at.guard';
 import { CurrentUser } from '@src/auth/decorators/current-user.decorator';
-import { ReviewListQueryDto } from '@src/review/dtos/query/review-list.query.dto';
+import { ReviewListQueryDto } from '@src/review/dtos/review-list.query.dto';
 import { ApiTags } from '@nestjs/swagger';
 import {
   ApiCreateReviewSwagger,
@@ -24,7 +24,6 @@ import {
   ApiUpdateReviewSwagger,
 } from './review.swagger';
 import { PageDto } from '@src/common/dtos/page.dto';
-import { ReviewResponseWithCommentDto } from '@src/review/dtos/response/review.response.dto';
 import { ReviewEntity } from '@src/review/entities/review.entity';
 
 @ApiTags('REVIEW')
@@ -34,51 +33,54 @@ export class ReviewController {
 
   @ApiGetAllReviewsByCourseSwagger('해당 강의의 모든 리뷰 조회')
   @Get('/courses/:courseId')
-  findAllReviewsByCourse(
+  async findAllReviewsByCourse(
     @Param('courseId') courseId: string, //
     @Query() reviewListQueryDto: ReviewListQueryDto,
-  ): Promise<PageDto<ReviewResponseWithCommentDto>> {
-    return this.reviewService.findAllByCourse(courseId, reviewListQueryDto);
+  ): Promise<PageDto<ReviewEntity>> {
+    return await this.reviewService.findAllByCourse(
+      courseId,
+      reviewListQueryDto,
+    );
   }
 
   @ApiCreateReviewSwagger('리뷰 작성(강의를 구매한 사람만)')
   @Post()
   @UseGuards(AtGuard)
-  createReview(
+  async createReview(
     @Body() createReviewDto: CreateReviewDto,
     @CurrentUser('id') userId: string,
   ): Promise<ReviewEntity> {
-    return this.reviewService.create(createReviewDto, userId);
+    return await this.reviewService.create(createReviewDto, userId);
   }
 
   @ApiLikeReviewSwagger('리뷰 좋아요 / 좋아요 취소')
   @Post('/:reviewId/like')
   @UseGuards(AtGuard)
-  addOrCancelReviewLike(
+  async addOrCancelReviewLike(
     @Param('reviewId') reviewId: string,
     @CurrentUser('id') userId: string,
   ): Promise<void> {
-    return this.reviewService.addOrCancelLike(reviewId, userId);
+    return await this.reviewService.addOrCancelLike(reviewId, userId);
   }
 
   @ApiUpdateReviewSwagger('리뷰 수정')
   @Patch('/:reviewId')
   @UseGuards(AtGuard)
-  updateReview(
+  async updateReview(
     @Param('reviewId') reviewId: string,
     @Body() updateReviewDto: UpdateReviewDto,
     @CurrentUser('id') userId: string,
-  ): Promise<{ message: string }> {
-    return this.reviewService.update(reviewId, updateReviewDto, userId);
+  ): Promise<ReviewEntity> {
+    return await this.reviewService.update(reviewId, updateReviewDto, userId);
   }
 
   @ApiDeleteReviewSwagger('리뷰 삭제')
   @Delete('/:reviewId')
   @UseGuards(AtGuard)
-  deleteReview(
+  async deleteReview(
     @Param('reviewId') reviewId: string,
     @CurrentUser('id') userId: string,
-  ): Promise<boolean> {
-    return this.reviewService.delete(reviewId, userId);
+  ): Promise<void> {
+    return await this.reviewService.delete(reviewId, userId);
   }
 }

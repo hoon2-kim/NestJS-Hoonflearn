@@ -7,19 +7,15 @@ import { PageMetaDto } from '@src/common/dtos/page-meta.dto';
 import { PageDto } from '@src/common/dtos/page.dto';
 import { CourseService } from '@src/course/course.service';
 import { CourseUserService } from '@src/course_user/course-user.service';
-import { InstructorReviewQueryDto } from '@src/instructor/dtos/query/instructor.query.dto';
+import { InstructorReviewQueryDto } from '@src/instructor/dtos/instructor.query.dto';
 import { EInstructorReviewSortBy } from '@src/instructor/enums/instructor.enum';
-import { ReviewLikeService } from '@src/review-like/review-like.service';
+import { ReviewLikeService } from '@src/review/review-like/review-like.service';
 import { DataSource, FindOneOptions, Repository } from 'typeorm';
-import { CreateReviewDto } from '@src/review/dtos/request/create-review.dto';
-import { ReviewListQueryDto } from '@src/review/dtos/query/review-list.query.dto';
-import { UpdateReviewDto } from '@src/review/dtos/request/update-review.dto';
+import { CreateReviewDto } from '@src/review/dtos/create-review.dto';
+import { ReviewListQueryDto } from '@src/review/dtos/review-list.query.dto';
+import { UpdateReviewDto } from '@src/review/dtos/update-review.dto';
 import { ReviewEntity } from '@src/review/entities/review.entity';
 import { EReviewMethod, EReviewSortBy } from '@src/review/enums/review.enum';
-import {
-  ReviewResponseWithCommentDto,
-  ReviewResponseWithoutCommentDto,
-} from '@src/review/dtos/response/review.response.dto';
 
 @Injectable()
 export class ReviewService {
@@ -36,7 +32,7 @@ export class ReviewService {
   async findAllByCourse(
     courseId: string,
     reviewListQueryDto: ReviewListQueryDto,
-  ): Promise<PageDto<ReviewResponseWithCommentDto>> {
+  ): Promise<PageDto<ReviewEntity>> {
     const { skip, take, sort } = reviewListQueryDto;
 
     const course = await this.courseService.findOneByOptions({
@@ -89,10 +85,7 @@ export class ReviewService {
       itemCount: count,
     });
 
-    return new PageDto(
-      reviews.map((r) => ReviewResponseWithCommentDto.from(r)),
-      pageMeta,
-    );
+    return new PageDto(reviews, pageMeta);
   }
 
   async findOneByOptions(
@@ -162,7 +155,7 @@ export class ReviewService {
     reviewId: string,
     updateReviewDto: UpdateReviewDto,
     userId: string,
-  ): Promise<{ message: string }> {
+  ): Promise<ReviewEntity> {
     const { rating } = updateReviewDto;
 
     const review = await this.findOneByOptions({
@@ -196,12 +189,10 @@ export class ReviewService {
 
     Object.assign(review, updateReviewDto);
 
-    await this.reviewRepository.save(review);
-
-    return { message: '수정 성공' };
+    return await this.reviewRepository.save(review);
   }
 
-  async delete(reviewId: string, userId: string): Promise<boolean> {
+  async delete(reviewId: string, userId: string): Promise<void> {
     const review = await this.findOneByOptions({
       where: { id: reviewId },
     });
@@ -231,9 +222,7 @@ export class ReviewService {
         manager,
       );
 
-      const result = await manager.delete(ReviewEntity, { id: reviewId });
-
-      return result.affected ? true : false;
+      await manager.delete(ReviewEntity, { id: reviewId });
     });
   }
 
@@ -273,7 +262,7 @@ export class ReviewService {
     courseIds: string[],
     instructorReviewQueryDto: InstructorReviewQueryDto,
     userId: string,
-  ): Promise<PageDto<ReviewResponseWithoutCommentDto>> {
+  ): Promise<PageDto<ReviewEntity>> {
     const { courseId, sort, skip, take } = instructorReviewQueryDto;
 
     const query = this.reviewRepository
@@ -304,6 +293,7 @@ export class ReviewService {
           .addOrderBy('review.created_at', 'DESC');
         break;
 
+      // 수정하기
       case EInstructorReviewSortBy.Comment_Recent:
         query
           .leftJoin(
@@ -333,9 +323,6 @@ export class ReviewService {
       itemCount: count,
     });
 
-    return new PageDto(
-      reviews.map((r) => ReviewResponseWithoutCommentDto.from(r)),
-      pageMeta,
-    );
+    return new PageDto(reviews, pageMeta);
   }
 }

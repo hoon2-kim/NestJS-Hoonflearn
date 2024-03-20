@@ -8,11 +8,12 @@ import {
   ApiRestoreAccessTokenSwagger,
 } from '@src/auth/auth.swagger';
 import { CurrentUser } from '@src/auth/decorators/current-user.decorator';
-import { LoginUserDto } from '@src/auth/dtos/request/login-user.dto';
+import { LoginUserDto } from '@src/auth/dtos/login-user.dto';
 import { AtGuard } from '@src/auth/guards/at.guard';
 import { RtGuard } from '@src/auth/guards/rt.guard';
-import { IAuthToken } from '@src/auth/interfaces/auth.interface';
+import { IAuthToken, IJwtPayload } from '@src/auth/interfaces/auth.interface';
 import { UserEntity } from '@src/user/entities/user.entity';
+import { GoogleTokenDto } from '@src/auth/dtos/google-token.dto';
 
 @ApiTags('AUTH')
 @Controller('auth')
@@ -21,32 +22,40 @@ export class AuthController {
 
   @ApiLoginSwagger('로그인')
   @Post('/login')
-  loginUser(
+  async loginUser(
     @Body() loginUserDto: LoginUserDto,
     @Res({ passthrough: true }) res: Response,
   ): Promise<IAuthToken> {
-    return this.authService.login(loginUserDto, res);
+    return await this.authService.login(loginUserDto, res);
   }
 
   @ApiLogoutSwagger('로그아웃')
   @Post('/logout')
   @UseGuards(AtGuard)
-  logoutUser(
-    @CurrentUser() user: UserEntity,
+  async logoutUser(
+    @CurrentUser() user: IJwtPayload,
     @Res({ passthrough: true }) res: Response,
-  ): Promise<string> {
-    return this.authService.logout(user, res);
+  ): Promise<void> {
+    return await this.authService.logout(user, res);
   }
 
   @ApiRestoreAccessTokenSwagger('access_token 만료시 재발급')
   @Post('/refresh')
   @UseGuards(RtGuard)
-  restoreAccessToken(
+  async restoreAccessToken(
     @Req() req: Request,
     @Res({ passthrough: true }) res: Response,
   ): Promise<IAuthToken> {
     const cookieRt = req.cookies?.refreshToken;
 
-    return this.authService.restore(cookieRt, res);
+    return await this.authService.restore(cookieRt, res);
+  }
+
+  @Post('/login/google')
+  async googleLogin(
+    @Body() googleTokenDto: GoogleTokenDto,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    return await this.authService.socialLogin(googleTokenDto, res);
   }
 }

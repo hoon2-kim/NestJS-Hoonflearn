@@ -9,9 +9,9 @@ import {
   mockQuestionService,
   mockUpdateQuestionDto,
 } from '@test/__mocks__/question.mock';
-import { QuestionListQueryDto } from '@src/question/dtos/query/question-list.query.dto';
-import { QuestionStatusDto } from '@src/question/dtos/request/question-status.dto';
-import { QuestionVoteDto } from '@src/question/dtos/request/question-vote.dto';
+import { QuestionListQueryDto } from '@src/question/dtos/question-list.query.dto';
+import { QuestionStatusDto } from '@src/question/dtos/question-status.dto';
+import { QuestionVoteDto } from '@src/question/dtos/question-vote.dto';
 
 describe('QuestionController', () => {
   let questionController: QuestionController;

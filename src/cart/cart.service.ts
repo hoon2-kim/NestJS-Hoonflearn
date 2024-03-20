@@ -2,11 +2,10 @@ import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { CartCourseService } from '@src/cart_course/cart_course.service';
 import { EntityManager, FindOneOptions, Repository } from 'typeorm';
-import { CreateCartDto } from '@src/cart/dtos/request/create-cart.dto';
+import { CreateCartDto } from '@src/cart/dtos/create-cart.dto';
 import { CartEntity } from '@src/cart/entities/cart.entity';
 import { CourseService } from '@src/course/course.service';
 import { NotFoundException } from '@nestjs/common';
-import { CartResponseDto } from '@src/cart/dtos/response/cart.response.dto';
 import { CourseUserService } from '@src/course_user/course-user.service';
 
 @Injectable()
@@ -28,7 +27,7 @@ export class CartService {
     return cart;
   }
 
-  async findMyCart(userId: string): Promise<CartResponseDto> {
+  async findMyCart(userId: string): Promise<CartEntity> {
     let cart = await this.cartRepository
       .createQueryBuilder('cart')
       .leftJoinAndSelect('cart.cartsCourses', 'cartsCourses')
@@ -41,15 +40,7 @@ export class CartService {
       cart = await this.createCart(userId);
     }
 
-    const courseIds = cart.cartsCourses
-      ? cart.cartsCourses.map((c) => c.fk_course_id)
-      : [];
-
-    const total_price = await this.courseService.calculateCoursePriceInCart(
-      courseIds,
-    );
-
-    return CartResponseDto.from(cart, total_price);
+    return cart;
   }
 
   async createCart(userId: string): Promise<CartEntity> {
@@ -96,10 +87,12 @@ export class CartService {
 
     await this.cartCourseService.insertCourseInCart(courseId, cart);
 
+    console.log(cart);
+
     return cart;
   }
 
-  async delete(courseId: string, userId: string): Promise<boolean> {
+  async delete(courseId: string, userId: string): Promise<void> {
     const cart = await this.findOneByOptions({
       where: { fk_user_id: userId },
     });
@@ -108,12 +101,7 @@ export class CartService {
       throw new NotFoundException('장바구니가 존재하지 않습니다.');
     }
 
-    const result = await this.cartCourseService.deleteCourseInCart(
-      cart.id,
-      courseId,
-    );
-
-    return result.affected ? true : false;
+    await this.cartCourseService.deleteCourseInCart(cart.id, courseId);
   }
 
   async clearCartWithTransaction(

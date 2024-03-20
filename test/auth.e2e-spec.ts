@@ -6,7 +6,7 @@ import {
 import { Reflector } from '@nestjs/core';
 import { Test, TestingModule } from '@nestjs/testing';
 import { AppModule } from '@src/app.module';
-import { CreateUserDto } from '@src/user/dtos/request/create-user.dto';
+import { CreateUserDto } from '@src/user/dtos/create-user.dto';
 import request from 'supertest';
 import { HttpExceptionFilter } from '@src/common/filters/http-api-exception.filter';
 import cookieParser from 'cookie-parser';

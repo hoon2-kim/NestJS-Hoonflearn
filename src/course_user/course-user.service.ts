@@ -2,14 +2,13 @@ import { ForbiddenException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { PageMetaDto } from '@src/common/dtos/page-meta.dto';
 import { PageDto } from '@src/common/dtos/page.dto';
-import { UserMyCourseQueryDto } from '@src/user/dtos/query/user.query.dto';
+import { UserMyCourseQueryDto } from '@src/user/dtos/user.query.dto';
 import {
   DeleteResult,
   EntityManager,
   FindOneOptions,
   Repository,
 } from 'typeorm';
-import { CourseUserListResponseDto } from '@src/course_user/dtos/response/course-user.response.dto';
 import { CourseUserEntity } from '@src/course_user/entities/course-user.entity';
 import { ECouresUserType } from '@src/course_user/enums/course-user.enum';
 
@@ -23,7 +22,7 @@ export class CourseUserService {
   async findMyCourses(
     userMyCourseQueryDto: UserMyCourseQueryDto,
     userId: string,
-  ): Promise<PageDto<CourseUserListResponseDto>> {
+  ): Promise<PageDto<CourseUserEntity>> {
     const { s, take, skip } = userMyCourseQueryDto;
 
     const query = this.courseUserRepository
@@ -47,10 +46,7 @@ export class CourseUserService {
       itemCount: count,
     });
 
-    return new PageDto(
-      courses.map((c) => CourseUserListResponseDto.from(c)),
-      pageMeta,
-    );
+    return new PageDto(courses, pageMeta);
   }
 
   async saveCourseUserRepo(

@@ -17,9 +17,8 @@ import {
   ApiGetCategorySwagger,
   ApiUpdateCategorySwagger,
 } from '@src/category/category.swagger';
-import { CreateCategoryDto } from '@src/category/dtos/request/create-category.dto';
-import { UpdateCategoryDto } from '@src/category/dtos/request/update-category.dto';
-import { CategoryResponseDto } from '@src/category/dtos/response/category.response.dto';
+import { CreateCategoryDto } from '@src/category/dtos/create-category.dto';
+import { UpdateCategoryDto } from '@src/category/dtos/update-category.dto';
 import { CategoryEntity } from '@src/category/entities/category.entity';
 
 @ApiTags('CATEGORY')
@@ -29,49 +28,49 @@ export class CategoryController {
 
   @ApiGetAllCategoriesSwagger('모든 카테고리 조회')
   @Get()
-  findAllCategories(): Promise<CategoryResponseDto[]> {
-    return this.categoryService.findAll();
+  async findAllCategories(): Promise<CategoryEntity[]> {
+    return await this.categoryService.findAll();
   }
 
   @ApiGetCategorySwagger('카테고리 상세 조회(메인카테고리)')
   @Get('/:categoryId')
-  findOneCategoryWithSub(
+  async findOneCategoryWithSub(
     @Param('categoryId') categoryId: string, //
-  ): Promise<CategoryResponseDto> {
+  ): Promise<CategoryEntity> {
     return this.categoryService.findOneWithSub(categoryId);
   }
 
   @ApiCreateCategorySwagger('메인 카테고리 생성')
   @Post()
-  createParentCategory(
+  async createParentCategory(
     @Body() createCategoryDto: CreateCategoryDto, //
   ): Promise<CategoryEntity> {
-    return this.categoryService.createParent(createCategoryDto);
+    return await this.categoryService.createParent(createCategoryDto);
   }
 
   @ApiCreateSubCategorySwagger('서브 카테고리 생성')
   @Post('/:categoryId/subCategories')
-  createSubCategory(
+  async createSubCategory(
     @Param('categoryId') categoryId: string,
     @Body() createCategoryDto: CreateCategoryDto, //
   ): Promise<CategoryEntity> {
-    return this.categoryService.createSub(categoryId, createCategoryDto);
+    return await this.categoryService.createSub(categoryId, createCategoryDto);
   }
 
   @ApiUpdateCategorySwagger('카테고리 수정(메인,서브)')
   @Put('/:categoryId')
-  updateCategoryOrSub(
+  async updateCategoryOrSub(
     @Param('categoryId') categoryId: string,
     @Body() updateCategoryDto: UpdateCategoryDto,
-  ): Promise<{ message: string }> {
-    return this.categoryService.update(categoryId, updateCategoryDto);
+  ): Promise<void> {
+    return await this.categoryService.update(categoryId, updateCategoryDto);
   }
 
   @ApiDeleteCategorySwagger('카테고리 삭제(메인,서브)')
   @Delete('/:categoryId')
-  deleteCategoryOrSub(
+  async deleteCategoryOrSub(
     @Param('categoryId') categoryId: string, //
-  ): Promise<boolean> {
-    return this.categoryService.delete(categoryId);
+  ): Promise<void> {
+    return await this.categoryService.delete(categoryId);
   }
 }

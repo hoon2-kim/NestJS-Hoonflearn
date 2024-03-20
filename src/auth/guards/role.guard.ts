@@ -33,7 +33,7 @@ export class RoleGuard implements CanActivate {
     }
 
     if (!validRole.includes(user.role)) {
-      throw new ForbiddenException(`해당 ${validRole}만 가능합니다.`);
+      throw new ForbiddenException(`Role:${validRole}만 가능합니다.`);
     }
 
     return this.matchRoles(validRole, user.role);

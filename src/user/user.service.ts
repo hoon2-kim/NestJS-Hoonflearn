@@ -9,13 +9,21 @@ import { DataSource, FindOneOptions, Repository } from 'typeorm';
 import {
   CreateUserDto,
   NicknameDto,
-} from '@src/user/dtos/request/create-user.dto';
-import { UpdateUserDto } from '@src/user/dtos/request/update-user.dto';
+  PhoneCheckDto,
+  PhoneDto,
+} from '@src/user/dtos/create-user.dto';
+import { UpdateUserDto } from '@src/user/dtos/update-user.dto';
 import { UserEntity } from '@src/user/entities/user.entity';
 import * as bcryptjs from 'bcryptjs';
 import { AwsS3Service } from '@src/aws-s3/aws-s3.service';
 import { InstructorProfileEntity } from '@src/instructor/entities/instructor-profile.entity';
 import { CartService } from '@src/cart/cart.service';
+import { CoolsmsService } from '@src/coolsms/coolsms.service';
+import { RedisService } from '@src/redis/redis.service';
+import { createRandomToken } from '@src/common/utils/randomToken';
+import { coolsmsUserPhoneKey } from '@src/redis/keys';
+import { IJwtPayload } from '@src/auth/interfaces/auth.interface';
+import { ERoleType } from './enums/user.enum';
 
 @Injectable()
 export class UserService {
@@ -28,6 +36,8 @@ export class UserService {
     private readonly dataSource: DataSource,
     private readonly awsS3Service: AwsS3Service,
     private readonly cartService: CartService,
+    private readonly coolsmsService: CoolsmsService,
+    private readonly redisService: RedisService,
   ) {}
 
   async findOneByOptions(
@@ -46,17 +56,20 @@ export class UserService {
     return profile;
   }
 
-  async create(createUserDto: CreateUserDto): Promise<UserEntity> {
-    const { email, password, nickname, phone } = createUserDto;
+  async create(
+    createUserDto: CreateUserDto,
+    provider?: string,
+  ): Promise<UserEntity> {
+    const { email, password, nickname } = createUserDto;
 
     const hashedPassword = await bcryptjs.hash(password, 10);
 
     try {
       const result = await this.userRepository.save({
         email,
-        phone,
         nickname,
         password: hashedPassword,
+        loginType: provider,
       });
 
       return result;
@@ -66,9 +79,6 @@ export class UserService {
           throw new BadRequestException('해당하는 이메일이 이미 존재합니다.');
         }
 
-        if (error.detail.includes('phone')) {
-          throw new BadRequestException('핸드폰 번호가 이미 존재합니다.');
-        }
         throw new BadRequestException(error.detail);
       } else {
         throw new InternalServerErrorException('서버 오류');
@@ -85,13 +95,39 @@ export class UserService {
       throw new BadRequestException('해당 닉네임은 이미 사용중입니다.');
     }
 
+    // TODO: 반환방식 수정
     return { message: `해당 닉네임:${nickNameDto.nickname}은 사용가능합니다.` };
+  }
+
+  async sendSMS(phoneDto: PhoneDto): Promise<void> {
+    const token = createRandomToken();
+
+    await Promise.all([
+      this.coolsmsService.sendSMS(phoneDto.phone, token),
+      this.redisService.set(coolsmsUserPhoneKey(phoneDto.phone), token, 180),
+    ]);
+  }
+
+  async checkToken(id: string, phoneCheckDto: PhoneCheckDto) {
+    const savedToken = await this.redisService.get(
+      coolsmsUserPhoneKey(phoneCheckDto.phone),
+    );
+
+    if (!savedToken) {
+      throw new BadRequestException('인증번호를 먼저 요청해주세요.');
+    }
+
+    if (savedToken !== phoneCheckDto.token) {
+      throw new BadRequestException('인증번호가 일치하지 않습니다.');
+    }
+
+    await this.userRepository.update({ id }, { phone: phoneCheckDto.phone });
   }
 
   async update(
     userId: string,
     updateUserDto: UpdateUserDto,
-  ): Promise<{ message: string }> {
+  ): Promise<UserEntity> {
     const { nickname } = updateUserDto;
 
     const user = await this.findOneByOptions({
@@ -114,9 +150,7 @@ export class UserService {
 
     Object.assign(user, updateUserDto);
 
-    await this.userRepository.save(user);
-
-    return { message: '수정 성공' };
+    return await this.userRepository.save(user);
   }
 
   async upload(userId: string, file: Express.Multer.File): Promise<string> {
@@ -158,30 +192,26 @@ export class UserService {
     }
   }
 
-  async delete(userId: string): Promise<boolean> {
-    const user = await this.findOneByOptions({
-      where: { id: userId },
+  async delete(user: IJwtPayload): Promise<void> {
+    const { id, role } = user;
+
+    const existUser = await this.findOneByOptions({
+      where: { id },
     });
 
-    if (!user) {
+    if (!existUser) {
       throw new NotFoundException('해당 유저가 존재하지 않습니다.');
     }
 
-    const result = await this.userRepository.softDelete({ id: userId });
-
-    const instructorProfile = await this.instructorProfileRepository.findOne({
-      where: { fk_user_id: userId },
-    });
-
-    if (instructorProfile) {
+    if (role === ERoleType.Instructor) {
       await this.instructorProfileRepository.softDelete({
-        id: instructorProfile.id,
+        fk_user_id: id,
       });
     }
 
     /** 장바구니 삭제 */
-    await this.cartService.removeCart(userId);
+    await this.cartService.removeCart(id);
 
-    return result.affected ? true : false;
+    await this.userRepository.softDelete({ id });
   }
 }

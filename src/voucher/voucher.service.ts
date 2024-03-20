@@ -66,7 +66,7 @@ export class VoucherService {
     });
   }
 
-  async delete(courseId: string, userId: string): Promise<boolean> {
+  async delete(courseId: string, userId: string): Promise<void> {
     const courseUser = await this.coureUserService.findOneByOptions({
       where: { fk_course_id: courseId, fk_user_id: userId },
     });
@@ -80,18 +80,13 @@ export class VoucherService {
     }
 
     return await this.dataSource.transaction(async (manager) => {
-      const result = await this.coureUserService.cancelFreeCourseUserRepo(
-        courseId,
-        manager,
-      );
+      await this.coureUserService.cancelFreeCourseUserRepo(courseId, manager);
 
       await this.courseService.updateCourseStudents(
         [courseId],
         EOrderAction.Delete,
         manager,
       );
-
-      return result.affected ? true : false;
     });
   }
 }

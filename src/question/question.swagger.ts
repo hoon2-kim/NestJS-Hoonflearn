@@ -11,10 +11,6 @@ import {
   getSchemaPath,
 } from '@nestjs/swagger';
 import { PageMetaDto } from '@src/common/dtos/page-meta.dto';
-import {
-  QuestionDetailResponseDto,
-  QuestionListResponseDto,
-} from '@src/question/dtos/response/question.response.dto';
 import { QuestionEntity } from '@src/question/entities/question.entity';
 
 export const ApiGetAllQuestionsSwagger = (summary: string) => {
@@ -26,7 +22,7 @@ export const ApiGetAllQuestionsSwagger = (summary: string) => {
         properties: {
           data: {
             type: 'array',
-            items: { $ref: getSchemaPath(QuestionListResponseDto) },
+            items: { $ref: getSchemaPath(QuestionEntity) },
           },
           meta: { $ref: getSchemaPath(PageMetaDto) },
         },
@@ -45,7 +41,7 @@ export const ApiGetQuestionsByCourseSwagger = (summary: string) => {
         properties: {
           data: {
             type: 'array',
-            items: { $ref: getSchemaPath(QuestionListResponseDto) },
+            items: { $ref: getSchemaPath(QuestionEntity) },
           },
           meta: { $ref: getSchemaPath(PageMetaDto) },
         },
@@ -61,7 +57,7 @@ export const ApiGetQuestionSwagger = (summary: string) => {
     ApiOperation({ summary }),
     ApiOkResponse({
       description: '조회 성공',
-      type: QuestionDetailResponseDto,
+      type: QuestionEntity,
     }),
     ApiNotFoundResponse({ description: '해당 질문글이 존재하지 않을 경우' }),
     ApiInternalServerErrorResponse({ description: '서버 오류' }),

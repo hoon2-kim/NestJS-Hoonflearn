@@ -6,6 +6,7 @@ import { ClassSerializerInterceptor, ValidationPipe } from '@nestjs/common';
 import { setupSwagger } from '@src/api-docs.swagger';
 import { HttpExceptionFilter } from '@src/common/filters/http-api-exception.filter';
 import * as Sentry from '@sentry/node';
+import { ResponseInterceptor } from './common/interceptors/response-interceptor';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
@@ -29,7 +30,11 @@ async function bootstrap() {
       transform: true, // 객체를 자동으로 dto로 변환
     }),
   );
-  app.useGlobalInterceptors(new ClassSerializerInterceptor(app.get(Reflector)));
+  app.useGlobalInterceptors(
+    new ClassSerializerInterceptor(app.get(Reflector)),
+    new ResponseInterceptor(),
+  );
+
   app.useGlobalFilters(new HttpExceptionFilter());
 
   // swagger

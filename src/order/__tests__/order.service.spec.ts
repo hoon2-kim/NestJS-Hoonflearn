@@ -26,10 +26,10 @@ import {
   mockIamportData,
   mockCreatedOrder,
   mockCreateOrderDto,
-} from '@test/__mocks__/order.mock';
+} from '@test/__mocks__/asd/order.mock';
 import { mockOrderCourse } from '@test/__mocks__/orderCourse.mock';
 import { DataSource, QueryRunner, Repository } from 'typeorm';
-import { OrderListQueryDto } from '@src/order/dtos/query/order-list.query.dto';
+import { OrderListQueryDto } from '@src/order/dtos/order-list.query.dto';
 import { OrderEntity } from '@src/order/entities/order.entity';
 import { IamportService } from '@src/order/iamport.service';
 

@@ -4,8 +4,8 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { CourseService } from '@src/course/course.service';
 import { ELessonAction } from '@src/lesson/enums/lesson.enum';
 import { EntityManager, FindOneOptions, Repository } from 'typeorm';
-import { CreateSectionDto } from '@src/section/dtos/request/create-section.dto';
-import { UpdateSectionDto } from '@src/section/dtos/request/update-section.dto';
+import { CreateSectionDto } from '@src/section/dtos/create-section.dto';
+import { UpdateSectionDto } from '@src/section/dtos/update-section.dto';
 import { SectionEntity } from '@src/section/entities/section.entity';
 
 const LESSON_UPDATE_VALUE_INSECTION = 1;
@@ -60,7 +60,7 @@ export class SectionService {
     sectionId: string,
     updateSectionDto: UpdateSectionDto,
     userId: string,
-  ): Promise<{ message: string }> {
+  ): Promise<SectionEntity> {
     const section = await this.findOneByOptions({
       where: { id: sectionId },
     });
@@ -73,12 +73,10 @@ export class SectionService {
 
     Object.assign(section, updateSectionDto);
 
-    await this.sectionRepository.save(section);
-
-    return { message: '수정 성공' };
+    return await this.sectionRepository.save(section);
   }
 
-  async delete(sectionId: string, userId: string): Promise<boolean> {
+  async delete(sectionId: string, userId: string): Promise<void> {
     const section = await this.findOneByOptions({
       where: { id: sectionId },
     });
@@ -89,9 +87,7 @@ export class SectionService {
 
     await this.courseService.validateInstructor(section.fk_course_id, userId);
 
-    const result = await this.sectionRepository.delete({ id: sectionId });
-
-    return result.affected ? true : false;
+    await this.sectionRepository.delete({ id: sectionId });
   }
 
   async updateLessonCountInSection(

@@ -1,34 +1,58 @@
-import { UnauthorizedException } from '@nestjs/common';
+import { BadRequestException, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { Test, TestingModule } from '@nestjs/testing';
 import { AuthService } from '@src/auth/auth.service';
 import { UserService } from '@src/user/user.service';
-import {
-  mockJwtRedisService,
-  mockJwtService,
-  mockLoginUserDto,
-  mockUserService,
-} from '@test/__mocks__/auth.mock';
-import { mockCreatedUser } from '@test/__mocks__/user.mock';
 import bcryptjs from 'bcryptjs';
 import { Response } from 'express';
-import { JwtRedisService } from '@src/auth/jwt-redis/jwt-redis.service';
-import { IAuthToken } from '@src/auth/interfaces/auth.interface';
+import { RedisService } from '@src/redis/redis.service';
+import {
+  mockJwtService,
+  mockRedisService,
+  mockUserService,
+} from '@test/__mocks__/mock-service';
+import { jwtRefreshTokenKey } from '@src/redis/keys';
 import { ERoleType } from '@src/user/enums/user.enum';
+import {
+  mockUserByEmail,
+  mockUserByGoogle,
+  mockGoogleTokenDto,
+  mockJwtPayload,
+  mockJwtTokens,
+  mockLoginUserDto,
+} from '@test/__mocks__/mock-data';
+
+jest.mock('google-auth-library', () => ({
+  OAuth2Client: jest.fn(() => ({
+    verifyIdToken: jest.fn(async () => ({
+      getPayload: jest.fn(() => ({
+        sub: '',
+        iss: '',
+        azp: '',
+        aud: '',
+        email: 'test@gmail.com',
+        email_verified: true,
+        name: 'test',
+        at_hash: '',
+        picture: 'https://test.com',
+        given_name: '',
+        family_name: '',
+        locale: 'ko',
+        iat: 1710393865,
+        exp: 1710397465,
+      })),
+    })),
+  })),
+}));
 
 describe('AuthService', () => {
   let authService: AuthService;
   let jwtService: JwtService;
   let userService: UserService;
-  let jwtRedisService: JwtRedisService;
+  let redisService: RedisService;
 
-  const mockAccessToken = 'access';
-  const mockRefreshToken = 'refresh';
-  const mockNewAt = 'new_at';
-  const mockNewRt = 'new_rt';
-  const user = mockCreatedUser;
   const mockResponse = {
-    cookie: jest.fn().mockReturnThis(),
+    cookie: jest.fn(),
   } as unknown as Response;
 
   beforeEach(async () => {
@@ -37,67 +61,57 @@ describe('AuthService', () => {
         AuthService,
         { provide: JwtService, useValue: mockJwtService },
         { provide: UserService, useValue: mockUserService },
-        { provide: JwtRedisService, useValue: mockJwtRedisService },
+        { provide: RedisService, useValue: mockRedisService },
       ],
     }).compile();
 
     authService = module.get<AuthService>(AuthService);
     jwtService = module.get<JwtService>(JwtService);
     userService = module.get<UserService>(UserService);
-    jwtRedisService = module.get<JwtRedisService>(JwtRedisService);
+    redisService = module.get<RedisService>(RedisService);
+  });
+
+  afterEach(() => {
+    jest.clearAllMocks();
   });
 
   it('should be defined', () => {
     expect(authService).toBeDefined();
     expect(jwtService).toBeDefined();
     expect(userService).toBeDefined();
-    expect(jwtRedisService).toBeDefined();
+    expect(redisService).toBeDefined();
   });
 
   describe('[로그인]', () => {
-    const mockLoginResponse: IAuthToken = {
-      access_token: mockAccessToken,
-      refresh_token: mockRefreshToken,
-    };
-
     it('로그인 성공', async () => {
       jest
         .spyOn(userService, 'findOneByOptions')
-        .mockResolvedValue(mockCreatedUser);
+        .mockResolvedValue(mockUserByEmail);
       jest.spyOn(bcryptjs, 'compare').mockImplementation(() => true);
-      jest
-        .spyOn(authService, 'getAccessToken')
-        .mockReturnValue(mockAccessToken);
-      jest
-        .spyOn(authService, 'getRefreshToken')
-        .mockReturnValue(mockRefreshToken);
-      jest.spyOn(jwtRedisService, 'setRefreshToken').mockResolvedValue('OK');
+      jest.spyOn(authService, 'getJwtTokens').mockResolvedValue(mockJwtTokens);
 
       const result = await authService.login(mockLoginUserDto, mockResponse);
 
-      expect(result).toEqual(mockLoginResponse);
-      expect(authService.getAccessToken).toBeCalledWith(
-        mockCreatedUser.id,
-        mockCreatedUser.email,
-        mockCreatedUser.role,
-      );
-      expect(authService.getRefreshToken).toBeCalledWith(
-        mockCreatedUser.id,
-        mockCreatedUser.email,
-        mockCreatedUser.role,
-      );
-      expect(jwtRedisService.setRefreshToken).toBeCalledWith(
-        mockLoginUserDto.email,
-        mockRefreshToken,
+      expect(result).toEqual(mockJwtTokens);
+      expect(authService.getJwtTokens).toBeCalledWith({
+        id: mockUserByEmail.id,
+        email: mockUserByEmail.email,
+        role: mockUserByEmail.role,
+      });
+      expect(redisService.set).toBeCalledWith(
+        jwtRefreshTokenKey(mockUserByEmail.email),
+        mockJwtTokens.refresh_token,
+        expect.any(Number),
       );
       expect(mockResponse.cookie).toBeCalledWith(
         'refreshToken',
-        mockRefreshToken,
+        mockJwtTokens.refresh_token,
         {
           httpOnly: true,
-          secure: false,
+          secure: expect.any(Boolean),
           sameSite: 'none',
           path: '/',
+          maxAge: expect.any(Number),
         },
       );
     });
@@ -116,7 +130,7 @@ describe('AuthService', () => {
     it('로그인 실패 - 비밀번호가 틀린 경우(401에러)', async () => {
       jest
         .spyOn(userService, 'findOneByOptions')
-        .mockResolvedValue(mockCreatedUser);
+        .mockResolvedValue(mockUserByEmail);
       jest.spyOn(bcryptjs, 'compare').mockImplementation(() => false);
 
       try {
@@ -130,34 +144,31 @@ describe('AuthService', () => {
 
   describe('[로그아웃]', () => {
     it('로그아웃 성공', async () => {
-      jest
-        .spyOn(jwtRedisService, 'getRefreshToken')
-        .mockResolvedValue(mockRefreshToken);
-      jest
-        .spyOn(jwtRedisService, 'delRefreshToken')
-        .mockResolvedValue(undefined);
+      const result = await authService.logout(mockJwtPayload, mockResponse);
 
-      const result = await authService.logout(user, mockResponse);
-
-      expect(result).toBe('로그아웃 성공');
+      expect(result).toBeUndefined();
       expect(mockResponse.cookie).toBeCalledWith('refreshToken', '', {
         httpOnly: true,
-        secure: false,
+        secure: expect.any(Boolean),
         sameSite: 'none',
         path: '/',
         expires: new Date(0),
       });
-      expect(jwtRedisService.getRefreshToken).toBeCalled();
-      expect(jwtRedisService.getRefreshToken).toBeCalledWith(user.email);
-      expect(jwtRedisService.delRefreshToken).toBeCalled();
-      expect(jwtRedisService.getRefreshToken).toBeCalledWith(user.email);
+      expect(redisService.get).toBeCalled();
+      expect(redisService.get).toBeCalledWith(
+        jwtRefreshTokenKey(mockJwtPayload.email),
+      );
+      expect(redisService.del).toBeCalled();
+      expect(redisService.del).toBeCalledWith(
+        jwtRefreshTokenKey(mockJwtPayload.email),
+      );
     });
 
     it('로그아웃 실패 - 이미 로그아웃한 경우(401에러)', async () => {
-      jest.spyOn(jwtRedisService, 'getRefreshToken').mockResolvedValue(null);
+      jest.spyOn(redisService, 'get').mockResolvedValueOnce(null);
 
       try {
-        await authService.logout(user, mockResponse);
+        await authService.logout(mockJwtPayload, mockResponse);
       } catch (error) {
         expect(error).toBeInstanceOf(UnauthorizedException);
         expect(error.message).toBe('이미 로그아웃 하셨습니다.');
@@ -176,60 +187,116 @@ describe('AuthService', () => {
 
     it('새로운 access_token 발급 및 refresh_token 성공', async () => {
       jest.spyOn(jwtService, 'verifyAsync').mockResolvedValue(mockDecoded);
-      jest
-        .spyOn(jwtRedisService, 'getRefreshToken')
-        .mockResolvedValue(mockRefreshToken);
-      jest.spyOn(authService, 'getAccessToken').mockReturnValue(mockNewAt);
-      jest.spyOn(authService, 'getRefreshToken').mockReturnValue(mockNewRt);
-      jest.spyOn(jwtRedisService, 'setRefreshToken').mockResolvedValue('OK');
+      jest.spyOn(authService, 'getJwtTokens').mockResolvedValue(mockJwtTokens);
 
-      const result = await authService.restore(mockRefreshToken);
+      const result = await authService.restore('refresh_token', mockResponse);
 
-      expect(result).toEqual({
-        access_token: mockNewAt,
-        refresh_token: mockNewRt,
+      expect(result).toEqual(mockJwtTokens);
+      expect(authService.getJwtTokens).toBeCalledWith({
+        id: mockDecoded.id,
+        email: mockDecoded.email,
+        role: mockDecoded.role,
       });
+      expect(redisService.set).toBeCalledWith(
+        jwtRefreshTokenKey(mockDecoded.email),
+        mockJwtTokens.refresh_token,
+        expect.any(Number),
+      );
     });
 
-    it('발급 실패 - invalid한 refresh_token인 경우(401에러)', async () => {
+    it('발급 실패 - 이미 로그아웃 한 경우(401에러)', async () => {
       jest.spyOn(jwtService, 'verifyAsync').mockResolvedValue(mockDecoded);
-      jest
-        .spyOn(jwtRedisService, 'getRefreshToken')
-        .mockRejectedValue(new UnauthorizedException());
+      jest.spyOn(redisService, 'get').mockResolvedValueOnce(null);
 
       try {
-        await authService.restore(mockRefreshToken);
+        await authService.restore('refresh_token', mockResponse);
       } catch (error) {
         expect(error).toBeInstanceOf(UnauthorizedException);
       }
     });
-  });
 
-  describe('[access_token 생성]', () => {
-    it('access_token 생성 성공', () => {
-      jest.spyOn(jwtService, 'sign').mockReturnValue(mockAccessToken);
+    it('발급 실패 - redis에 저장된 refresh토큰과 유저의 refresh토큰이 다른 경우(401에러)', async () => {
+      jest.spyOn(jwtService, 'verifyAsync').mockResolvedValue(mockDecoded);
 
-      const result = authService.getAccessToken(
-        mockCreatedUser.id,
-        mockCreatedUser.email,
-        mockCreatedUser.role,
-      );
-
-      expect(result).toBe(mockAccessToken);
+      try {
+        await authService.restore('invalid_refresh_token', mockResponse);
+      } catch (error) {
+        expect(error).toBeInstanceOf(UnauthorizedException);
+        expect(mockResponse.cookie).toBeCalledWith('refreshToken', '', {
+          httpOnly: true,
+          secure: expect.any(Boolean),
+          sameSite: 'none',
+          path: '/',
+          expires: new Date(0),
+        });
+      }
     });
   });
 
-  describe('[refresh_token 생성]', () => {
-    it('refresh_token 생성 성공', () => {
-      jest.spyOn(jwtService, 'sign').mockReturnValue(mockRefreshToken);
+  describe('[소셜로그인 - 구글]', () => {
+    it('구글 첫 로그인 성공 + 회원가입', async () => {
+      jest.spyOn(userService, 'findOneByOptions').mockResolvedValue(null);
+      jest.spyOn(userService, 'create').mockResolvedValue(mockUserByGoogle);
+      jest.spyOn(authService, 'getJwtTokens').mockResolvedValue(mockJwtTokens);
 
-      const result = authService.getRefreshToken(
-        mockCreatedUser.id,
-        mockCreatedUser.email,
-        mockCreatedUser.role,
+      const result = await authService.socialLogin(
+        mockGoogleTokenDto,
+        mockResponse,
       );
 
-      expect(result).toBe(mockRefreshToken);
+      expect(result).toEqual({
+        user: mockUserByGoogle,
+        tokens: mockJwtTokens,
+      });
+      expect(mockResponse.cookie).toBeCalledWith(
+        'refreshToken',
+        mockJwtTokens.refresh_token,
+        {
+          httpOnly: true,
+          secure: expect.any(Boolean),
+          sameSite: 'none',
+          path: '/',
+          maxAge: expect.any(Number),
+        },
+      );
+    });
+
+    it('구글 로그인 성공(첫 로그인이 아닌 경우), 회원가입 안되야함', async () => {
+      jest
+        .spyOn(userService, 'findOneByOptions')
+        .mockResolvedValue(mockUserByGoogle);
+      jest.spyOn(authService, 'getJwtTokens').mockResolvedValue(mockJwtTokens);
+
+      const result = await authService.socialLogin(
+        mockGoogleTokenDto,
+        mockResponse,
+      );
+
+      expect(result).toEqual(mockJwtTokens);
+      expect(mockResponse.cookie).toBeCalledWith(
+        'refreshToken',
+        mockJwtTokens.refresh_token,
+        {
+          httpOnly: true,
+          secure: expect.any(Boolean),
+          sameSite: 'none',
+          path: '/',
+          maxAge: expect.any(Number),
+        },
+      );
+      expect(userService.create).toBeCalledTimes(0);
+    });
+
+    it('구글 로그인 실패 - 해당 이메일로 이미 일반가입 한 경우(400에러)', async () => {
+      jest
+        .spyOn(userService, 'findOneByOptions')
+        .mockResolvedValue(mockUserByEmail);
+
+      try {
+        await authService.socialLogin(mockGoogleTokenDto, mockResponse);
+      } catch (error) {
+        expect(error).toBeInstanceOf(BadRequestException);
+      }
     });
   });
 });
