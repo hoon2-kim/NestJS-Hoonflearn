@@ -53,14 +53,14 @@ jobs:
           host: ${{ secrets.EC2_PUBLIC_IP }}
           username: ${{ secrets.EC2_USERNAME }}
           key: ${{ secrets.EC2_SSH_KEY }}
-        script: |
-          CONTAINER_IDS=$(sudo docker ps -a -q)
-          for id in $CONTAINER_IDS 
-          do
-            sudo docker stop "$id" && sudo docker rm "$id"
-          done
+          script: |
+            CONTAINER_IDS=$(sudo docker ps -a -q)
+            for id in $CONTAINER_IDS 
+            do
+              sudo docker stop "$id" && sudo docker rm "$id"
+            done
 
-          docker image prune --force
+            docker image prune --force
 
       - name: env 파일 생성
         uses: SpicyPizza/create-envfile@v2.0
