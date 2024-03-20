@@ -95,7 +95,7 @@ jobs:
           envkey_COOLSMS_API_SECRET: ${{ secrets.COOLSMS_API_SECRET }}
           envkey_COOLSMS_SENDER: ${{ secrets.COOLSMS_SENDER }}
 
-      - name: EC2 배포
+      - name: ssh로 EC2 접속 및 배포
         env:
           ECR_REGISTRY: ${{ secrets.ECR_URI }}
           ECR_REPOSITORY: hoonflearn
@@ -106,6 +106,6 @@ jobs:
           username: ${{ secrets.EC2_USERNAME }}
           key: ${{ secrets.EC2_SSH_KEY }}
           envs: ECR_REGISTRY,ECR_REPOSITORY,IMAGE_TAG
-          run: |
-            docker pull $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
-            docker run -d --env-file ./.env -p 8080:8080 $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+        run: |
+          docker pull $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+          docker run -d --env-file ./.env -p 8080:8080 $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
