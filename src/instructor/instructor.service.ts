@@ -162,7 +162,7 @@ export class InstructorService {
 
       res.cookie('refreshToken', tokens.refresh_token, {
         httpOnly: true,
-        secure: false, // https 환경에서는 true
+        secure: process.env.NODE_ENV === 'development' ? false : true, // https 환경에서는 true
         sameSite: 'none',
         path: '/',
         maxAge: parseInt(process.env.JWT_RT_COOKIE_MAX_AGE),
