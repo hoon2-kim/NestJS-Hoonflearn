@@ -11,7 +11,6 @@ on:
 
 jobs:
   build_and_deploy:
-    name: build_and_deploy
     runs-on: ubuntu-latest
 
     steps:
@@ -28,39 +27,6 @@ jobs:
       - name: ECR 로그인
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v1
-
-      - name: 도커 이미지 빌드, ECR 푸시
-        id: build-image
-        env:
-          ECR_REGISTRY: ${{ secrets.ECR_URI }}
-          IMAGE_TAG: latest
-        run: |
-          docker build -t $ECR_REGISTRY/hoonflearn:$IMAGE_TAG .
-          docker push $ECR_REGISTRY/hoonflearn:$IMAGE_TAG
-
-      - name: EC2에서 ECR 로그인
-        uses: appleboy/ssh-action@master
-        with:
-          host: ${{ secrets.EC2_PUBLIC_IP }}
-          username: ${{ secrets.EC2_USERNAME }}
-          key: ${{ secrets.EC2_SSH_KEY }}
-          script: |
-            aws ecr get-login-password --region ap-northeast-2 | docker login --username AWS --password-stdin ${{ secrets.ECR_URI }}
-
-      - name: 도커 stop 및 삭제
-        uses: appleboy/ssh-action@master
-        with:
-          host: ${{ secrets.EC2_PUBLIC_IP }}
-          username: ${{ secrets.EC2_USERNAME }}
-          key: ${{ secrets.EC2_SSH_KEY }}
-          script: |
-            CONTAINER_IDS=$(sudo docker ps -a -q)
-            for id in $CONTAINER_IDS 
-            do
-              sudo docker stop "$id" && sudo docker rm "$id"
-            done
-
-            docker image prune --force
 
       - name: env 파일 생성
         uses: SpicyPizza/create-envfile@v2.0
@@ -93,15 +59,47 @@ jobs:
           envkey_COOLSMS_API_SECRET: ${{ secrets.COOLSMS_API_SECRET }}
           envkey_COOLSMS_SENDER: ${{ secrets.COOLSMS_SENDER }}
 
+      - name: 도커 이미지 빌드, ECR 푸시
+        id: build-image
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          IMAGE_TAG: ${{ gihub.sha }}
+        run: |
+          docker build -t $ECR_REGISTRY/hoonflearn:$IMAGE_TAG .
+          docker push $ECR_REGISTRY/hoonflearn:$IMAGE_TAG
+
       - name: ssh로 EC2 접속 및 배포
         env:
-          ECR_REGISTRY: ${{ secrets.ECR_URI }}
-          IMAGE_TAG: latest
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          ECR_REPOSITORY: hoonflearn
+          IMAGE_TAG: ${{ github.sha }}
         uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.EC2_PUBLIC_IP }}
           username: ${{ secrets.EC2_USERNAME }}
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
+            CONTAINER_IDS=$(sudo docker ps -a -q)
+            if [ ! -z "$CONTAINER_IDS" ]
+            then
+              for id in $CONTAINER_IDS
+              do
+                sudo docker stop "$id" && sudo docker rm "$id"
+              done
+            fi
+
+            IMAGE_IDS=$(sudo docker images -q)
+            if [ ! -z "$IMAGE_IDS" ]
+            then
+              for id in $IMAGE_IDS
+              do
+                sudo docker rmi $id
+              done
+            fi
+
+            aws ecr get-login-password --region ap-northeast-2 | docker login --username AWS --password-stdin $ECR_REGISTRY
+
             docker pull $ECR_REGISTRY/hoonflearn:$IMAGE_TAG
             docker run -d --env-file ./.env -p 8080:8080 $ECR_REGISTRY/hoonflearn:$IMAGE_TAG
+
+# -z : 변수가 비어있다면 true
