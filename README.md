@@ -12,7 +12,7 @@
 
 ## 배포 주소
 
-> **개인 프로젝트 백엔드 Swagger** : [http://hoonflearn.shop/api-docs](http://hoonflearn.shop/api-docs)<br>
+> **개인 프로젝트 백엔드 Swagger** : [https://hoonflearn.shop/api-docs](http://hoonflearn.shop/api-docs)<br>
 
 ---
 
