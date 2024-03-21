@@ -25,7 +25,7 @@
 - TypeORM
 - Docker
 - Jest
-- AWS EC2, RDS, S3, Route 53, ECR, Elasticache
+- AWS EC2, RDS, S3, Route 53, ECR, Elasticache, ELB(ALB)
 - Github Actions
 
 ---
