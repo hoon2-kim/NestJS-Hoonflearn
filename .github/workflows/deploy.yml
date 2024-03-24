@@ -97,7 +97,7 @@ jobs:
               done
             fi
 
-            aws ecr-public get-login-password --region ap-northeast-2 | docker login --username AWS --password-stdin $ECR_REGISTRY
+            aws ecr get-login-password --region ap-northeast-2 | docker login --username AWS --password-stdin $ECR_REGISTRY
 
             docker pull $ECR_REGISTRY/hoonflearn:$IMAGE_TAG
             docker run -d --env-file ./.env -p 8080:8080 $ECR_REGISTRY/hoonflearn:$IMAGE_TAG
