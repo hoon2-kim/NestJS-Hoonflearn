@@ -18,7 +18,7 @@ jobs:
         uses: actions/checkout@v3
 
       - name: AWS 자격 증명
-        uses: aws-actions/configure-aws-credentials@v1
+        uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_KEY }}
@@ -97,9 +97,9 @@ jobs:
               done
             fi
 
-            aws ecr get-login-password --region ap-northeast-2 | docker login --username AWS --password-stdin $ECR_REGISTRY
+            aws ecr get-login-password --region ap-northeast-2 | sudo docker login --username AWS --password-stdin $ECR_REGISTRY
 
-            docker pull $ECR_REGISTRY/hoonflearn:$IMAGE_TAG
-            docker run -d --env-file ./.env -p 8080:8080 $ECR_REGISTRY/hoonflearn:$IMAGE_TAG
+            sudo docker pull $ECR_REGISTRY/hoonflearn:$IMAGE_TAG
+            sudo docker run -d --env-file ./.env -p 8080:8080 $ECR_REGISTRY/hoonflearn:$IMAGE_TAG
 
 # -z : 변수가 비어있다면 true
