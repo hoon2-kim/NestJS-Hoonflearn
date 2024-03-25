@@ -3,15 +3,17 @@ import { CourseWishService } from '@src/course/course-wish/course-wish.service';
 import { DataSource, Repository } from 'typeorm';
 import { CourseWishEntity } from '@src/course/course-wish/entities/course-wish.entity';
 import { getRepositoryToken } from '@nestjs/typeorm';
-import {
-  mockCourseWishRepository,
-  mockCourseWish,
-  expectedCourseWishList,
-  mockCreatedCourseWish,
-} from '@test/__mocks__/courseWish.mock';
 import { UserWishQueryDto } from '@src/user/dtos/user.query.dto';
 import { ECourseChargeType } from '@src/course/enums/course.enum';
 import { EUserWishCourseSort } from '@src/user/enums/user.enum';
+import { mockCourseWishRepository } from '@test/__mocks__/mock-repository';
+import {
+  mockCourseWish,
+  mockInstructor,
+  mockPaidCourse,
+} from '@test/__mocks__/mock-data';
+import { PageMetaDto } from '@src/common/dtos/page-meta.dto';
+import { PageDto } from '@src/common/dtos/page.dto';
 
 const mockDataSource = {
   transaction: jest.fn(),
@@ -56,6 +58,23 @@ describe('CourseWishService', () => {
 
   describe('findWishCoursesByUser 테스트 - 유저가 찜한 강의 리스트 조회', () => {
     let query: UserWishQueryDto;
+    const mockWishCourseList = [
+      [
+        {
+          ...mockCourseWish,
+          course: {
+            ...mockPaidCourse,
+            instructor: mockInstructor,
+          },
+        },
+      ],
+      1,
+    ] as [CourseWishEntity[], number];
+    const pageMeta = new PageMetaDto({
+      pageOptionDto: new UserWishQueryDto(),
+      itemCount: mockWishCourseList[1],
+    });
+    const expectedCourseWishList = new PageDto(mockWishCourseList[0], pageMeta);
 
     beforeEach(() => {
       query = new UserWishQueryDto();
@@ -64,7 +83,7 @@ describe('CourseWishService', () => {
     it('조회 성공', async () => {
       jest
         .spyOn(courseWishRepository.createQueryBuilder(), 'getManyAndCount')
-        .mockResolvedValue(mockCourseWish);
+        .mockResolvedValue(mockWishCourseList);
 
       const result = await courseWishService.findWishCoursesByUser(
         query,
@@ -181,7 +200,7 @@ describe('CourseWishService', () => {
 
   describe('toggleCourseWishStatus 테스트 - 찜하기 또는 취소하는 경우 엔티티 수정', () => {
     it('찜하는 경우 중간엔티티 저장 및 강의엔티티에 찜 개수 증가', async () => {
-      const mockSave = jest.fn().mockResolvedValue(mockCreatedCourseWish);
+      const mockSave = jest.fn().mockResolvedValue(mockCourseWish);
       const mockIncrement = jest
         .fn()
         .mockResolvedValue({ generatedMaps: [], raw: [], affected: 1 });

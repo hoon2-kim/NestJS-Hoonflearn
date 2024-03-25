@@ -26,6 +26,8 @@ import { ReviewService } from '@src/review/review.service';
 import { ERoleType } from '@src/user/enums/user.enum';
 import { RedisService } from '@src/redis/redis.service';
 import { jwtRefreshTokenKey } from '@src/redis/keys';
+import { CourseEntity } from '@src/course/entities/course.entity';
+import { QuestionEntity } from '@src/question/entities/question.entity';
 
 @Injectable()
 export class InstructorService {
@@ -34,6 +36,8 @@ export class InstructorService {
     private readonly instructorRepository: Repository<InstructorProfileEntity>,
     @InjectRepository(UserEntity)
     private readonly userRepository: Repository<UserEntity>,
+    @InjectRepository(CourseEntity)
+    private readonly courseRepository: Repository<CourseEntity>,
 
     private readonly userService: UserService,
     private readonly authService: AuthService,
@@ -59,46 +63,31 @@ export class InstructorService {
   async getMyCoursesByInstructor(
     instructorCourseQueryDto: InstructorCourseQueryDto,
     user: IJwtPayload,
-  ): Promise<PageDto<any>> {
+  ): Promise<PageDto<CourseEntity>> {
     const { take, skip } = instructorCourseQueryDto;
 
-    // 다시 최적화하기
-    const datas = await this.userRepository
-      .createQueryBuilder('user')
-      .leftJoinAndSelect('user.madeCourses', 'course')
-      .leftJoin('user.questions', 'question')
-      .where('user.id = :userId', { userId: user.id })
-      .andWhere('user.role = :role', { role: ERoleType.Instructor })
+    const [datas, count] = await this.courseRepository
+      .createQueryBuilder('course')
+      .where('course.fk_instructor_id = :instructorId', {
+        instructorId: user.id,
+      })
       .take(take)
       .skip(skip)
       .orderBy('course.created_at', 'DESC')
-      .getMany();
-
-    const responseData = await Promise.all(
-      datas.flatMap((user) =>
-        user.madeCourses?.map(async (course) => {
-          const questionCount =
-            await this.questionService.calculateQuestionCountByCourseId(
-              course.id,
-            );
-
-          return course;
-        }),
-      ),
-    );
+      .getManyAndCount();
 
     const pageMeta = new PageMetaDto({
       pageOptionDto: instructorCourseQueryDto,
-      itemCount: responseData.length,
+      itemCount: count,
     });
 
-    return new PageDto(responseData, pageMeta);
+    return new PageDto(datas, pageMeta);
   }
 
   async getQuestionsByMyCourses(
     instructorQuestionQueryDto: InstructorQuestionQueryDto,
     user: IJwtPayload,
-  ): Promise<PageDto<any>> {
+  ): Promise<PageDto<QuestionEntity>> {
     const courseIds = await this.courseService.getCourseIdsByInstructor(
       user.id,
     );

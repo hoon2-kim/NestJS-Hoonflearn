@@ -3,15 +3,16 @@ import { CourseUserService } from '@src/course_user/course-user.service';
 import { EntityManager, Repository } from 'typeorm';
 import { CourseUserEntity } from '@src/course_user/entities/course-user.entity';
 import { getRepositoryToken } from '@nestjs/typeorm';
-import {
-  mockCourseUserRepository,
-  mockCourseUser,
-  expectedCourseUserList,
-  mockCreatedCourseUserWithPaid,
-  mockCreatedCourseUserWithFree,
-} from '@test/__mocks__/courseUser.mock';
 import { UserMyCourseQueryDto } from '@src/user/dtos/user.query.dto';
 import { ForbiddenException } from '@nestjs/common';
+import { mockCourseUserRepository } from '@test/__mocks__/mock-repository';
+import {
+  mockCourseUserWithFree,
+  mockCourseUserWithPaid,
+  mockPaidCourse,
+} from '@test/__mocks__/mock-data';
+import { PageMetaDto } from '@src/common/dtos/page-meta.dto';
+import { PageDto } from '@src/common/dtos/page.dto';
 
 describe('CourseUserService', () => {
   let courseUserService: CourseUserService;
@@ -19,6 +20,8 @@ describe('CourseUserService', () => {
 
   const userId = 'uuid';
   const courseId = 'uuid';
+  const courseUserId = 'uuid';
+  const courseIds = ['uuid1'];
   const mockEntityManager = {
     save: jest.fn(),
     delete: jest.fn(),
@@ -52,6 +55,22 @@ describe('CourseUserService', () => {
 
   describe('[내가 수강하는 강의 리스트 조회 로직 테스트]', () => {
     let query: UserMyCourseQueryDto;
+    const mockCourseUserList = [
+      [
+        {
+          id: mockCourseUserWithPaid.id,
+          type: mockCourseUserWithPaid.type,
+          created_at: mockCourseUserWithPaid.created_at,
+          course: mockPaidCourse,
+        },
+      ],
+      1,
+    ] as [CourseUserEntity[], number];
+    const pageMeta = new PageMetaDto({
+      pageOptionDto: new UserMyCourseQueryDto(),
+      itemCount: mockCourseUserList[1],
+    });
+    const expectedCourseUserList = new PageDto(mockCourseUserList[0], pageMeta);
 
     beforeEach(() => {
       query = new UserMyCourseQueryDto();
@@ -60,7 +79,7 @@ describe('CourseUserService', () => {
     it('조회 성공', async () => {
       jest
         .spyOn(courseUserRepository.createQueryBuilder(), 'getManyAndCount')
-        .mockResolvedValue(mockCourseUser);
+        .mockResolvedValue(mockCourseUserList);
 
       const result = await courseUserService.findMyCourses(query, userId);
 
@@ -100,24 +119,23 @@ describe('CourseUserService', () => {
   });
 
   describe('saveCourseUserRepo 테스트 - 주문완료 시 중간테이블(강의-유저)에 저장', () => {
-    const courseIds = ['uuid1'];
     it('성공 - EntityManager 없이', async () => {
       jest
         .spyOn(courseUserRepository, 'save')
-        .mockResolvedValue(mockCreatedCourseUserWithPaid);
+        .mockResolvedValue(mockCourseUserWithPaid);
 
       const result = await courseUserService.saveCourseUserRepo(
         courseIds,
         userId,
       );
 
-      expect(result).toEqual([mockCreatedCourseUserWithPaid]);
+      expect(result).toEqual([mockCourseUserWithPaid]);
     });
 
     it('성공 - EntityManager 포함', async () => {
       jest
         .spyOn(mockEntityManager, 'save')
-        .mockResolvedValue(mockCreatedCourseUserWithPaid);
+        .mockResolvedValue(mockCourseUserWithPaid);
 
       const result = await courseUserService.saveCourseUserRepo(
         courseIds,
@@ -125,7 +143,7 @@ describe('CourseUserService', () => {
         mockEntityManager,
       );
 
-      expect(result).toEqual([mockCreatedCourseUserWithPaid]);
+      expect(result).toEqual([mockCourseUserWithPaid]);
     });
   });
 
@@ -133,7 +151,7 @@ describe('CourseUserService', () => {
     it('성공 - EntityManager 포함', async () => {
       jest
         .spyOn(mockEntityManager, 'save')
-        .mockResolvedValue(mockCreatedCourseUserWithFree);
+        .mockResolvedValue(mockCourseUserWithFree);
 
       const result = await courseUserService.saveFreeCourseUserRepo(
         courseId,
@@ -141,13 +159,12 @@ describe('CourseUserService', () => {
         mockEntityManager,
       );
 
-      expect(result).toEqual(mockCreatedCourseUserWithFree);
+      expect(result).toEqual(mockCourseUserWithFree);
     });
   });
 
   describe('cancelFreeCourseUserRepo 테스트 - 무료강의 취소시 중간테이블(강의-유저) 삭제', () => {
     it('성공', async () => {
-      const courseUserId = 'uuid';
       jest
         .spyOn(mockEntityManager, 'delete')
         .mockResolvedValue({ raw: [], affected: 1 });
@@ -177,7 +194,7 @@ describe('CourseUserService', () => {
     it('구매 했다면 true', async () => {
       jest
         .spyOn(courseUserRepository, 'findOne')
-        .mockResolvedValue(mockCreatedCourseUserWithPaid);
+        .mockResolvedValue(mockCourseUserWithPaid);
 
       const result = await courseUserService.checkBoughtCourseByUser(
         userId,

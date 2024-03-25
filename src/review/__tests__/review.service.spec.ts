@@ -6,30 +6,33 @@ import { ReviewService } from '@src/review/review.service';
 import { DataSource, Repository } from 'typeorm';
 import { ReviewEntity } from '@src/review/entities/review.entity';
 import { getRepositoryToken } from '@nestjs/typeorm';
-import {
-  expectedReviewByInstructor,
-  expectedReviewsByCourse,
-  mockCourseService,
-  mockCourseUserService,
-  mockCreatedReview,
-  mockCreateReviewDto,
-  mockReviewLikeService,
-  mockReviewRepository,
-  mockReviewWithoutComment,
-  mockUpdateReviewDto,
-} from '@test/__mocks__/review.mock';
 import { ReviewListQueryDto } from '@src/review/dtos/review-list.query.dto';
-import { mockCreatedCourse } from '@test/__mocks__/course.mock';
-import { mockReviewWithComment } from '@test/__mocks__/review.mock';
 import {
   BadRequestException,
   ForbiddenException,
   NotFoundException,
 } from '@nestjs/common';
 import { EReviewSortBy } from '../enums/review.enum';
-import { mockReviewLike } from '@test/__mocks__/reviewLike.mock';
 import { InstructorReviewQueryDto } from '@src/instructor/dtos/instructor.query.dto';
 import { EInstructorReviewSortBy } from '@src/instructor/enums/instructor.enum';
+import {
+  mockCreateReviewDto,
+  mockUpdateReviewDto,
+  mockReviewLike,
+  mockReview,
+  mockReviewComment,
+  mockUserByEmail,
+  mockUserByGoogle,
+  mockPaidCourse,
+} from '@test/__mocks__/mock-data';
+import { mockReviewRepository } from '@test/__mocks__/mock-repository';
+import {
+  mockCourseService,
+  mockReviewLikeService,
+  mockCourseUserService,
+} from '@test/__mocks__/mock-service';
+import { PageMetaDto } from '@src/common/dtos/page-meta.dto';
+import { PageDto } from '@src/common/dtos/page.dto';
 
 describe('ReviewService', () => {
   let reviewService: ReviewService;
@@ -92,16 +95,40 @@ describe('ReviewService', () => {
     });
 
     it('조회 성공', async () => {
+      const mockReviewListByCourse = [
+        [
+          {
+            ...mockReview,
+            user: mockUserByEmail,
+            reviewComments: [
+              {
+                ...mockReviewComment,
+                user: mockUserByGoogle,
+              },
+            ],
+          },
+        ],
+        1,
+      ] as [ReviewEntity[], number];
+      const pageMeta = new PageMetaDto({
+        pageOptionDto: query,
+        itemCount: mockReviewListByCourse[1],
+      });
+      const expectedReviewListByCourse = new PageDto(
+        mockReviewListByCourse[0],
+        pageMeta,
+      );
+
       jest
         .spyOn(courseService, 'findOneByOptions')
-        .mockResolvedValue(mockCreatedCourse);
+        .mockResolvedValue(mockPaidCourse);
       jest
         .spyOn(reviewRepository.createQueryBuilder(), 'getManyAndCount')
-        .mockResolvedValue(mockReviewWithComment);
+        .mockResolvedValue(mockReviewListByCourse);
 
       const result = await reviewService.findAllByCourse(courseId, query);
 
-      expect(result).toEqual(expectedReviewsByCourse);
+      expect(result).toEqual(expectedReviewListByCourse);
       expect(
         reviewRepository.createQueryBuilder().leftJoinAndSelect,
       ).toBeCalledTimes(3);
@@ -183,12 +210,12 @@ describe('ReviewService', () => {
   });
 
   describe('[리뷰 생성]', () => {
-    const mockSave = jest.fn().mockResolvedValue(mockCreatedReview);
+    const mockSave = jest.fn().mockResolvedValue(mockReview);
 
     it('리뷰 생성 성공', async () => {
       jest
         .spyOn(courseService, 'findOneByOptions')
-        .mockResolvedValue(mockCreatedCourse);
+        .mockResolvedValue(mockPaidCourse);
       jest.spyOn(reviewService, 'findOneByOptions').mockResolvedValue(null);
       jest
         .spyOn(courseUserService, 'validateBoughtCourseByUser')
@@ -204,7 +231,7 @@ describe('ReviewService', () => {
 
       const result = await reviewService.create(mockCreateReviewDto, userId);
 
-      expect(result).toEqual(mockCreatedReview);
+      expect(result).toEqual(mockReview);
       expect(courseService.findOneByOptions).toBeCalled();
       expect(reviewService.findOneByOptions).toBeCalled();
       expect(courseUserService.validateBoughtCourseByUser).toBeCalled();
@@ -224,10 +251,10 @@ describe('ReviewService', () => {
     it('리뷰 생성 실패 - 이미 리뷰를 작성한 경우(400에러)', async () => {
       jest
         .spyOn(courseService, 'findOneByOptions')
-        .mockResolvedValue(mockCreatedCourse);
+        .mockResolvedValue(mockPaidCourse);
       jest
         .spyOn(reviewService, 'findOneByOptions')
-        .mockResolvedValue(mockCreatedReview);
+        .mockResolvedValue(mockReview);
 
       try {
         await reviewService.create(mockCreateReviewDto, userId);
@@ -239,7 +266,7 @@ describe('ReviewService', () => {
     it('리뷰 생성 실패 - 강의를 구매 안한 경우(403에러)', async () => {
       jest
         .spyOn(courseService, 'findOneByOptions')
-        .mockResolvedValue(mockCreatedCourse);
+        .mockResolvedValue(mockPaidCourse);
       jest.spyOn(reviewService, 'findOneByOptions').mockResolvedValue(null);
       jest
         .spyOn(courseUserService, 'validateBoughtCourseByUser')
@@ -256,12 +283,13 @@ describe('ReviewService', () => {
   });
 
   describe('[리뷰 수정]', () => {
-    const upadteResult = { message: '수정 성공' };
     it('리뷰 수정 성공 - 내용만 수정', async () => {
+      const mockUpdateReview = Object.assign(mockReview, mockUpdateReviewDto);
+
       jest
         .spyOn(reviewService, 'findOneByOptions')
-        .mockResolvedValue(mockCreatedReview);
-      jest.spyOn(reviewRepository, 'save').mockResolvedValue(mockCreatedReview);
+        .mockResolvedValue(mockReview);
+      jest.spyOn(reviewRepository, 'save').mockResolvedValue(mockUpdateReview);
 
       const result = await reviewService.update(
         reviewId,
@@ -269,30 +297,38 @@ describe('ReviewService', () => {
         userId,
       );
 
-      expect(result).toEqual(upadteResult);
+      expect(result).toBeUndefined();
       expect(courseService.courseReviewRatingUpdate).not.toBeCalled();
     });
 
     it('리뷰 수정 성공 - 평점도 수정', async () => {
-      const mockUpdateReviewDto2 = { ...mockUpdateReviewDto, rating: 1 };
+      const mockUpdateReviewDtoWithRating = {
+        ...mockUpdateReviewDto,
+        rating: 1,
+      };
+      const mockUpdateReview = Object.assign(
+        mockReview,
+        mockUpdateReviewDtoWithRating,
+      );
+
       jest
         .spyOn(reviewService, 'findOneByOptions')
-        .mockResolvedValue(mockCreatedReview);
+        .mockResolvedValue(mockReview);
       jest
         .spyOn(courseService, 'findOneByOptions')
-        .mockResolvedValue(mockCreatedCourse);
+        .mockResolvedValue(mockPaidCourse);
       jest
         .spyOn(courseService, 'courseReviewRatingUpdate')
         .mockResolvedValue(undefined);
-      jest.spyOn(reviewRepository, 'save').mockResolvedValue(mockCreatedReview);
+      jest.spyOn(reviewRepository, 'save').mockResolvedValue(mockUpdateReview);
 
       const result = await reviewService.update(
         reviewId,
-        mockUpdateReviewDto2,
+        mockUpdateReviewDtoWithRating,
         userId,
       );
 
-      expect(result).toEqual(upadteResult);
+      expect(result).toBeUndefined();
       expect(courseService.courseReviewRatingUpdate).toBeCalled();
     });
 
@@ -327,10 +363,10 @@ describe('ReviewService', () => {
     it('리뷰 삭제 성공', async () => {
       jest
         .spyOn(reviewService, 'findOneByOptions')
-        .mockResolvedValue(mockCreatedReview);
+        .mockResolvedValue(mockReview);
       jest
         .spyOn(courseService, 'findOneByOptions')
-        .mockResolvedValue(mockCreatedCourse);
+        .mockResolvedValue(mockPaidCourse);
 
       dataSource.transaction = jest.fn().mockImplementation(async (cb) => {
         jest
@@ -342,7 +378,7 @@ describe('ReviewService', () => {
 
       const result = await reviewService.delete(reviewId, userId);
 
-      expect(result).toBe(true);
+      expect(result).toBeUndefined();
       expect(courseService.courseReviewRatingUpdate).toBeCalled();
     });
 
@@ -376,7 +412,7 @@ describe('ReviewService', () => {
       jest.spyOn(reviewService, 'isLikeByUser').mockResolvedValue(false);
       jest
         .spyOn(reviewService, 'findOneByOptions')
-        .mockResolvedValue(mockCreatedReview);
+        .mockResolvedValue(mockReview);
       jest
         .spyOn(reviewLikeService, 'toggleReviewLikeStatus')
         .mockResolvedValue(undefined);
@@ -391,7 +427,7 @@ describe('ReviewService', () => {
       jest.spyOn(reviewService, 'isLikeByUser').mockResolvedValue(true);
       jest
         .spyOn(reviewService, 'findOneByOptions')
-        .mockResolvedValue(mockCreatedReview);
+        .mockResolvedValue(mockReview);
       jest
         .spyOn(reviewLikeService, 'toggleReviewLikeStatus')
         .mockResolvedValue(undefined);
@@ -442,9 +478,28 @@ describe('ReviewService', () => {
     });
 
     it('검색필터 없이 그냥 조회', async () => {
+      const mockReviewListByInstructorCourse = [
+        [
+          {
+            ...mockReview,
+            course: mockPaidCourse,
+            user: mockUserByEmail,
+          },
+        ],
+        1,
+      ] as [ReviewEntity[], number];
+      const pageMeta = new PageMetaDto({
+        pageOptionDto: query,
+        itemCount: mockReviewListByInstructorCourse[1],
+      });
+      const expectedReviewListByInstructorCourse = new PageDto(
+        mockReviewListByInstructorCourse[0],
+        pageMeta,
+      );
+
       jest
         .spyOn(reviewRepository.createQueryBuilder(), 'getManyAndCount')
-        .mockResolvedValue(mockReviewWithoutComment);
+        .mockResolvedValue(mockReviewListByInstructorCourse);
 
       const result = await reviewService.findReviewsByInstructorCourse(
         courseIds,
@@ -452,7 +507,7 @@ describe('ReviewService', () => {
         userId,
       );
 
-      expect(result).toEqual(expectedReviewByInstructor);
+      expect(result).toEqual(expectedReviewListByInstructorCourse);
       expect(
         reviewRepository.createQueryBuilder().leftJoinAndSelect,
       ).toBeCalledTimes(2);

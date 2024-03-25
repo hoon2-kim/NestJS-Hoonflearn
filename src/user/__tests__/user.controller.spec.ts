@@ -5,25 +5,34 @@ import { CourseWishService } from '@src/course/course-wish/course-wish.service';
 import { QuestionService } from '@src/question/question.service';
 import { UserController } from '@src/user/user.controller';
 import { UserService } from '@src/user/user.service';
-import { expectedCourseWishList } from '@test/__mocks__/courseWish.mock';
-import {
-  mockCourseUserService,
-  mockCourseWishService,
-  mockCreatedUser,
-  mockCreateUserDto,
-  mockNickNameDto,
-  mockQuestionService,
-  mockUpdateUserDto,
-  mockUserProfile,
-  mockUserService,
-} from '@test/__mocks__/user.mock';
 import {
   UserWishQueryDto,
   UserQuestionQueryDto,
   UserMyCourseQueryDto,
 } from '@src/user/dtos/user.query.dto';
-import { expectedMyQuestionWithoutComment } from '@test/__mocks__/question.mock';
-import { expectedCourseUserList } from '@test/__mocks__/courseUser.mock';
+import {
+  mockCourseUserWithPaid,
+  mockCourseWish,
+  mockCreateUserDto,
+  mockInstructor,
+  mockJwtPayload,
+  mockNickNameDto,
+  mockPaidCourse,
+  mockQuestion,
+  mockUpdateUserDto,
+  mockUserByEmail,
+} from '@test/__mocks__/mock-data';
+import {
+  mockUserService,
+  mockQuestionService,
+  mockCourseUserService,
+  mockCourseWishService,
+} from '@test/__mocks__/mock-service';
+import { PageMetaDto } from '@src/common/dtos/page-meta.dto';
+import { PageDto } from '@src/common/dtos/page.dto';
+import { CourseWishEntity } from '@src/course/course-wish/entities/course-wish.entity';
+import { QuestionEntity } from '@src/question/entities/question.entity';
+import { CourseUserEntity } from '@src/course_user/entities/course-user.entity';
 
 describe('UserController', () => {
   let userController: UserController;
@@ -78,11 +87,11 @@ describe('UserController', () => {
 
   describe('[UserController.getMyProfile] - 유저 프로필 조회', () => {
     it('프로필 조회 성공', async () => {
-      jest.spyOn(userService, 'getProfile').mockResolvedValue(mockUserProfile);
+      jest.spyOn(userService, 'getProfile').mockResolvedValue(mockUserByEmail);
 
       const result = await userController.getMyProfile(userId);
 
-      expect(result).toEqual(mockUserProfile);
+      expect(result).toEqual(mockUserByEmail);
       expect(userService.getProfile).toHaveBeenCalled();
       expect(userService.getProfile).toBeCalledWith(userId);
     });
@@ -90,11 +99,11 @@ describe('UserController', () => {
 
   describe('[UserController.registerUser] - 유저 회원가입', () => {
     it('회원가입 성공', async () => {
-      jest.spyOn(userService, 'create').mockResolvedValue(mockCreatedUser);
+      jest.spyOn(userService, 'create').mockResolvedValue(mockUserByEmail);
 
       const result = await userController.registerUser(mockCreateUserDto);
 
-      expect(result).toEqual(mockCreatedUser);
+      expect(result).toEqual(mockUserByEmail);
       expect(userService.create).toHaveBeenCalled();
       expect(userService.create).toBeCalledWith(mockCreateUserDto);
     });
@@ -102,15 +111,11 @@ describe('UserController', () => {
 
   describe('[UserController.checkNickname] - 닉네임 중복체크', () => {
     it('중복체크 성공', async () => {
-      jest.spyOn(userService, 'checkNick').mockResolvedValue({
-        message: `해당 닉네임:${mockNickNameDto.nickname}은 사용가능합니다.`,
-      });
+      jest.spyOn(userService, 'checkNick').mockResolvedValue(undefined);
 
       const result = await userController.checkNickname(mockNickNameDto);
 
-      expect(result).toEqual({
-        message: `해당 닉네임:${mockNickNameDto.nickname}은 사용가능합니다.`,
-      });
+      expect(result).toBeUndefined();
       expect(userService.checkNick).toHaveBeenCalled();
       expect(userService.checkNick).toBeCalledWith(mockNickNameDto);
     });
@@ -118,16 +123,14 @@ describe('UserController', () => {
 
   describe('[UserController.updateUserProfile] - 유저 프로필 수정', () => {
     it('프로필 수정 성공', async () => {
-      const updateResult = { message: '수정 성공' };
-
-      jest.spyOn(userService, 'update').mockResolvedValue(updateResult);
+      jest.spyOn(userService, 'update').mockResolvedValue(mockUserByEmail);
 
       const result = await userController.updateUserProfile(
         userId,
         mockUpdateUserDto,
       );
 
-      expect(result).toEqual(updateResult);
+      expect(result).toEqual(mockUserByEmail);
       expect(userService.update).toHaveBeenCalled();
       expect(userService.update).toBeCalledWith(userId, mockUpdateUserDto);
     });
@@ -187,19 +190,40 @@ describe('UserController', () => {
 
   describe('[UserController.withdrawalUser] - 유저 회원탈퇴', () => {
     it('회원탈퇴 성공', async () => {
-      jest.spyOn(userService, 'delete').mockResolvedValue(true);
+      jest.spyOn(userService, 'delete').mockResolvedValue(undefined);
 
-      const result = await userController.withdrawalUser(userId);
+      const result = await userController.withdrawalUser(mockJwtPayload);
 
-      expect(result).toBe(true);
+      expect(result).toBeUndefined();
       expect(userService.delete).toHaveBeenCalled();
-      expect(userService.delete).toBeCalledWith(userId);
+      expect(userService.delete).toBeCalledWith(mockJwtPayload);
     });
   });
 
   describe('[UserController.getMyWishCourses] - 찜한 강의 조회', () => {
     it('조회 성공', async () => {
       const query = new UserWishQueryDto();
+      const mockWishCourseList = [
+        [
+          {
+            ...mockCourseWish,
+            course: {
+              ...mockPaidCourse,
+              instructor: mockInstructor,
+            },
+          },
+        ],
+        1,
+      ] as [CourseWishEntity[], number];
+      const pageMeta = new PageMetaDto({
+        pageOptionDto: new UserWishQueryDto(),
+        itemCount: mockWishCourseList[1],
+      });
+      const expectedCourseWishList = new PageDto(
+        mockWishCourseList[0],
+        pageMeta,
+      );
+
       jest
         .spyOn(courseWishService, 'findWishCoursesByUser')
         .mockResolvedValue(expectedCourseWishList);
@@ -218,13 +242,32 @@ describe('UserController', () => {
   describe('[UserController.getMyQuestions] - 유저가 작성한 질문글 조회', () => {
     it('조회 성공', async () => {
       const query = new UserQuestionQueryDto();
+      const mockMyQuestionList = [
+        [
+          {
+            ...mockQuestion,
+            user: mockUserByEmail,
+            course: mockPaidCourse,
+          },
+        ],
+        1,
+      ] as [QuestionEntity[], number];
+      const pageMeta = new PageMetaDto({
+        pageOptionDto: query,
+        itemCount: mockMyQuestionList[1],
+      });
+      const expectedMockMyQuestionList = new PageDto(
+        mockMyQuestionList[0],
+        pageMeta,
+      );
+
       jest
         .spyOn(questionService, 'findMyQuestions')
-        .mockResolvedValue(expectedMyQuestionWithoutComment);
+        .mockResolvedValue(expectedMockMyQuestionList);
 
       const result = await userController.getMyQuestions(query, userId);
 
-      expect(result).toEqual(expectedMyQuestionWithoutComment);
+      expect(result).toEqual(expectedMockMyQuestionList);
       expect(questionService.findMyQuestions).toBeCalled();
       expect(questionService.findMyQuestions).toBeCalledWith(query, userId);
     });
@@ -233,6 +276,26 @@ describe('UserController', () => {
   describe('[UserController.getMyCourses] - 유저가 수강하는 강의 조회', () => {
     it('조회 성공', async () => {
       const query = new UserMyCourseQueryDto();
+      const mockCourseUserList = [
+        [
+          {
+            id: mockCourseUserWithPaid.id,
+            type: mockCourseUserWithPaid.type,
+            created_at: mockCourseUserWithPaid.created_at,
+            course: mockPaidCourse,
+          },
+        ],
+        1,
+      ] as [CourseUserEntity[], number];
+      const pageMeta = new PageMetaDto({
+        pageOptionDto: new UserMyCourseQueryDto(),
+        itemCount: mockCourseUserList[1],
+      });
+      const expectedCourseUserList = new PageDto(
+        mockCourseUserList[0],
+        pageMeta,
+      );
+
       jest
         .spyOn(courseUserService, 'findMyCourses')
         .mockResolvedValue(expectedCourseUserList);

@@ -1,18 +1,26 @@
 import { BadRequestException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
+import { CategoryCourseEntity } from '@src/category_course/entities/category-course.entitiy';
+import { PageMetaDto } from '@src/common/dtos/page-meta.dto';
+import { PageDto } from '@src/common/dtos/page.dto';
 import { CourseController } from '@src/course/course.controller';
 import { CourseService } from '@src/course/course.service';
-import {
-  expectedCourseDashboard,
-  expectedCourseDetail,
-  expectedCourseList,
-  mockCourseService,
-  mockCreateCourseDto,
-  mockCreatedCourse,
-  mockUpdateCourseDto,
-} from '@test/__mocks__/course.mock';
-import { mockCreatedInstructor } from '@test/__mocks__/user.mock';
 import { CourseListQueryDto } from '@src/course/dtos/course-list.query.dto';
+import {
+  mockPaidCourse,
+  mockInstructor,
+  mockCategoryCourse,
+  mockMainCategory,
+  mockSubCategory,
+  mockSection,
+  mockLesson,
+  mockVideo,
+  mockCreateCourseDto,
+  mockUpdateCourseDto,
+  mockFreeCourse,
+} from '@test/__mocks__/mock-data';
+import { mockCourseService } from '@test/__mocks__/mock-service';
+import { CourseEntity } from '../entities/course.entity';
 
 describe('CourseController', () => {
   let courseController: CourseController;
@@ -20,7 +28,6 @@ describe('CourseController', () => {
 
   const courseId = 'uuid';
   const userId = 'uuid';
-  const user = mockCreatedInstructor;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -42,14 +49,30 @@ describe('CourseController', () => {
   });
 
   describe('[CourseController.findCourseDetail] - 강의 상세 조회', () => {
+    const mockCourseDetail = {
+      ...mockPaidCourse,
+      instructor: mockInstructor,
+      categoriesCourses: [
+        {
+          id: mockCategoryCourse.id,
+          isMain: mockCategoryCourse.isMain,
+          parentCategory: mockMainCategory,
+          subCategory: mockSubCategory,
+        },
+      ] as CategoryCourseEntity[],
+      section: [
+        { ...mockSection, lessons: [{ ...mockLesson, video: mockVideo }] },
+      ],
+    } as CourseEntity;
+
     it('조회 성공', async () => {
       jest
         .spyOn(courseService, 'findCourseDetail')
-        .mockResolvedValue(expectedCourseDetail);
+        .mockResolvedValue(mockCourseDetail);
 
       const result = await courseController.findCourseDetail(courseId);
 
-      expect(result).toEqual(expectedCourseDetail);
+      expect(result).toEqual(mockCourseDetail);
       expect(courseService.findCourseDetail).toBeCalled();
       expect(courseService.findCourseDetail).toBeCalledWith(courseId);
     });
@@ -103,17 +126,24 @@ describe('CourseController', () => {
   });
 
   describe('[CourseController.getCourseDashBoard] - 강의 대시보드 조회', () => {
+    const mockDashBoard = {
+      ...mockPaidCourse,
+      section: [
+        { ...mockSection, lessons: [{ ...mockLesson, video: mockVideo }] },
+      ],
+    } as CourseEntity;
+
     it('조회 성공', async () => {
       jest
         .spyOn(courseService, 'getDashBoard')
-        .mockResolvedValue(expectedCourseDashboard);
+        .mockResolvedValue(mockDashBoard);
 
       const result = await courseController.getCourseDashBoard(
         courseId,
         userId,
       );
 
-      expect(result).toEqual(expectedCourseDashboard);
+      expect(result).toEqual(mockDashBoard);
       expect(courseService.getDashBoard).toBeCalled();
       expect(courseService.getDashBoard).toBeCalledWith(courseId, userId);
     });
@@ -121,6 +151,25 @@ describe('CourseController', () => {
 
   describe('[CourseController.findAllCourses] - 강의 전체 조회', () => {
     const query = new CourseListQueryDto();
+    const mockCourseList = [
+      [
+        {
+          ...mockPaidCourse,
+          instructor: mockInstructor,
+        },
+        {
+          ...mockFreeCourse,
+          instructor: mockInstructor,
+        },
+      ],
+      2,
+    ] as [CourseEntity[], number];
+    const pageMeta = new PageMetaDto({
+      pageOptionDto: query,
+      itemCount: mockCourseList[1],
+    });
+    const expectedCourseList = new PageDto(mockCourseList[0], pageMeta);
+
     it('조회 성공', async () => {
       jest
         .spyOn(courseService, 'findAllCourse')
@@ -182,16 +231,19 @@ describe('CourseController', () => {
 
   describe('[CourseController.createCourse] - 강의 생성', () => {
     it('생성 성공', async () => {
-      jest.spyOn(courseService, 'create').mockResolvedValue(mockCreatedCourse);
+      jest.spyOn(courseService, 'create').mockResolvedValue(mockPaidCourse);
 
       const result = await courseController.createCourse(
         mockCreateCourseDto,
-        user,
+        mockInstructor,
       );
 
-      expect(result).toEqual(mockCreatedCourse);
+      expect(result).toEqual(mockPaidCourse);
       expect(courseService.create).toBeCalled();
-      expect(courseService.create).toBeCalledWith(mockCreateCourseDto, user);
+      expect(courseService.create).toBeCalledWith(
+        mockCreateCourseDto,
+        mockInstructor,
+      );
     });
   });
 
@@ -208,22 +260,21 @@ describe('CourseController', () => {
   });
 
   describe('[CourseController.updateCourse] - 강의 수정', () => {
-    const updateResult = { message: '수정 성공' };
     it('수정 성공', async () => {
-      jest.spyOn(courseService, 'update').mockResolvedValue(updateResult);
+      jest.spyOn(courseService, 'update').mockResolvedValue(undefined);
 
       const result = await courseController.updateCourse(
         courseId,
         mockUpdateCourseDto,
-        user,
+        mockInstructor,
       );
 
-      expect(result).toEqual(updateResult);
+      expect(result).toBeUndefined();
       expect(courseService.update).toBeCalled();
       expect(courseService.update).toBeCalledWith(
         courseId,
         mockUpdateCourseDto,
-        user,
+        mockInstructor,
       );
     });
   });
@@ -245,18 +296,26 @@ describe('CourseController', () => {
 
       const result = await courseController.uploadCourseCoverImage(
         courseId,
-        user,
+        mockInstructor,
         file,
       );
 
       expect(result).toBe(uploadUrl);
       expect(courseService.uploadImage).toBeCalled();
-      expect(courseService.uploadImage).toBeCalledWith(courseId, user, file);
+      expect(courseService.uploadImage).toBeCalledWith(
+        courseId,
+        mockInstructor,
+        file,
+      );
     });
 
     it('업로드 실패 - 파일이 없는 경우(400에러)', async () => {
       try {
-        await courseController.uploadCourseCoverImage(courseId, user, null);
+        await courseController.uploadCourseCoverImage(
+          courseId,
+          mockInstructor,
+          null,
+        );
       } catch (error) {
         expect(error).toBeInstanceOf(BadRequestException);
       }
@@ -265,13 +324,16 @@ describe('CourseController', () => {
 
   describe('[CourseController.deleteCourse] - 강의 삭제', () => {
     it('삭제 성공', async () => {
-      jest.spyOn(courseService, 'delete').mockResolvedValue(true);
+      jest.spyOn(courseService, 'delete').mockResolvedValue(undefined);
 
-      const result = await courseController.deleteCourse(courseId, user);
+      const result = await courseController.deleteCourse(
+        courseId,
+        mockInstructor,
+      );
 
-      expect(result).toBe(true);
+      expect(result).toBeUndefined();
       expect(courseService.delete).toBeCalled();
-      expect(courseService.delete).toBeCalledWith(courseId, user);
+      expect(courseService.delete).toBeCalledWith(courseId, mockInstructor);
     });
   });
 });

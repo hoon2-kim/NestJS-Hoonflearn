@@ -1,13 +1,10 @@
 name: 배포
 
 on:
-  # pull_request:
-  #   branches:
-  #     - master
-  #   types: [closed]
-  push:
+  pull_request:
     branches:
-      - develop
+      - master
+    types: [closed]
 
 jobs:
   build_and_deploy:

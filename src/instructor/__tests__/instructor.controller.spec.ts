@@ -1,27 +1,31 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { InstructorController } from '@src/instructor/instructor.controller';
 import { InstructorService } from '@src/instructor/instructor.service';
-import { mockCreatedInstructor } from '@test/__mocks__/user.mock';
-import {
-  expectedCourseByInstructor,
-  mockCreateInstructorDto,
-  mockInstructorService,
-} from '@test/__mocks__/instructorProfile.mock';
 import {
   InstructorCourseQueryDto,
   InstructorQuestionQueryDto,
   InstructorReviewQueryDto,
 } from '@src/instructor/dtos/instructor.query.dto';
-import { expectedQuestionWithoutComment } from '@test/__mocks__/question.mock';
-import { expectedReviewByInstructor } from '@test/__mocks__/review.mock';
 import { Response } from 'express';
-import { IInstructorTokens } from '@src/instructor/interfaces/instructor.interface';
+import { mockInstructorService } from '@test/__mocks__/mock-service';
+import { PageMetaDto } from '@src/common/dtos/page-meta.dto';
+import { PageDto } from '@src/common/dtos/page.dto';
+import { CourseEntity } from '@src/course/entities/course.entity';
+import {
+  mockPaidCourse,
+  mockCreateInstructorDto,
+  mockJwtPayload,
+  mockQuestion,
+  mockUserByEmail,
+  mockReview,
+  mockJwtTokens,
+} from '@test/__mocks__/mock-data';
+import { QuestionEntity } from '@src/question/entities/question.entity';
+import { ReviewEntity } from '@src/review/entities/review.entity';
 
 describe('InstructorController', () => {
   let instructorController: InstructorController;
   let instructorService: InstructorService;
-
-  const user = mockCreatedInstructor;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -50,6 +54,18 @@ describe('InstructorController', () => {
 
   describe('[InstructorController.findMyCourse] - 지식공유자가 만든 강의 조회', () => {
     let query: InstructorCourseQueryDto;
+    const mockCourseListByInstructor = [[mockPaidCourse], 1] as [
+      CourseEntity[],
+      number,
+    ];
+    const pageMeta = new PageMetaDto({
+      pageOptionDto: new InstructorCourseQueryDto(),
+      itemCount: mockCourseListByInstructor[1],
+    });
+    const expectedCourseListByInstructor = new PageDto(
+      mockCourseListByInstructor[0],
+      pageMeta,
+    );
 
     beforeEach(() => {
       query = new InstructorCourseQueryDto();
@@ -58,21 +74,42 @@ describe('InstructorController', () => {
     it('조회 성공', async () => {
       jest
         .spyOn(instructorService, 'getMyCoursesByInstructor')
-        .mockResolvedValue(expectedCourseByInstructor);
+        .mockResolvedValue(expectedCourseListByInstructor);
 
-      const result = await instructorController.findMyCourses(query, user);
+      const result = await instructorController.findMyCourses(
+        query,
+        mockJwtPayload,
+      );
 
-      expect(result).toEqual(expectedCourseByInstructor);
+      expect(result).toEqual(expectedCourseListByInstructor);
       expect(instructorService.getMyCoursesByInstructor).toBeCalled();
       expect(instructorService.getMyCoursesByInstructor).toBeCalledWith(
         query,
-        user,
+        mockJwtPayload,
       );
     });
   });
 
   describe('[InstructorController.getQuestionsMyCourses] - 지식공유자가 만든 강의의 질문글 조회', () => {
     let query: InstructorQuestionQueryDto;
+    const mockQuestionListByMyCourse = [
+      [
+        {
+          ...mockQuestion,
+          course: mockPaidCourse,
+          user: mockUserByEmail,
+        },
+      ],
+      1,
+    ] as [QuestionEntity[], number];
+    const pageMeta = new PageMetaDto({
+      pageOptionDto: new InstructorCourseQueryDto(),
+      itemCount: mockQuestionListByMyCourse[1],
+    });
+    const expectedQuestionListByMCourse = new PageDto(
+      mockQuestionListByMyCourse[0],
+      pageMeta,
+    );
 
     beforeEach(() => {
       query = new InstructorQuestionQueryDto();
@@ -81,24 +118,42 @@ describe('InstructorController', () => {
     it('조회 성공', async () => {
       jest
         .spyOn(instructorService, 'getQuestionsByMyCourses')
-        .mockResolvedValue(expectedQuestionWithoutComment);
+        .mockResolvedValue(expectedQuestionListByMCourse);
 
       const result = await instructorController.getQuestionsMyCourses(
         query,
-        user,
+        mockJwtPayload,
       );
 
-      expect(result).toEqual(expectedQuestionWithoutComment);
+      expect(result).toEqual(expectedQuestionListByMCourse);
       expect(instructorService.getQuestionsByMyCourses).toBeCalled();
       expect(instructorService.getQuestionsByMyCourses).toBeCalledWith(
         query,
-        user,
+        mockJwtPayload,
       );
     });
   });
 
   describe('[InstructorController.getReviewsMyCourses] - 지식공유자가 만든 강의의 리뷰들 조회', () => {
     let query: InstructorReviewQueryDto;
+    const mockReviewListByMyCourse = [
+      [
+        {
+          ...mockReview,
+          course: mockPaidCourse,
+          user: mockUserByEmail,
+        },
+      ],
+      1,
+    ] as [ReviewEntity[], number];
+    const pageMeta = new PageMetaDto({
+      pageOptionDto: new InstructorReviewQueryDto(),
+      itemCount: mockReviewListByMyCourse[1],
+    });
+    const expectedReviewListByMyCourse = new PageDto(
+      mockReviewListByMyCourse[0],
+      pageMeta,
+    );
 
     beforeEach(() => {
       query = new InstructorReviewQueryDto();
@@ -107,18 +162,18 @@ describe('InstructorController', () => {
     it('조회 성공', async () => {
       jest
         .spyOn(instructorService, 'getReviewsByMyCourses')
-        .mockResolvedValue(expectedReviewByInstructor);
+        .mockResolvedValue(expectedReviewListByMyCourse);
 
       const result = await instructorController.getReviewsMyCourses(
         query,
-        user,
+        mockJwtPayload,
       );
 
-      expect(result).toEqual(expectedReviewByInstructor);
+      expect(result).toEqual(expectedReviewListByMyCourse);
       expect(instructorService.getReviewsByMyCourses).toBeCalled();
       expect(instructorService.getReviewsByMyCourses).toBeCalledWith(
         query,
-        user,
+        mockJwtPayload,
       );
     });
   });
@@ -127,27 +182,21 @@ describe('InstructorController', () => {
     const mockResponse = {
       cookie: jest.fn().mockReturnThis(),
     } as unknown as Response;
-    const createdResponse: IInstructorTokens = {
-      access_token: 'access',
-      refresh_token: 'refresh',
-    };
 
     it('등록 성공', async () => {
-      jest
-        .spyOn(instructorService, 'create')
-        .mockResolvedValue(createdResponse);
+      jest.spyOn(instructorService, 'create').mockResolvedValue(mockJwtTokens);
 
       const result = await instructorController.registerInstructor(
         mockCreateInstructorDto,
-        user,
+        mockJwtPayload,
         mockResponse,
       );
 
-      expect(result).toEqual(createdResponse);
+      expect(result).toEqual(mockJwtTokens);
       expect(instructorService.create).toBeCalled();
       expect(instructorService.create).toBeCalledWith(
         mockCreateInstructorDto,
-        user,
+        mockJwtPayload,
         mockResponse,
       );
     });

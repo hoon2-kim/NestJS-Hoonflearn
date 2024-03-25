@@ -4,16 +4,16 @@ import { EntityManager, Repository } from 'typeorm';
 import { SectionEntity } from '@src/section/entities/section.entity';
 import { CourseService } from '@src/course/course.service';
 import { getRepositoryToken } from '@nestjs/typeorm';
-import {
-  mockCourseService,
-  mockCreatedSection,
-  mockCreateSectionDto,
-  mockSectionRepository,
-  mockUpdateSectionDto,
-} from '@test/__mocks__/section.mock';
 import { CourseEntity } from '@src/course/entities/course.entity';
 import { ForbiddenException, NotFoundException } from '@nestjs/common';
 import { ELessonAction } from '@src/lesson/enums/lesson.enum';
+import { mockSectionRepository } from '@test/__mocks__/mock-repository';
+import { mockCourseService } from '@test/__mocks__/mock-service';
+import {
+  mockCreateSectionDto,
+  mockSection,
+  mockUpdateSectionDto,
+} from '@test/__mocks__/mock-data';
 
 describe('SectionService', () => {
   let sectionService: SectionService;
@@ -60,25 +60,22 @@ describe('SectionService', () => {
   });
 
   describe('[섹션 생성]', () => {
-    const mockPartialCourseEntity = {
-      id: 'uuid',
-      fk_instructor_id: 'uuid',
-    } as CourseEntity;
-
     it('섹션 생성 성공', async () => {
       const { courseId, ...dto } = mockCreateSectionDto;
+      const mockPartialCourseEntity = {
+        id: 'uuid',
+        fk_instructor_id: 'uuid',
+      } as CourseEntity;
 
       jest
         .spyOn(courseService, 'findOneByOptions')
         .mockResolvedValue(mockPartialCourseEntity);
 
-      jest
-        .spyOn(sectionRepositry, 'save')
-        .mockResolvedValue(mockCreatedSection);
+      jest.spyOn(sectionRepositry, 'save').mockResolvedValue(mockSection);
 
       const result = await sectionService.create(mockCreateSectionDto, userId);
 
-      expect(result).toEqual(mockCreatedSection);
+      expect(result).toEqual(mockSection);
       expect(mockSectionRepository.save).toBeCalled();
       expect(mockSectionRepository.save).toBeCalledWith({
         ...dto,
@@ -97,11 +94,15 @@ describe('SectionService', () => {
     });
 
     it('섹션 생성 실패 - 해당 강의를 만든 지식공유자가 아닌 경우(403에러)', async () => {
-      jest
-        .spyOn(courseService, 'findOneByOptions')
-        .mockRejectedValue(
-          new ForbiddenException('해당 강의를 만든 지식공유자가 아닙니다.'),
-        );
+      const mockPartialCourseEntity = {
+        id: 'uuid',
+        fk_instructor_id: 'uuid',
+      } as CourseEntity;
+
+      jest.spyOn(courseService, 'findOneByOptions').mockResolvedValue({
+        ...mockPartialCourseEntity,
+        fk_instructor_id: 'anotherInstructorId',
+      });
 
       try {
         await sectionService.create(mockCreateSectionDto, userId);
@@ -113,20 +114,21 @@ describe('SectionService', () => {
   });
 
   describe('[섹션 수정]', () => {
-    const updateResult = { message: '수정 성공' };
-
     it('섹션 수정 성공', async () => {
+      const mockUpdateSection = Object.assign(
+        mockSection,
+        mockUpdateSectionDto,
+      );
+
       jest
         .spyOn(sectionService, 'findOneByOptions')
-        .mockResolvedValue(mockCreatedSection);
+        .mockResolvedValue(mockSection);
 
       jest
         .spyOn(courseService, 'validateInstructor')
         .mockResolvedValue(undefined);
 
-      jest
-        .spyOn(sectionRepositry, 'save')
-        .mockResolvedValue(mockCreatedSection);
+      jest.spyOn(sectionRepositry, 'save').mockResolvedValue(mockUpdateSection);
 
       const result = await sectionService.update(
         sectionId,
@@ -134,10 +136,10 @@ describe('SectionService', () => {
         userId,
       );
 
-      expect(result).toEqual(updateResult);
+      expect(result).toBeUndefined();
       expect(courseService.validateInstructor).toBeCalledTimes(1);
       expect(courseService.validateInstructor).toBeCalledWith(
-        mockCreatedSection.fk_course_id,
+        mockSection.fk_course_id,
         userId,
       );
     });
@@ -155,7 +157,7 @@ describe('SectionService', () => {
     it('섹션 수정 실패 - 해당 강의를 만든 지식공유자가 아닌 경우(403에러)', async () => {
       jest
         .spyOn(sectionService, 'findOneByOptions')
-        .mockResolvedValue(mockCreatedSection);
+        .mockResolvedValue(mockSection);
 
       jest
         .spyOn(courseService, 'validateInstructor')
@@ -176,7 +178,7 @@ describe('SectionService', () => {
     it('섹션 삭제 성공', async () => {
       jest
         .spyOn(sectionService, 'findOneByOptions')
-        .mockResolvedValue(mockCreatedSection);
+        .mockResolvedValue(mockSection);
 
       jest
         .spyOn(courseService, 'validateInstructor')
@@ -188,9 +190,9 @@ describe('SectionService', () => {
 
       const result = await sectionService.delete(sectionId, userId);
 
-      expect(result).toBe(true);
+      expect(result).toBeUndefined();
       expect(courseService.validateInstructor).toBeCalledWith(
-        mockCreatedSection.fk_course_id,
+        mockSection.fk_course_id,
         userId,
       );
     });
@@ -208,7 +210,7 @@ describe('SectionService', () => {
     it('섹션 삭제 실패 - 해당 강의를 만든 지식공유자가 아닌 경우(403에러)', async () => {
       jest
         .spyOn(sectionService, 'findOneByOptions')
-        .mockResolvedValue(mockCreatedSection);
+        .mockResolvedValue(mockSection);
 
       jest
         .spyOn(courseService, 'validateInstructor')

@@ -9,24 +9,6 @@ import { CourseWishService } from '@src/course/course-wish/course-wish.service';
 import { QuestionEntity } from '@src/question/entities/question.entity';
 import { DataSource, EntityManager, QueryRunner, Repository } from 'typeorm';
 import { CourseEntity } from '@src/course/entities/course.entity';
-import {
-  mockCourseRepository,
-  mockQuestionRepository,
-  mockAwsS3Service,
-  mockCategoryCourseService,
-  mockCategoryService,
-  mockCourseUserService,
-  mockCourseWishService,
-  mockCourses,
-  expectedCourseList,
-  mockCourseDetail,
-  expectedCourseDetail,
-  mockCourseDashBoard,
-  expectedCourseDashboard,
-  mockCreatedCourse,
-  mockCreateCourseDto,
-  mockUpdateCourseDto,
-} from '@test/__mocks__/course.mock';
 import { CourseListQueryDto } from '@src/course/dtos/course-list.query.dto';
 import {
   ECourseChargeType,
@@ -38,14 +20,39 @@ import {
   ForbiddenException,
   NotFoundException,
 } from '@nestjs/common';
-import { mockCreatedQuestion } from '@test/__mocks__/question.mock';
-import { mockCategoryCourse } from '@test/__mocks__/categoryCourse.mock';
-import { mockCreatedInstructor } from '@test/__mocks__/user.mock';
-import { mockCreatedCourseWish } from '@test/__mocks__/courseWish.mock';
 import { EReviewMethod } from '@src/review/enums/review.enum';
-import { CourseIdsReponseDto } from '@src/course/dtos/response/course.response';
 import { ELessonAction } from '@src/lesson/enums/lesson.enum';
 import { EOrderAction } from '@src/order/enums/order.enum';
+import {
+  mockCourseRepository,
+  mockQuestionRepository,
+} from '@test/__mocks__/mock-repository';
+import {
+  mockAwsS3Service,
+  mockCategoryCourseService,
+  mockCategoryService,
+  mockCourseUserService,
+  mockCourseWishService,
+} from '@test/__mocks__/mock-service';
+import {
+  mockCategoryCourse,
+  mockCourseWish,
+  mockCreateCourseDto,
+  mockFreeCourse,
+  mockInstructor,
+  mockLesson,
+  mockMainCategory,
+  mockPaidCourse,
+  mockQuestion,
+  mockSection,
+  mockSubCategory,
+  mockUpdateCourseDto,
+  mockVideo,
+} from '@test/__mocks__/mock-data';
+import { PageMetaDto } from '@src/common/dtos/page-meta.dto';
+import { PageDto } from '@src/common/dtos/page.dto';
+import { CategoryCourseEntity } from '@src/category_course/entities/category-course.entitiy';
+import { UpdateCourseDto } from '@src/course/dtos/update-course.dto';
 
 const mockQueryRunner = {
   manager: {},
@@ -70,7 +77,6 @@ describe('CourseService', () => {
 
   const courseId = 'uuid';
   const userId = 'uuid';
-  const user = mockCreatedInstructor;
   const mockEntityManager = {
     increment: jest.fn(),
     decrement: jest.fn(),
@@ -143,6 +149,24 @@ describe('CourseService', () => {
 
   describe('[강의 전체 조회]', () => {
     let query: CourseListQueryDto;
+    const mockCourseList = [
+      [
+        {
+          ...mockPaidCourse,
+          instructor: mockInstructor,
+        },
+        {
+          ...mockFreeCourse,
+          instructor: mockInstructor,
+        },
+      ],
+      2,
+    ] as [CourseEntity[], number];
+    const pageMeta = new PageMetaDto({
+      pageOptionDto: new CourseListQueryDto(),
+      itemCount: mockCourseList[1],
+    });
+    const expectedCourseList = new PageDto(mockCourseList[0], pageMeta);
 
     beforeEach(() => {
       query = new CourseListQueryDto();
@@ -151,7 +175,7 @@ describe('CourseService', () => {
     it('파라미터에 카테고리없이 전체 조회 성공', async () => {
       jest
         .spyOn(courseRepository.createQueryBuilder(), 'getManyAndCount')
-        .mockResolvedValue(mockCourses);
+        .mockResolvedValue(mockCourseList);
 
       const result = await courseService.findAllCourse(query);
 
@@ -172,7 +196,7 @@ describe('CourseService', () => {
 
       jest
         .spyOn(courseRepository.createQueryBuilder(), 'getManyAndCount')
-        .mockResolvedValue(mockCourses);
+        .mockResolvedValue(mockCourseList);
 
       const result = await courseService.findAllCourse(query, mainCategoryId);
 
@@ -199,7 +223,7 @@ describe('CourseService', () => {
 
       jest
         .spyOn(courseRepository.createQueryBuilder(), 'getManyAndCount')
-        .mockResolvedValue(mockCourses);
+        .mockResolvedValue(mockCourseList);
 
       const result = await courseService.findAllCourse(
         query,
@@ -359,6 +383,22 @@ describe('CourseService', () => {
   });
 
   describe('[강의 상세 조회]', () => {
+    const mockCourseDetail = {
+      ...mockPaidCourse,
+      instructor: mockInstructor,
+      categoriesCourses: [
+        {
+          id: mockCategoryCourse.id,
+          isMain: mockCategoryCourse.isMain,
+          parentCategory: mockMainCategory,
+          subCategory: mockSubCategory,
+        },
+      ] as CategoryCourseEntity[],
+      section: [
+        { ...mockSection, lessons: [{ ...mockLesson, video: mockVideo }] },
+      ],
+    } as CourseEntity;
+
     it('조회 성공', async () => {
       jest
         .spyOn(courseRepository.createQueryBuilder(), 'getOne')
@@ -366,7 +406,7 @@ describe('CourseService', () => {
 
       const result = await courseService.findCourseDetail(courseId);
 
-      expect(result).toEqual(expectedCourseDetail);
+      expect(result).toEqual(mockCourseDetail);
       expect(
         courseRepository.createQueryBuilder().leftJoinAndSelect,
       ).toBeCalledTimes(7);
@@ -420,20 +460,27 @@ describe('CourseService', () => {
   });
 
   describe('[강의 대시보드(강의 구매한 유저)]', () => {
+    const mockDashBoard = {
+      ...mockPaidCourse,
+      section: [
+        { ...mockSection, lessons: [{ ...mockLesson, video: mockVideo }] },
+      ],
+    } as CourseEntity;
+
     it('조회 성공', async () => {
       jest
         .spyOn(courseRepository.createQueryBuilder(), 'getOne')
-        .mockResolvedValue(mockCourseDashBoard);
+        .mockResolvedValue(mockDashBoard);
       jest
         .spyOn(questionRepository.createQueryBuilder(), 'getMany')
-        .mockResolvedValue([mockCreatedQuestion]);
+        .mockResolvedValue([mockQuestion]);
       jest
         .spyOn(courseUserService, 'validateBoughtCourseByUser')
         .mockResolvedValue(undefined);
 
       const result = await courseService.getDashBoard(courseId, userId);
 
-      expect(result).toEqual(expectedCourseDashboard);
+      expect(result).toEqual({ ...mockDashBoard, questions: [mockQuestion] });
       expect(
         courseRepository.createQueryBuilder().leftJoinAndSelect,
       ).toBeCalledTimes(3);
@@ -468,10 +515,10 @@ describe('CourseService', () => {
     it('조회 실패 - 강의를 구매하지않은 경우(403에러)', async () => {
       jest
         .spyOn(courseRepository.createQueryBuilder(), 'getOne')
-        .mockResolvedValue(mockCourseDashBoard);
+        .mockResolvedValue(mockDashBoard);
       jest
         .spyOn(questionRepository.createQueryBuilder(), 'getMany')
-        .mockResolvedValue([mockCreatedQuestion]);
+        .mockResolvedValue([mockQuestion]);
       jest
         .spyOn(courseUserService, 'validateBoughtCourseByUser')
         .mockRejectedValue(new ForbiddenException());
@@ -494,35 +541,36 @@ describe('CourseService', () => {
     it('생성 성공', async () => {
       jest.spyOn(queryRunner.manager, 'findOne').mockResolvedValue(null);
       jest
-        .spyOn(categoryService, 'validateCategoryOptionalTransaction')
+        .spyOn(categoryService, 'validateCategory')
         .mockResolvedValue(undefined);
-      jest
-        .spyOn(queryRunner.manager, 'save')
-        .mockResolvedValue(mockCreatedCourse);
+      jest.spyOn(queryRunner.manager, 'save').mockResolvedValue(mockPaidCourse);
       jest
         .spyOn(categoryCourseService, 'linkCourseToCategories')
-        .mockResolvedValue(mockCategoryCourse);
+        .mockResolvedValue([mockCategoryCourse]);
 
-      const result = await courseService.create(mockCreateCourseDto, user);
+      const result = await courseService.create(
+        mockCreateCourseDto,
+        mockInstructor,
+      );
 
-      expect(result).toEqual(mockCreatedCourse);
+      expect(result).toEqual(mockPaidCourse);
       expect(queryRunner.startTransaction).toBeCalledTimes(1);
       expect(queryRunner.commitTransaction).toBeCalledTimes(1);
       expect(queryRunner.rollbackTransaction).toBeCalledTimes(0);
       expect(queryRunner.release).toBeCalledTimes(1);
       expect(queryRunner.manager.findOne).toBeCalledTimes(1);
       expect(queryRunner.manager.save).toBeCalledTimes(1);
-      expect(categoryService.validateCategoryOptionalTransaction).toBeCalled();
+      expect(categoryService.validateCategory).toBeCalled();
       expect(categoryCourseService.linkCourseToCategories).toBeCalled();
     });
 
     it('생성 실패 - 같은 제목의 강의가 이미 있는 경우(400에러)', async () => {
       jest
         .spyOn(queryRunner.manager, 'findOne')
-        .mockResolvedValue(mockCreatedCourse);
+        .mockResolvedValue(mockPaidCourse);
 
       try {
-        await courseService.create(mockCreateCourseDto, user);
+        await courseService.create(mockCreateCourseDto, mockInstructor);
       } catch (error) {
         expect(error).toBeInstanceOf(BadRequestException);
         expect(queryRunner.startTransaction).toBeCalledTimes(1);
@@ -535,11 +583,11 @@ describe('CourseService', () => {
     it('생성 실패 - 카테고리 검증 실패(없는 카테고리 - 404에러)', async () => {
       jest.spyOn(queryRunner.manager, 'findOne').mockResolvedValue(null);
       jest
-        .spyOn(categoryService, 'validateCategoryOptionalTransaction')
+        .spyOn(categoryService, 'validateCategory')
         .mockRejectedValue(new NotFoundException());
 
       try {
-        await courseService.create(mockCreateCourseDto, user);
+        await courseService.create(mockCreateCourseDto, mockInstructor);
       } catch (error) {
         expect(error).toBeInstanceOf(NotFoundException);
         expect(queryRunner.startTransaction).toBeCalledTimes(1);
@@ -552,11 +600,11 @@ describe('CourseService', () => {
     it('생성 실패 - 카테고리 검증 실패(메인카테고리에 서브카테고리가 있거나 그 반대의 경우 - 400에러)', async () => {
       jest.spyOn(queryRunner.manager, 'findOne').mockResolvedValue(null);
       jest
-        .spyOn(categoryService, 'validateCategoryOptionalTransaction')
+        .spyOn(categoryService, 'validateCategory')
         .mockRejectedValue(new BadRequestException());
 
       try {
-        await courseService.create(mockCreateCourseDto, user);
+        await courseService.create(mockCreateCourseDto, mockInstructor);
       } catch (error) {
         expect(error).toBeInstanceOf(BadRequestException);
         expect(queryRunner.startTransaction).toBeCalledTimes(1);
@@ -569,27 +617,28 @@ describe('CourseService', () => {
 
   describe('[강의 수정]', () => {
     it('수정 성공(카테고리 수정 제외)', async () => {
-      const updateResult = { message: '수정 성공' };
+      const mockUpdateCourse = Object.assign(
+        mockPaidCourse,
+        mockUpdateCourseDto,
+      );
 
       jest
         .spyOn(courseService, 'findOneByOptions')
-        .mockResolvedValueOnce(mockCreatedCourse);
+        .mockResolvedValueOnce(mockPaidCourse);
       jest.spyOn(courseService, 'findOneByOptions').mockResolvedValueOnce(null);
-      jest.spyOn(courseRepository, 'save').mockResolvedValue(mockCreatedCourse);
+      jest.spyOn(courseRepository, 'save').mockResolvedValue(mockUpdateCourse);
 
       const result = await courseService.update(
         courseId,
         mockUpdateCourseDto,
-        user,
+        mockInstructor,
       );
 
-      expect(result).toEqual(updateResult);
+      expect(result).toBeUndefined();
     });
 
     it('수정 성공(카테고리 수정 포함)', async () => {
-      const updateResult = { message: '수정 성공' };
-      const mockUpdateCourseDtoWithCategory = {
-        ...mockCreateCourseDto,
+      const mockUpdateCourseDto: UpdateCourseDto = {
         selectedCategoryIds: [
           {
             parentCategoryId: 'uuid',
@@ -597,29 +646,31 @@ describe('CourseService', () => {
           },
         ],
       };
+      const mockUpdateCourse = Object.assign(
+        mockPaidCourse,
+        mockUpdateCourseDto,
+      );
 
       jest
         .spyOn(courseService, 'findOneByOptions')
-        .mockResolvedValueOnce(mockCreatedCourse);
+        .mockResolvedValueOnce(mockPaidCourse);
       jest.spyOn(courseService, 'findOneByOptions').mockResolvedValueOnce(null);
       jest
-        .spyOn(categoryService, 'validateCategoryOptionalTransaction')
+        .spyOn(categoryService, 'validateCategory')
         .mockResolvedValue(undefined);
       jest
         .spyOn(categoryCourseService, 'updateCourseToCategories')
         .mockResolvedValue(undefined);
-      jest.spyOn(courseRepository, 'save').mockResolvedValue(mockCreatedCourse);
+      jest.spyOn(courseRepository, 'save').mockResolvedValue(mockUpdateCourse);
 
       const result = await courseService.update(
         courseId,
-        mockUpdateCourseDtoWithCategory,
-        user,
+        mockUpdateCourseDto,
+        mockInstructor,
       );
 
-      expect(result).toEqual(updateResult);
-      expect(
-        categoryService.validateCategoryOptionalTransaction,
-      ).toBeCalledTimes(1);
+      expect(result).toBeUndefined();
+      expect(categoryService.validateCategory).toBeCalledTimes(1);
       expect(categoryCourseService.updateCourseToCategories).toBeCalledTimes(1);
     });
 
@@ -627,7 +678,11 @@ describe('CourseService', () => {
       jest.spyOn(courseService, 'findOneByOptions').mockResolvedValue(null);
 
       try {
-        await courseService.update(courseId, mockUpdateCourseDto, user);
+        await courseService.update(
+          courseId,
+          mockUpdateCourseDto,
+          mockInstructor,
+        );
       } catch (error) {
         expect(error).toBeInstanceOf(NotFoundException);
       }
@@ -639,7 +694,11 @@ describe('CourseService', () => {
         .mockRejectedValue(new ForbiddenException());
 
       try {
-        await courseService.update(courseId, mockUpdateCourseDto, user);
+        await courseService.update(
+          courseId,
+          mockUpdateCourseDto,
+          mockInstructor,
+        );
       } catch (error) {
         expect(error).toBeInstanceOf(ForbiddenException);
       }
@@ -648,13 +707,15 @@ describe('CourseService', () => {
     it('수정 실패 - 같은 제목의 강의인 경우(400에러)', async () => {
       jest
         .spyOn(courseService, 'findOneByOptions')
-        .mockResolvedValueOnce(mockCreatedCourse);
-      jest
-        .spyOn(courseService, 'findOneByOptions')
+        .mockResolvedValueOnce(mockPaidCourse)
         .mockRejectedValue(new BadRequestException());
 
       try {
-        await courseService.update(courseId, mockUpdateCourseDto, user);
+        await courseService.update(
+          courseId,
+          mockUpdateCourseDto,
+          mockInstructor,
+        );
       } catch (error) {
         expect(error).toBeInstanceOf(BadRequestException);
       }
@@ -663,14 +724,18 @@ describe('CourseService', () => {
     it('수정 실패 - 카테고리 수정하는데 없는 카테고리인 경우(404에러)', async () => {
       jest
         .spyOn(courseService, 'findOneByOptions')
-        .mockResolvedValueOnce(mockCreatedCourse);
+        .mockResolvedValueOnce(mockPaidCourse);
       jest.spyOn(courseService, 'findOneByOptions').mockResolvedValueOnce(null);
       jest
-        .spyOn(categoryService, 'validateCategoryOptionalTransaction')
+        .spyOn(categoryService, 'validateCategory')
         .mockRejectedValue(new NotFoundException());
 
       try {
-        await courseService.update(courseId, mockUpdateCourseDto, user);
+        await courseService.update(
+          courseId,
+          mockUpdateCourseDto,
+          mockInstructor,
+        );
       } catch (error) {
         expect(error).toBeInstanceOf(NotFoundException);
       }
@@ -679,17 +744,21 @@ describe('CourseService', () => {
     it('수정 실패 - 카테고리 수정하는데 메인,서브 반대로 넣은 경우(400에러)', async () => {
       jest
         .spyOn(courseService, 'findOneByOptions')
-        .mockResolvedValueOnce(mockCreatedCourse);
+        .mockResolvedValueOnce(mockPaidCourse);
       jest.spyOn(courseService, 'findOneByOptions').mockResolvedValueOnce(null);
       jest
-        .spyOn(categoryService, 'validateCategoryOptionalTransaction')
+        .spyOn(categoryService, 'validateCategory')
         .mockRejectedValue(undefined);
       jest
         .spyOn(categoryCourseService, 'updateCourseToCategories')
         .mockRejectedValue(new BadRequestException());
 
       try {
-        await courseService.update(courseId, mockUpdateCourseDto, user);
+        await courseService.update(
+          courseId,
+          mockUpdateCourseDto,
+          mockInstructor,
+        );
       } catch (error) {
         expect(error).toBeInstanceOf(BadRequestException);
       }
@@ -708,8 +777,8 @@ describe('CourseService', () => {
     } as Express.Multer.File;
     const uploadUrl =
       'https://hoonflearn-s3.s3.amazonaws.com/유저-5de97050-6554-477b-a80d-52a7bbb6c273/강의-3fa58443-8437-4b32-a827-76a3eff2bfc5/coverImage/1694766947527_pikachu.jpg';
-    const mockCreatedCourseWithImage = {
-      ...mockCreatedCourse,
+    const mockCourseWithImage = {
+      ...mockPaidCourse,
       coverImage: uploadUrl,
     };
 
@@ -720,13 +789,17 @@ describe('CourseService', () => {
     it('업로드 성공 - 처음 업로드', async () => {
       jest
         .spyOn(queryRunner.manager, 'findOne')
-        .mockResolvedValue(mockCreatedCourse);
+        .mockResolvedValue(mockPaidCourse);
       jest.spyOn(awsS3Service, 'uploadFileToS3').mockResolvedValue(uploadUrl);
       jest
         .spyOn(queryRunner.manager, 'update')
         .mockResolvedValue({ generatedMaps: [], raw: [], affected: 1 });
 
-      const result = await courseService.uploadImage(courseId, user, file);
+      const result = await courseService.uploadImage(
+        courseId,
+        mockInstructor,
+        file,
+      );
 
       expect(result).toBe(uploadUrl);
       expect(queryRunner.startTransaction).toBeCalledTimes(1);
@@ -741,7 +814,7 @@ describe('CourseService', () => {
     it('업로드 성공 - 이미 업로드 했던 경우 기존꺼 삭제', async () => {
       jest
         .spyOn(queryRunner.manager, 'findOne')
-        .mockResolvedValue(mockCreatedCourseWithImage);
+        .mockResolvedValue(mockCourseWithImage);
       jest
         .spyOn(awsS3Service, 'deleteS3Object')
         .mockResolvedValue({ success: true });
@@ -750,7 +823,11 @@ describe('CourseService', () => {
         .spyOn(queryRunner.manager, 'update')
         .mockResolvedValue({ generatedMaps: [], raw: [], affected: 1 });
 
-      const result = await courseService.uploadImage(courseId, user, file);
+      const result = await courseService.uploadImage(
+        courseId,
+        mockInstructor,
+        file,
+      );
 
       expect(result).toBe(uploadUrl);
       expect(queryRunner.startTransaction).toBeCalledTimes(1);
@@ -767,7 +844,7 @@ describe('CourseService', () => {
       jest.spyOn(queryRunner.manager, 'findOne').mockResolvedValue(null);
 
       try {
-        await courseService.uploadImage(courseId, user, file);
+        await courseService.uploadImage(courseId, mockInstructor, file);
       } catch (error) {
         expect(error).toBeInstanceOf(NotFoundException);
         expect(queryRunner.commitTransaction).toBeCalledTimes(0);
@@ -782,7 +859,7 @@ describe('CourseService', () => {
         .mockRejectedValue(new ForbiddenException());
 
       try {
-        await courseService.uploadImage(courseId, user, file);
+        await courseService.uploadImage(courseId, mockInstructor, file);
       } catch (error) {
         expect(error).toBeInstanceOf(ForbiddenException);
         expect(queryRunner.commitTransaction).toBeCalledTimes(0);
@@ -797,7 +874,7 @@ describe('CourseService', () => {
       jest.spyOn(courseService, 'isWishByUser').mockResolvedValue(false);
       jest
         .spyOn(courseService, 'findOneByOptions')
-        .mockResolvedValue(mockCreatedCourse);
+        .mockResolvedValue(mockPaidCourse);
       jest
         .spyOn(courseWishService, 'toggleCourseWishStatus')
         .mockResolvedValue(undefined);
@@ -816,7 +893,7 @@ describe('CourseService', () => {
       jest.spyOn(courseService, 'isWishByUser').mockResolvedValue(true);
       jest
         .spyOn(courseService, 'findOneByOptions')
-        .mockResolvedValue(mockCreatedCourse);
+        .mockResolvedValue(mockPaidCourse);
       jest
         .spyOn(courseWishService, 'toggleCourseWishStatus')
         .mockResolvedValue(undefined);
@@ -846,7 +923,7 @@ describe('CourseService', () => {
     it('찜했던 경우 true 반환', async () => {
       jest
         .spyOn(courseWishService, 'findOneByOptions')
-        .mockResolvedValue(mockCreatedCourseWish);
+        .mockResolvedValue(mockCourseWish);
 
       const result = await courseService.isWishByUser(courseId, userId);
 
@@ -865,8 +942,8 @@ describe('CourseService', () => {
   describe('[강의 삭제]', () => {
     const uploadUrl =
       'https://hoonflearn-s3.s3.amazonaws.com/유저-5de97050-6554-477b-a80d-52a7bbb6c273/강의-3fa58443-8437-4b32-a827-76a3eff2bfc5/coverImage/1694766947527_pikachu.jpg';
-    const mockCreatedCourseWithImage = {
-      ...mockCreatedCourse,
+    const mockCourseWithImage = {
+      ...mockPaidCourse,
       coverImage: uploadUrl,
     };
     const mockVideo = [{ video_videoUrl: uploadUrl }];
@@ -874,7 +951,7 @@ describe('CourseService', () => {
     it('삭제 성공', async () => {
       jest
         .spyOn(courseService, 'findOneByOptions')
-        .mockResolvedValue(mockCreatedCourseWithImage);
+        .mockResolvedValue(mockCourseWithImage);
       jest
         .spyOn(awsS3Service, 'deleteS3Object')
         .mockResolvedValue({ success: true });
@@ -888,9 +965,9 @@ describe('CourseService', () => {
         .spyOn(courseRepository, 'delete')
         .mockResolvedValue({ raw: [], affected: 1 });
 
-      const result = await courseService.delete(courseId, user);
+      const result = await courseService.delete(courseId, mockInstructor);
 
-      expect(result).toBe(true);
+      expect(result).toBeUndefined();
       expect(
         courseRepository.createQueryBuilder().leftJoinAndSelect,
       ).toBeCalledTimes(3);
@@ -905,7 +982,7 @@ describe('CourseService', () => {
       jest.spyOn(courseService, 'findOneByOptions').mockResolvedValue(null);
 
       try {
-        await courseService.delete(courseId, user);
+        await courseService.delete(courseId, mockInstructor);
       } catch (error) {
         expect(error).toBeInstanceOf(NotFoundException);
       }
@@ -917,7 +994,7 @@ describe('CourseService', () => {
         .mockRejectedValue(new ForbiddenException());
 
       try {
-        await courseService.delete(courseId, user);
+        await courseService.delete(courseId, mockInstructor);
       } catch (error) {
         expect(error).toBeInstanceOf(ForbiddenException);
       }
@@ -928,7 +1005,7 @@ describe('CourseService', () => {
     it('맞는 경우 아무것도 반환X', async () => {
       jest
         .spyOn(courseService, 'findOneByOptions')
-        .mockResolvedValue(mockCreatedCourse);
+        .mockResolvedValue(mockPaidCourse);
 
       const result = await courseService.validateInstructor(courseId, userId);
 
@@ -949,13 +1026,12 @@ describe('CourseService', () => {
   describe('[courseReviewRatingUpdate 테스트 - method에 따라 리뷰 수,점수 업데이트]', () => {
     // 트랜잭션은 생략
 
-    const course = mockCreatedCourse;
     const rating = 5;
 
     it('리뷰생성의 경우', async () => {
       const method = EReviewMethod.Create;
       const updateValue = {
-        reviewCount: course.reviewCount + 1,
+        reviewCount: mockPaidCourse.reviewCount + 1,
         averageRating: rating,
       };
 
@@ -963,10 +1039,14 @@ describe('CourseService', () => {
         .spyOn(courseRepository, 'update')
         .mockResolvedValue({ generatedMaps: [], raw: [], affected: 1 });
 
-      await courseService.courseReviewRatingUpdate(course, rating, method);
+      await courseService.courseReviewRatingUpdate(
+        mockPaidCourse,
+        rating,
+        method,
+      );
 
       expect(courseRepository.update).toBeCalledWith(
-        { id: course.id },
+        { id: mockPaidCourse.id },
         updateValue,
       );
     });
@@ -981,10 +1061,14 @@ describe('CourseService', () => {
         .spyOn(courseRepository, 'update')
         .mockResolvedValue({ generatedMaps: [], raw: [], affected: 1 });
 
-      await courseService.courseReviewRatingUpdate(course, rating, method);
+      await courseService.courseReviewRatingUpdate(
+        mockPaidCourse,
+        rating,
+        method,
+      );
 
       expect(courseRepository.update).toBeCalledWith(
-        { id: course.id },
+        { id: mockPaidCourse.id },
         updateValue,
       );
     });
@@ -992,7 +1076,7 @@ describe('CourseService', () => {
     it('리뷰삭제의 경우', async () => {
       const method = EReviewMethod.Delete;
       const updateValue = {
-        reviewCount: course.reviewCount - 1,
+        reviewCount: mockPaidCourse.reviewCount - 1,
         averageRating: rating,
       };
 
@@ -1000,10 +1084,14 @@ describe('CourseService', () => {
         .spyOn(courseRepository, 'update')
         .mockResolvedValue({ generatedMaps: [], raw: [], affected: 1 });
 
-      await courseService.courseReviewRatingUpdate(course, rating, method);
+      await courseService.courseReviewRatingUpdate(
+        mockPaidCourse,
+        rating,
+        method,
+      );
 
       expect(courseRepository.update).toBeCalledWith(
-        { id: course.id },
+        { id: mockPaidCourse.id },
         updateValue,
       );
     });
@@ -1011,13 +1099,13 @@ describe('CourseService', () => {
 
   describe('[getCourseIdsByInstructor 테스트 - 지식공유자가 만든 강의ID만 가져오는 로직]', () => {
     it('성공', async () => {
-      jest
-        .spyOn(courseRepository, 'find')
-        .mockResolvedValue([mockCreatedCourse]);
+      const expectedResult = [mockPaidCourse].map((c) => c.id);
+
+      jest.spyOn(courseRepository, 'find').mockResolvedValue([mockPaidCourse]);
 
       const result = await courseService.getCourseIdsByInstructor(userId);
 
-      expect(result).toEqual(CourseIdsReponseDto.from([mockCreatedCourse]));
+      expect(result).toEqual(expectedResult);
     });
   });
 
@@ -1029,7 +1117,7 @@ describe('CourseService', () => {
 
       jest
         .spyOn(courseService, 'findOneByOptions')
-        .mockResolvedValue(mockCreatedCourse);
+        .mockResolvedValue(mockPaidCourse);
       jest
         .spyOn(mockEntityManager, 'increment')
         .mockResolvedValue(updateResult);
@@ -1053,7 +1141,7 @@ describe('CourseService', () => {
 
       jest
         .spyOn(courseService, 'findOneByOptions')
-        .mockResolvedValue(mockCreatedCourse);
+        .mockResolvedValue(mockPaidCourse);
       jest
         .spyOn(mockEntityManager, 'decrement')
         .mockResolvedValue(updateResult);

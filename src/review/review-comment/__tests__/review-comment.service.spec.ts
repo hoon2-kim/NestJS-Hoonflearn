@@ -5,16 +5,18 @@ import { ReviewCommentService } from '@src/review/review-comment/review-comment.
 import { ReviewService } from '@src/review/review.service';
 import { Repository } from 'typeorm';
 import { ReviewCommentEntity } from '@src/review/review-comment/entities/review-comment.entity';
-import {
-  mockCourseUserService,
-  mockCreatedReviewComment,
-  mockCreateReviewCommentDto,
-  mockReviewCommentRepository,
-  mockReviewService,
-  mockUpdateReviewCommentDto,
-} from '@test/__mocks__/review-comment.mock';
-import { mockCreatedReview } from '@test/__mocks__/review.mock';
 import { ForbiddenException, NotFoundException } from '@nestjs/common';
+import { mockReviewCommentRepository } from '@test/__mocks__/mock-repository';
+import {
+  mockCreateReviewCommentDto,
+  mockReview,
+  mockReviewComment,
+  mockUpdateReviewCommentDto,
+} from '@test/__mocks__/mock-data';
+import {
+  mockReviewService,
+  mockCourseUserService,
+} from '@test/__mocks__/mock-service';
 
 describe('ReviewCommentService', () => {
   let reviewCommentService: ReviewCommentService;
@@ -63,13 +65,13 @@ describe('ReviewCommentService', () => {
     it('리뷰 댓글 생성 성공', async () => {
       jest
         .spyOn(reviewService, 'findOneByOptions')
-        .mockResolvedValue(mockCreatedReview);
+        .mockResolvedValue(mockReview);
       jest
         .spyOn(courseUserService, 'validateBoughtCourseByUser')
         .mockResolvedValue(undefined);
       jest
         .spyOn(reviewCommentRepository, 'save')
-        .mockResolvedValue(mockCreatedReviewComment);
+        .mockResolvedValue(mockReviewComment);
 
       const result = await reviewCommentService.create(
         reviewId,
@@ -77,7 +79,7 @@ describe('ReviewCommentService', () => {
         userId,
       );
 
-      expect(result).toEqual(mockCreatedReviewComment);
+      expect(result).toEqual(mockReviewComment);
       expect(reviewService.findOneByOptions).toBeCalled();
       expect(courseUserService.validateBoughtCourseByUser).toBeCalled();
     });
@@ -99,7 +101,7 @@ describe('ReviewCommentService', () => {
     it('리뷰 댓글 생성 실패 - 강의를 구매하지 않은 경우(403에러)', async () => {
       jest
         .spyOn(reviewService, 'findOneByOptions')
-        .mockResolvedValue(mockCreatedReview);
+        .mockResolvedValue(mockReview);
       jest
         .spyOn(courseUserService, 'validateBoughtCourseByUser')
         .mockRejectedValue(
@@ -119,17 +121,21 @@ describe('ReviewCommentService', () => {
   });
 
   describe('[리뷰 댓글 수정]', () => {
-    const updateResult = { message: '수정 성공' };
     it('리뷰 댓글 수정 성공', async () => {
+      const mockUpdateReviewComment = Object.assign(
+        mockReviewComment,
+        mockUpdateReviewCommentDto,
+      );
+
       jest
         .spyOn(reviewService, 'findOneByOptions')
-        .mockResolvedValue(mockCreatedReview);
+        .mockResolvedValue(mockReview);
       jest
         .spyOn(reviewCommentRepository, 'findOne')
-        .mockResolvedValue(mockCreatedReviewComment);
+        .mockResolvedValue(mockReviewComment);
       jest
         .spyOn(reviewCommentRepository, 'save')
-        .mockResolvedValue(mockCreatedReviewComment);
+        .mockResolvedValue(mockUpdateReviewComment);
 
       const result = await reviewCommentService.update(
         reviewId,
@@ -138,7 +144,7 @@ describe('ReviewCommentService', () => {
         userId,
       );
 
-      expect(result).toEqual(updateResult);
+      expect(result).toBeUndefined();
       expect(reviewService.findOneByOptions).toBeCalled();
       expect(reviewCommentRepository.findOne).toBeCalled();
     });
@@ -161,7 +167,7 @@ describe('ReviewCommentService', () => {
     it('리뷰 댓글 수정 실패 - 해당 리뷰댓글이 없는 경우(404에러)', async () => {
       jest
         .spyOn(reviewService, 'findOneByOptions')
-        .mockResolvedValue(mockCreatedReview);
+        .mockResolvedValue(mockReview);
       jest.spyOn(reviewCommentRepository, 'findOne').mockResolvedValue(null);
 
       try {
@@ -179,10 +185,11 @@ describe('ReviewCommentService', () => {
     it('리뷰 댓글 수정 실패 - 본인이 아닌 경우(403에러)', async () => {
       jest
         .spyOn(reviewService, 'findOneByOptions')
-        .mockResolvedValue(mockCreatedReview);
-      jest
-        .spyOn(reviewCommentRepository, 'findOne')
-        .mockRejectedValue(new ForbiddenException('본인만 수정이 가능합니다.'));
+        .mockResolvedValue(mockReview);
+      jest.spyOn(reviewCommentRepository, 'findOne').mockResolvedValue({
+        ...mockReviewComment,
+        fk_user_id: 'anotherUserId',
+      });
 
       try {
         await reviewCommentService.update(
@@ -201,10 +208,10 @@ describe('ReviewCommentService', () => {
     it('리뷰 댓글 삭제 성공', async () => {
       jest
         .spyOn(reviewService, 'findOneByOptions')
-        .mockResolvedValue(mockCreatedReview);
+        .mockResolvedValue(mockReview);
       jest
         .spyOn(reviewCommentRepository, 'findOne')
-        .mockResolvedValue(mockCreatedReviewComment);
+        .mockResolvedValue(mockReviewComment);
       jest
         .spyOn(reviewCommentRepository, 'delete')
         .mockResolvedValue({ raw: [], affected: 1 });
@@ -215,7 +222,7 @@ describe('ReviewCommentService', () => {
         userId,
       );
 
-      expect(result).toBe(true);
+      expect(result).toBeUndefined();
       expect(reviewService.findOneByOptions).toBeCalled();
       expect(reviewCommentRepository.findOne).toBeCalled();
       expect(reviewCommentRepository.delete).toBeCalled();
@@ -234,7 +241,7 @@ describe('ReviewCommentService', () => {
     it('리뷰 댓글 삭제 실패 - 해당 리뷰댓글이 없는 경우(404에러)', async () => {
       jest
         .spyOn(reviewService, 'findOneByOptions')
-        .mockResolvedValue(mockCreatedReview);
+        .mockResolvedValue(mockReview);
       jest.spyOn(reviewCommentRepository, 'findOne').mockResolvedValue(null);
 
       try {
@@ -247,10 +254,12 @@ describe('ReviewCommentService', () => {
     it('리뷰 댓글 삭제 실패 - 본인이 아닌 경우(403에러)', async () => {
       jest
         .spyOn(reviewService, 'findOneByOptions')
-        .mockResolvedValue(mockCreatedReview);
-      jest
-        .spyOn(reviewCommentRepository, 'findOne')
-        .mockRejectedValue(new ForbiddenException('본인만 삭제가 가능합니다.'));
+        .mockResolvedValue(mockReview);
+
+      jest.spyOn(reviewCommentRepository, 'findOne').mockResolvedValue({
+        ...mockReviewComment,
+        fk_user_id: 'anotherUserId',
+      });
 
       try {
         await reviewCommentService.delete(reviewId, commentId, userId);

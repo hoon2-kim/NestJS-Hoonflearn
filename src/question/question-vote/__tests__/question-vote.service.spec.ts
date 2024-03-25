@@ -4,14 +4,12 @@ import { DataSource, Repository } from 'typeorm';
 import { QuestionVoteEntity } from '@src/question/question-vote/entities/question-vote.entity';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import {
-  mockCreatedQuestionVote,
-  mockQuestionVoteRepository,
-} from '@test/__mocks__/question-vote.mock';
-import {
   EQuestionVoteDtoType,
   EQuestionVoteType,
 } from '../enums/question-vote.enum';
 import { QuestionEntity } from '@src/question/entities/question.entity';
+import { mockQuestionVoteRepository } from '@test/__mocks__/mock-repository';
+import { mockQuestionVote } from '@test/__mocks__/mock-data';
 
 describe('QuestionVoteService', () => {
   let questionVoteService: QuestionVoteService;
@@ -240,7 +238,7 @@ describe('QuestionVoteService', () => {
       .mockResolvedValue({ generatedMaps: [], raw: [], affected: 1 });
 
     it('처음 투표의 경우 엔티티 저장 및 투표 수 수정', async () => {
-      const mockSave = jest.fn().mockResolvedValue(mockCreatedQuestionVote);
+      const mockSave = jest.fn().mockResolvedValue(mockQuestionVote);
 
       dataSource.transaction = jest.fn().mockImplementation(async (cb) => {
         return await cb({ save: mockSave, increment: mockIncrement });
@@ -415,7 +413,7 @@ describe('QuestionVoteService', () => {
       const vote = EQuestionVoteType.UPVOTE;
       jest
         .spyOn(questionVoteRepository, 'findOne')
-        .mockResolvedValue(mockCreatedQuestionVote);
+        .mockResolvedValue(mockQuestionVote);
 
       const result = await questionVoteService.getCurrentVote(
         questionId,

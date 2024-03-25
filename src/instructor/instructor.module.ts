@@ -10,10 +10,15 @@ import { QuestionModule } from '@src/question/question.module';
 import { UserEntity } from '@src/user/entities/user.entity';
 import { ReviewModule } from '@src/review/review.module';
 import { RedisService } from '@src/redis/redis.service';
+import { CourseEntity } from '@src/course/entities/course.entity';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([InstructorProfileEntity, UserEntity]),
+    TypeOrmModule.forFeature([
+      InstructorProfileEntity,
+      UserEntity,
+      CourseEntity,
+    ]),
     AuthModule,
     UserModule,
     CourseModule,

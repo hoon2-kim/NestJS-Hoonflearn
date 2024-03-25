@@ -14,7 +14,6 @@ import { AtGuard } from '@src/auth/guards/at.guard';
 import { RoleGuard } from '@src/auth/guards/role.guard';
 import { CurrentUser } from '@src/auth/decorators/current-user.decorator';
 import { Response } from 'express';
-import { UserEntity } from '@src/user/entities/user.entity';
 import {
   InstructorCourseQueryDto,
   InstructorQuestionQueryDto,
@@ -30,6 +29,8 @@ import {
 } from '@src/instructor/instructor.swagger';
 import { PageDto } from '@src/common/dtos/page.dto';
 import { IAuthToken, IJwtPayload } from '@src/auth/interfaces/auth.interface';
+import { CourseEntity } from '@src/course/entities/course.entity';
+import { QuestionEntity } from '@src/question/entities/question.entity';
 
 @ApiTags('INSTRUCTOR')
 @Controller('instructors')
@@ -43,7 +44,7 @@ export class InstructorController {
   async findMyCourses(
     @Query() instructorCourseQueryDto: InstructorCourseQueryDto,
     @CurrentUser() user: IJwtPayload,
-  ): Promise<PageDto<any>> {
+  ): Promise<PageDto<CourseEntity>> {
     return await this.instructorService.getMyCoursesByInstructor(
       instructorCourseQueryDto,
       user,
@@ -57,7 +58,7 @@ export class InstructorController {
   async getQuestionsMyCourses(
     @Query() instructorQuestionQueryDto: InstructorQuestionQueryDto,
     @CurrentUser() user: IJwtPayload,
-  ): Promise<PageDto<any>> {
+  ): Promise<PageDto<QuestionEntity>> {
     return await this.instructorService.getQuestionsByMyCourses(
       instructorQuestionQueryDto,
       user,
