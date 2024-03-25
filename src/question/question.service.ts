@@ -212,7 +212,7 @@ export class QuestionService {
     if (courseIds.length > 0) {
       query.where('question.fk_course_id IN (:...courseIds)', { courseIds });
     } else if (courseIds.length === 0) {
-      // 강의를 안만든 강사의 경우 빈배열 반환
+      // 강의를 안 만든 강사의 경우 빈배열 반환
       query.where('1 = 0');
     }
 
@@ -271,7 +271,9 @@ export class QuestionService {
         break;
     }
 
-    const [questions, count] = await query.getManyAndCount();
+    const [questions, count] = await query
+      .addOrderBy('question.created_at', 'DESC')
+      .getManyAndCount();
 
     const pageMeta = new PageMetaDto({
       pageOptionDto: instructorQuestionQueryDto,
@@ -388,13 +390,6 @@ export class QuestionService {
     }
 
     await this.questionRepository.delete({ id: questionId });
-  }
-
-  // 지울예정
-  async calculateQuestionCountByCourseId(courseId: string): Promise<number> {
-    return await this.questionRepository.count({
-      where: { fk_course_id: courseId },
-    });
   }
 
   async updateVoteStatus(

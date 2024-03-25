@@ -2,10 +2,10 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { VoucherController } from '@src/voucher/voucher.controller';
 import { VoucherService } from '@src/voucher/voucher.service';
 import {
+  mockCourseUserWithFree,
   mockCreateVoucherDto,
-  mockVoucherService,
-} from '@test/__mocks__/voucher.mock';
-import { mockCreatedCourseUserWithFree } from '@test/__mocks__/courseUser.mock';
+} from '@test/__mocks__/mock-data';
+import { mockVoucherService } from '@test/__mocks__/mock-service';
 
 describe('VoucherController', () => {
   let voucherController: VoucherController;
@@ -37,14 +37,14 @@ describe('VoucherController', () => {
     it('수강 신청 성공', async () => {
       jest
         .spyOn(voucherService, 'create')
-        .mockResolvedValue(mockCreatedCourseUserWithFree);
+        .mockResolvedValue(mockCourseUserWithFree);
 
       const result = await voucherController.registerFreeCourse(
         mockCreateVoucherDto,
         userId,
       );
 
-      expect(result).toEqual(mockCreatedCourseUserWithFree);
+      expect(result).toEqual(mockCourseUserWithFree);
       expect(voucherService.create).toHaveBeenCalled();
       expect(voucherService.create).toBeCalledWith(
         mockCreateVoucherDto,
@@ -55,11 +55,11 @@ describe('VoucherController', () => {
 
   describe('[VoucherController.cancelFreeCourse] - 무료강의 수강 신청 취소', () => {
     it('수강 신청 취소 성공', async () => {
-      jest.spyOn(voucherService, 'delete').mockResolvedValue(true);
+      jest.spyOn(voucherService, 'delete').mockResolvedValue(undefined);
 
       const result = await voucherController.cancelFreeCourse(courseId, userId);
 
-      expect(result).toBe(true);
+      expect(result).toBeUndefined();
       expect(voucherService.delete).toHaveBeenCalled();
       expect(voucherService.delete).toBeCalledWith(courseId, userId);
     });

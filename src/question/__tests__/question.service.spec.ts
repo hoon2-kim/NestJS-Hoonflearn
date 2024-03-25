@@ -7,27 +7,11 @@ import { QuestionVoteService } from '@src/question/question-vote/question-vote.s
 import { CourseUserService } from '@src/course_user/course-user.service';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { getRepositoryToken } from '@nestjs/typeorm';
-import {
-  expectedMyQuestionWithoutComment,
-  expectedQuestionDetail,
-  expectedQuestionWithoutComment,
-  mockCourseService,
-  mockCourseUserService,
-  mockCreatedQuestion,
-  mockCreateQuestionDto,
-  mockEventEmitter2,
-  mockQuestionRepository,
-  mockQuestionsWithOutComment,
-  mockQuestionVoteService,
-  mockQuestionWithComment,
-  mockUpdateQuestionDto,
-} from '@test/__mocks__/question.mock';
 import { QuestionListQueryDto } from '@src/question/dtos/question-list.query.dto';
 import {
   EQuestionSortBy,
   EQuestionStatus,
 } from '@src/question/enums/question.enum';
-import { mockCreatedCourse } from '@test/__mocks__/course.mock';
 import { ForbiddenException, NotFoundException } from '@nestjs/common';
 import { QuestionHitEvent } from '@src/question/events/question-hit.event';
 import { UserQuestionQueryDto } from '@src/user/dtos/user.query.dto';
@@ -39,6 +23,24 @@ import {
 import { QuestionStatusDto } from '@src/question/dtos/question-status.dto';
 import { QuestionVoteDto } from '@src/question/dtos/question-vote.dto';
 import { EQuestionVoteDtoType } from '@src/question/question-vote/enums/question-vote.enum';
+import {
+  mockCreateQuestionDto,
+  mockPaidCourse,
+  mockQuestion,
+  mockQuestionComment,
+  mockUpdateQuestionDto,
+  mockUserByEmail,
+  mockUserByGoogle,
+} from '@test/__mocks__/mock-data';
+import { mockQuestionRepository } from '@test/__mocks__/mock-repository';
+import {
+  mockCourseService,
+  mockQuestionVoteService,
+  mockCourseUserService,
+  mockEventEmitter2,
+} from '@test/__mocks__/mock-service';
+import { PageMetaDto } from '@src/common/dtos/page-meta.dto';
+import { PageDto } from '@src/common/dtos/page.dto';
 
 describe('QuestionService', () => {
   let questionService: QuestionService;
@@ -98,13 +100,32 @@ describe('QuestionService', () => {
     });
 
     it('조회 성공', async () => {
+      const mockQuestionList = [
+        [
+          {
+            ...mockQuestion,
+            user: mockUserByEmail,
+            course: mockPaidCourse,
+          },
+        ],
+        1,
+      ] as [QuestionEntity[], number];
+      const pageMeta = new PageMetaDto({
+        pageOptionDto: query,
+        itemCount: mockQuestionList[1],
+      });
+      const expectedMockQuestionList = new PageDto(
+        mockQuestionList[0],
+        pageMeta,
+      );
+
       jest
         .spyOn(questionRepository.createQueryBuilder(), 'getManyAndCount')
-        .mockResolvedValue(mockQuestionsWithOutComment);
+        .mockResolvedValue(mockQuestionList);
 
       const result = await questionService.findAll(query);
 
-      expect(result).toEqual(expectedQuestionWithoutComment);
+      expect(result).toEqual(expectedMockQuestionList);
       expect(
         questionRepository.createQueryBuilder().leftJoinAndSelect,
       ).toBeCalledTimes(2);
@@ -208,16 +229,35 @@ describe('QuestionService', () => {
     });
 
     it('조회 성공', async () => {
+      const mockQuestionListByCourse = [
+        [
+          {
+            ...mockQuestion,
+            user: mockUserByEmail,
+            course: mockPaidCourse,
+          },
+        ],
+        1,
+      ] as [QuestionEntity[], number];
+      const pageMeta = new PageMetaDto({
+        pageOptionDto: query,
+        itemCount: mockQuestionListByCourse[1],
+      });
+      const expectedMockQuestionListByCourse = new PageDto(
+        mockQuestionListByCourse[0],
+        pageMeta,
+      );
+
       jest
         .spyOn(courseService, 'findOneByOptions')
-        .mockResolvedValue(mockCreatedCourse);
+        .mockResolvedValue(mockPaidCourse);
       jest
         .spyOn(questionRepository.createQueryBuilder(), 'getManyAndCount')
-        .mockResolvedValue(mockQuestionsWithOutComment);
+        .mockResolvedValue(mockQuestionListByCourse);
 
       const result = await questionService.findAllByCourse(courseId, query);
 
-      expect(result).toEqual(expectedQuestionWithoutComment);
+      expect(result).toEqual(expectedMockQuestionListByCourse);
       expect(
         questionRepository.createQueryBuilder().leftJoinAndSelect,
       ).toBeCalledTimes(2);
@@ -262,15 +302,28 @@ describe('QuestionService', () => {
     const QUESTION_HIT_EVENT = 'question.hit';
 
     it('조회 성공', async () => {
+      const mockQuestionDetail = {
+        ...mockQuestion,
+        course: mockPaidCourse,
+        user: mockUserByEmail,
+        questionComments: [
+          {
+            ...mockQuestionComment,
+            user: mockUserByGoogle,
+            reComments: [],
+          },
+        ],
+      };
+
       jest
         .spyOn(questionRepository.createQueryBuilder(), 'getOne')
-        .mockResolvedValue(mockQuestionWithComment);
+        .mockResolvedValue(mockQuestionDetail);
 
       jest.spyOn(eventEmitter2, 'emit').mockReturnValue(true);
 
       const result = await questionService.findOne(questionId);
 
-      expect(result).toEqual(expectedQuestionDetail);
+      expect(result).toEqual(mockQuestionDetail);
       expect(
         questionRepository.createQueryBuilder().leftJoinAndSelect,
       ).toBeCalledTimes(6);
@@ -313,13 +366,32 @@ describe('QuestionService', () => {
     });
 
     it('조회 성공', async () => {
+      const mockMyQuestionList = [
+        [
+          {
+            ...mockQuestion,
+            user: mockUserByEmail,
+            course: mockPaidCourse,
+          },
+        ],
+        1,
+      ] as [QuestionEntity[], number];
+      const pageMeta = new PageMetaDto({
+        pageOptionDto: query,
+        itemCount: mockMyQuestionList[1],
+      });
+      const expectedMockMyQuestionList = new PageDto(
+        mockMyQuestionList[0],
+        pageMeta,
+      );
+
       jest
         .spyOn(questionRepository.createQueryBuilder(), 'getManyAndCount')
-        .mockResolvedValue(mockQuestionsWithOutComment);
+        .mockResolvedValue(mockMyQuestionList);
 
       const result = await questionService.findMyQuestions(query, userId);
 
-      expect(result).toEqual(expectedMyQuestionWithoutComment);
+      expect(result).toEqual(expectedMockMyQuestionList);
       expect(
         questionRepository.createQueryBuilder().leftJoinAndSelect,
       ).toBeCalledTimes(2);
@@ -357,10 +429,29 @@ describe('QuestionService', () => {
       query = new InstructorQuestionQueryDto();
     });
 
-    it('조회 성공', async () => {
+    it('조회 성공 - 강의를 만든 강사', async () => {
+      const mockQuestionListByInstructor = [
+        [
+          {
+            ...mockQuestion,
+            user: mockUserByEmail,
+            course: mockPaidCourse,
+          },
+        ],
+        1,
+      ] as [QuestionEntity[], number];
+      const pageMeta = new PageMetaDto({
+        pageOptionDto: query,
+        itemCount: mockQuestionListByInstructor[1],
+      });
+      const expectedQuestionListByInstructor = new PageDto(
+        mockQuestionListByInstructor[0],
+        pageMeta,
+      );
+
       jest
         .spyOn(questionRepository.createQueryBuilder(), 'getManyAndCount')
-        .mockResolvedValue(mockQuestionsWithOutComment);
+        .mockResolvedValue(mockQuestionListByInstructor);
 
       const result = await questionService.findQuestionsByInstructorCourse(
         courseIds,
@@ -368,13 +459,10 @@ describe('QuestionService', () => {
         userId,
       );
 
-      expect(result).toEqual(expectedQuestionWithoutComment);
+      expect(result).toEqual(expectedQuestionListByInstructor);
       expect(
         questionRepository.createQueryBuilder().leftJoinAndSelect,
       ).toBeCalledTimes(2);
-      expect(questionRepository.createQueryBuilder().orderBy).toBeCalledTimes(
-        1,
-      );
       expect(questionRepository.createQueryBuilder().take).toBeCalledTimes(1);
       expect(questionRepository.createQueryBuilder().skip).toBeCalledTimes(1);
       expect(
@@ -564,15 +652,15 @@ describe('QuestionService', () => {
         userId,
       );
 
-      expect(questionRepository.createQueryBuilder().leftJoin).toBeCalled();
-      expect(questionRepository.createQueryBuilder().leftJoin).toBeCalledWith(
+      expect(
+        questionRepository.createQueryBuilder().innerJoinAndSelect,
+      ).toBeCalled();
+      expect(
+        questionRepository.createQueryBuilder().innerJoinAndSelect,
+      ).toBeCalledWith(
         'question.questionComments',
         'comment',
-        'comment.created_at = (SELECT MAX(created_at) FROM questions_comments WHERE fk_question_id = question.id)',
-      );
-      expect(questionRepository.createQueryBuilder().andWhere).toBeCalled();
-      expect(questionRepository.createQueryBuilder().andWhere).toBeCalledWith(
-        'comment.fk_user_id = :userId',
+        'comment.created_at = (SELECT MAX(created_at) FROM questions_comments WHERE fk_question_id = question.id) AND comment.fk_user_id = :userId',
         { userId },
       );
       expect(questionRepository.createQueryBuilder().orderBy).toBeCalled();
@@ -587,20 +675,18 @@ describe('QuestionService', () => {
     it('생성 성공', async () => {
       jest
         .spyOn(courseService, 'findOneByOptions')
-        .mockResolvedValue(mockCreatedCourse);
+        .mockResolvedValue(mockPaidCourse);
       jest
         .spyOn(courseUserService, 'validateBoughtCourseByUser')
         .mockResolvedValue(undefined);
-      jest
-        .spyOn(questionRepository, 'save')
-        .mockResolvedValue(mockCreatedQuestion);
+      jest.spyOn(questionRepository, 'save').mockResolvedValue(mockQuestion);
 
       const result = await questionService.create(
         mockCreateQuestionDto,
         userId,
       );
 
-      expect(result).toEqual(mockCreatedQuestion);
+      expect(result).toEqual(mockQuestion);
       expect(courseUserService.validateBoughtCourseByUser).toBeCalled();
     });
 
@@ -617,7 +703,7 @@ describe('QuestionService', () => {
     it('생성 실패 - 해당 강의를 구매 안한 경우(403에러)', async () => {
       jest
         .spyOn(courseService, 'findOneByOptions')
-        .mockResolvedValue(mockCreatedCourse);
+        .mockResolvedValue(mockPaidCourse);
       jest
         .spyOn(courseUserService, 'validateBoughtCourseByUser')
         .mockRejectedValue(new ForbiddenException());
@@ -631,15 +717,18 @@ describe('QuestionService', () => {
   });
 
   describe('[질문글 수정]', () => {
-    const updateResult = { message: '수정 성공' };
-
     it('수정 성공', async () => {
+      const mockUpdateQuestion = Object.assign(
+        mockQuestion,
+        mockUpdateQuestionDto,
+      );
+
       jest
         .spyOn(questionService, 'findOneByOptions')
-        .mockResolvedValue(mockCreatedQuestion);
+        .mockResolvedValue(mockQuestion);
       jest
         .spyOn(questionRepository, 'save')
-        .mockResolvedValue(mockCreatedQuestion);
+        .mockResolvedValue(mockUpdateQuestion);
 
       const result = await questionService.update(
         questionId,
@@ -647,7 +736,7 @@ describe('QuestionService', () => {
         userId,
       );
 
-      expect(result).toEqual(updateResult);
+      expect(result).toEqual(mockUpdateQuestion);
     });
 
     it('수정 실패 - 해당 질문글이 없는 경우(404에러)', async () => {
@@ -683,7 +772,7 @@ describe('QuestionService', () => {
     it('상태 바꾸기 성공', async () => {
       jest
         .spyOn(questionService, 'findOneByOptions')
-        .mockResolvedValue(mockCreatedQuestion);
+        .mockResolvedValue(mockQuestion);
       jest
         .spyOn(questionRepository, 'update')
         .mockResolvedValue({ generatedMaps: [], raw: [], affected: 1 });
@@ -697,7 +786,7 @@ describe('QuestionService', () => {
       status = { status: EQuestionStatus.UnResolved };
       jest
         .spyOn(questionService, 'findOneByOptions')
-        .mockResolvedValue(mockCreatedQuestion);
+        .mockResolvedValue(mockQuestion);
 
       await questionService.status(questionId, status, userId);
 
@@ -731,14 +820,14 @@ describe('QuestionService', () => {
     it('삭제 성공', async () => {
       jest
         .spyOn(questionService, 'findOneByOptions')
-        .mockResolvedValue(mockCreatedQuestion);
+        .mockResolvedValue(mockQuestion);
       jest
         .spyOn(questionRepository, 'delete')
         .mockResolvedValue({ raw: [], affected: 1 });
 
       const result = await questionService.delete(questionId, userId);
 
-      expect(result).toBe(true);
+      expect(result).toBeUndefined();
     });
 
     it('삭제 실패 - 해당 질문글이 없는 경우(404에러)', async () => {
@@ -764,18 +853,6 @@ describe('QuestionService', () => {
     });
   });
 
-  describe('[calculateQuestionCountByCourseId 로직 테스트 - 질문글 개수 구하는 로직]', () => {
-    it('로직 성공', async () => {
-      jest.spyOn(questionRepository, 'count').mockResolvedValue(10);
-
-      const result = await questionService.calculateQuestionCountByCourseId(
-        courseId,
-      );
-
-      expect(result).toBe(10);
-    });
-  });
-
   describe('[질문글 투표(추천,비추천)]', () => {
     const vote = new QuestionVoteDto();
     vote.vote = EQuestionVoteDtoType.UPVOTE;
@@ -783,7 +860,7 @@ describe('QuestionService', () => {
     it('투표 성공', async () => {
       jest
         .spyOn(questionService, 'findOneByOptions')
-        .mockResolvedValue(mockCreatedQuestion);
+        .mockResolvedValue(mockQuestion);
       jest
         .spyOn(questionVoteService, 'handleVoteUpdate')
         .mockResolvedValue(undefined);

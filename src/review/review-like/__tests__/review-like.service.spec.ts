@@ -3,11 +3,9 @@ import { ReviewLikeService } from '@src/review/review-like/review-like.service';
 import { DataSource, Repository } from 'typeorm';
 import { ReviewLikeEntity } from '@src/review/review-like/entities/review-like.entity';
 import { getRepositoryToken } from '@nestjs/typeorm';
-import {
-  mockReviewLike,
-  mockReviewLikeRepository,
-} from '@test/__mocks__/reviewLike.mock';
 import { ReviewEntity } from '@src/review/entities/review.entity';
+import { mockReviewLikeRepository } from '@test/__mocks__/mock-repository';
+import { mockReviewLike } from '@test/__mocks__/mock-data';
 
 describe('ReviewLikeService', () => {
   let reviewLikeService: ReviewLikeService;

@@ -11,27 +11,27 @@ import { CourseEntity } from '@src/course/entities/course.entity';
 import { CourseUserService } from '@src/course_user/course-user.service';
 import { OrderService } from '@src/order/order.service';
 import { OrderCourseService } from '@src/order_course/order-course.service';
-import { mockCourse } from '@test/__mocks__/course.mock';
-import {
-  mockCourseUserService,
-  mockIamportService,
-  mockOrderCourseService,
-  mockOrderRepository,
-  mockCartService,
-  mockCourseService,
-  mockOrders,
-  expectedOrders,
-  mockOrderDetail,
-  expectedOrderDetail,
-  mockIamportData,
-  mockCreatedOrder,
-  mockCreateOrderDto,
-} from '@test/__mocks__/asd/order.mock';
-import { mockOrderCourse } from '@test/__mocks__/orderCourse.mock';
 import { DataSource, QueryRunner, Repository } from 'typeorm';
 import { OrderListQueryDto } from '@src/order/dtos/order-list.query.dto';
 import { OrderEntity } from '@src/order/entities/order.entity';
 import { IamportService } from '@src/order/iamport.service';
+import {
+  mockOrderCourse,
+  mockCreateOrderDto,
+  mockOrder,
+  mockPaidCourse,
+  mockIamportData,
+} from '@test/__mocks__/mock-data';
+import { mockOrderRepository } from '@test/__mocks__/mock-repository';
+import {
+  mockIamportService,
+  mockOrderCourseService,
+  mockCartService,
+  mockCourseUserService,
+  mockCourseService,
+} from '@test/__mocks__/mock-service';
+import { PageMetaDto } from '@src/common/dtos/page-meta.dto';
+import { PageDto } from '@src/common/dtos/page.dto';
 
 const mockQueryRunner = {
   manager: {},
@@ -120,16 +120,28 @@ describe('OrderService', () => {
   });
 
   describe('[주문목록 조회]', () => {
-    const query = new OrderListQueryDto();
-
     it('조회 성공', async () => {
+      const query = new OrderListQueryDto();
       const { take, skip } = query;
+      const mockOrders = [
+        [
+          {
+            ...mockOrder,
+          },
+        ],
+        1,
+      ] as [OrderEntity[], number];
+      const pageMeta = new PageMetaDto({
+        pageOptionDto: query,
+        itemCount: mockOrders[1],
+      });
+      const expectedMockOrders = new PageDto(mockOrders[0], pageMeta);
 
       jest.spyOn(orderRepository, 'findAndCount').mockResolvedValue(mockOrders);
 
       const result = await orderService.findOrders(query, userId);
 
-      expect(result).toEqual(expectedOrders);
+      expect(result).toEqual(expectedMockOrders);
       expect(orderRepository.findAndCount).toBeCalledWith({
         where: { fk_user_id: userId },
         order: { created_at: 'DESC' },
@@ -141,13 +153,23 @@ describe('OrderService', () => {
 
   describe('[주문 상세 조회]', () => {
     it('조회 성공', async () => {
+      const mockOrderDetail = {
+        ...mockOrder,
+        ordersCourses: [
+          {
+            ...mockOrderCourse,
+            course: mockPaidCourse,
+          },
+        ],
+      };
+
       jest
         .spyOn(orderRepository.createQueryBuilder(), 'getOne')
         .mockResolvedValue(mockOrderDetail);
 
       const result = await orderService.findOrderDetail(orderId, userId);
 
-      expect(result).toEqual(expectedOrderDetail);
+      expect(result).toEqual(mockOrderDetail);
       expect(
         orderRepository.createQueryBuilder().leftJoinAndSelect,
       ).toBeCalledTimes(2);
@@ -186,20 +208,20 @@ describe('OrderService', () => {
           queryRunner.manager.getRepository(CourseEntity).createQueryBuilder(),
           'getMany',
         )
-        .mockResolvedValue([mockCourse, mockCourse]);
+        .mockResolvedValue([mockPaidCourse, mockPaidCourse]);
       jest
         .spyOn(
           queryRunner.manager.getRepository(CourseEntity).createQueryBuilder(),
           'getRawOne',
         )
-        .mockResolvedValue({ total_price: '50000' });
+        .mockResolvedValue({
+          total_price: String(mockPaidCourse.price + mockPaidCourse.price),
+        });
       jest.spyOn(orderService, 'generateOrderName').mockResolvedValue('주문명');
-      jest
-        .spyOn(queryRunner.manager, 'save')
-        .mockResolvedValue(mockCreatedOrder);
+      jest.spyOn(queryRunner.manager, 'save').mockResolvedValue(mockOrder);
       jest
         .spyOn(orderCourseService, 'saveOrderCourseRepoWithTransaction')
-        .mockResolvedValue(mockOrderCourse);
+        .mockResolvedValue([mockOrderCourse]);
       jest
         .spyOn(courseUserService, 'saveCourseUserRepo')
         .mockResolvedValue(undefined);
@@ -212,7 +234,7 @@ describe('OrderService', () => {
 
       const result = await orderService.create(mockCreateOrderDto, userId);
 
-      expect(result).toEqual(mockCreatedOrder);
+      expect(result).toEqual(mockOrder);
       expect(queryRunner.startTransaction).toBeCalledTimes(1);
       expect(queryRunner.commitTransaction).toBeCalledTimes(1);
       expect(queryRunner.rollbackTransaction).toBeCalledTimes(0);
@@ -255,9 +277,7 @@ describe('OrderService', () => {
       jest
         .spyOn(iamportService, 'getPaymentData')
         .mockResolvedValue(mockIamportData);
-      jest
-        .spyOn(queryRunner.manager, 'findOne')
-        .mockResolvedValue(mockCreatedOrder);
+      jest.spyOn(queryRunner.manager, 'findOne').mockResolvedValue(mockOrder);
 
       try {
         await orderService.create(mockCreateOrderDto, userId);
@@ -280,7 +300,7 @@ describe('OrderService', () => {
           queryRunner.manager.getRepository(CourseEntity).createQueryBuilder(),
           'getMany',
         )
-        .mockResolvedValue([mockCourse]);
+        .mockResolvedValue([mockPaidCourse]);
 
       try {
         await orderService.create(mockCreateOrderDto, userId);
@@ -303,13 +323,13 @@ describe('OrderService', () => {
           queryRunner.manager.getRepository(CourseEntity).createQueryBuilder(),
           'getMany',
         )
-        .mockResolvedValue([mockCourse, mockCourse]);
+        .mockResolvedValue([mockPaidCourse, mockPaidCourse]);
       jest
         .spyOn(
           queryRunner.manager.getRepository(CourseEntity).createQueryBuilder(),
           'getRawOne',
         )
-        .mockResolvedValue({ total_price: '10000' });
+        .mockResolvedValue({ total_price: '100000000' });
 
       try {
         await orderService.create(mockCreateOrderDto, userId);

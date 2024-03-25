@@ -33,6 +33,7 @@ export class QuestionVoteService {
     return questionVote;
   }
 
+  // TODO : 리팩토링
   async handleVoteUpdate(
     questionId: string,
     userId: string,

@@ -9,52 +9,55 @@ import { UserService } from '@src/user/user.service';
 import { Repository } from 'typeorm';
 import { InstructorProfileEntity } from '@src/instructor/entities/instructor-profile.entity';
 import { getRepositoryToken } from '@nestjs/typeorm';
-import {
-  expectedCourseByInstructor,
-  mockAuthService,
-  mockCourseService,
-  mockCreateInstructorDto,
-  mockInstructor,
-  mockInstructorProfile,
-  mockInstructorRepository,
-  mockJwtRedisService,
-  mockMadeMyCourse,
-  mockQuestionService,
-  mockReviewService,
-  mockUserRepository,
-  mockUserService,
-} from '@test/__mocks__/instructorProfile.mock';
-import {
-  mockCreatedInstructor,
-  mockCreatedUser,
-} from '@test/__mocks__/user.mock';
 import { Response } from 'express';
-import { IInstructorTokens } from '../interfaces/instructor.interface';
 import { BadRequestException } from '@nestjs/common';
-import { CourseIdsReponseDto } from '@src/course/dtos/response/course.response';
 import {
   InstructorCourseQueryDto,
   InstructorQuestionQueryDto,
   InstructorReviewQueryDto,
 } from '@src/instructor/dtos/instructor.query.dto';
-
-import { mockCreatedCourse } from '@test/__mocks__/course.mock';
-import { expectedQuestionWithoutComment } from '@test/__mocks__/question.mock';
-import { expectedReviewByInstructor } from '@test/__mocks__/review.mock';
-import { JwtRedisService } from '@src/redis/redis.service';
+import { RedisService } from '@src/redis/redis.service';
+import {
+  mockCourseRepository,
+  mockInstructorRepository,
+  mockUserRepository,
+} from '@test/__mocks__/mock-repository';
+import {
+  mockAuthService,
+  mockCourseService,
+  mockQuestionService,
+  mockRedisService,
+  mockReviewService,
+  mockUserService,
+} from '@test/__mocks__/mock-service';
+import {
+  mockCreateInstructorDto,
+  mockInstructor,
+  mockInstructorProfile,
+  mockJwtPayload,
+  mockJwtTokens,
+  mockPaidCourse,
+  mockQuestion,
+  mockReview,
+  mockUserByEmail,
+} from '@test/__mocks__/mock-data';
+import { PageMetaDto } from '@src/common/dtos/page-meta.dto';
+import { PageDto } from '@src/common/dtos/page.dto';
+import { CourseEntity } from '@src/course/entities/course.entity';
+import { QuestionEntity } from '@src/question/entities/question.entity';
+import { ReviewEntity } from '@src/review/entities/review.entity';
 
 describe('InstructorService', () => {
   let instructorService: InstructorService;
   let instructorRepository: Repository<InstructorProfileEntity>;
   let userRepository: Repository<UserEntity>;
+  let courseRepository: Repository<CourseEntity>;
   let userService: UserService;
   let authService: AuthService;
   let courseService: CourseService;
   let questionService: QuestionService;
   let reviewService: ReviewService;
-  let jwtRedisService: JwtRedisService;
-
-  const user = mockCreatedInstructor;
+  let redisService: RedisService;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -68,12 +71,16 @@ describe('InstructorService', () => {
           provide: getRepositoryToken(UserEntity),
           useValue: mockUserRepository,
         },
+        {
+          provide: getRepositoryToken(CourseEntity),
+          useValue: mockCourseRepository,
+        },
         { provide: UserService, useValue: mockUserService },
         { provide: AuthService, useValue: mockAuthService },
         { provide: CourseService, useValue: mockCourseService },
         { provide: QuestionService, useValue: mockQuestionService },
         { provide: ReviewService, useValue: mockReviewService },
-        { provide: JwtRedisService, useValue: mockJwtRedisService },
+        { provide: RedisService, useValue: mockRedisService },
       ],
     }).compile();
 
@@ -84,12 +91,15 @@ describe('InstructorService', () => {
     userRepository = module.get<Repository<UserEntity>>(
       getRepositoryToken(UserEntity),
     );
+    courseRepository = module.get<Repository<CourseEntity>>(
+      getRepositoryToken(CourseEntity),
+    );
     userService = module.get<UserService>(UserService);
     authService = module.get<AuthService>(AuthService);
     courseService = module.get<CourseService>(CourseService);
     questionService = module.get<QuestionService>(QuestionService);
     reviewService = module.get<ReviewService>(ReviewService);
-    jwtRedisService = module.get<JwtRedisService>(JwtRedisService);
+    redisService = module.get<RedisService>(RedisService);
   });
 
   afterEach(() => {
@@ -105,53 +115,54 @@ describe('InstructorService', () => {
     expect(courseService).toBeDefined();
     expect(questionService).toBeDefined();
     expect(reviewService).toBeDefined();
-    expect(jwtRedisService).toBeDefined();
+    expect(redisService).toBeDefined();
   });
 
   describe('[지식공유자 등록]', () => {
-    const user = mockCreatedUser;
     const mockResponse = {
       cookie: jest.fn().mockReturnThis(),
     } as unknown as Response;
-    const createdResponse: IInstructorTokens = {
-      access_token: 'access',
-      refresh_token: 'refresh',
-    };
 
     it('지식공유자 등록 성공', async () => {
       jest.spyOn(userService, 'findOneByOptions').mockResolvedValue(null);
-      jest.spyOn(instructorRepository, 'findOne').mockResolvedValueOnce(null);
-      jest.spyOn(instructorRepository, 'findOne').mockResolvedValueOnce(null);
       jest
         .spyOn(instructorRepository, 'save')
-        .mockResolvedValue(mockInstructor);
-      jest.spyOn(jwtRedisService, 'setRefreshToken').mockResolvedValue('OK');
+        .mockResolvedValue(mockInstructorProfile);
+      jest
+        .spyOn(userRepository, 'update')
+        .mockResolvedValue({ generatedMaps: [], raw: [], affected: 1 });
+      jest.spyOn(authService, 'getJwtTokens').mockResolvedValue(mockJwtTokens);
+      jest.spyOn(redisService, 'set').mockResolvedValue('OK');
 
       const result = await instructorService.create(
         mockCreateInstructorDto,
-        user,
+        mockUserByEmail,
         mockResponse,
       );
 
-      expect(result).toEqual(createdResponse);
+      expect(result).toEqual(mockJwtTokens);
       expect(instructorRepository.save).toBeCalled();
+      expect(userRepository.update).toBeCalled();
+      expect(authService.getJwtTokens).toBeCalled();
       expect(mockResponse.cookie).toBeCalledWith('refreshToken', 'refresh', {
         httpOnly: true,
-        secure: false,
+        secure: expect.any(Boolean),
         sameSite: 'none',
         path: '/',
+        maxAge: expect.any(Number),
       });
+      expect(redisService.set).toBeCalled();
     });
 
     it('지식공유자 등록 실패 - 이미 등록한 경우(400에러)', async () => {
       jest
         .spyOn(userService, 'findOneByOptions')
-        .mockResolvedValue(mockCreatedInstructor);
+        .mockResolvedValue(mockInstructor);
 
       try {
         await instructorService.create(
           mockCreateInstructorDto,
-          user,
+          mockUserByEmail,
           mockResponse,
         );
       } catch (error) {
@@ -169,7 +180,7 @@ describe('InstructorService', () => {
       try {
         await instructorService.create(
           mockCreateInstructorDto,
-          user,
+          mockUserByEmail,
           mockResponse,
         );
       } catch (error) {
@@ -180,6 +191,18 @@ describe('InstructorService', () => {
 
   describe('[내(지식공유자)가 만든 강의 조회]', () => {
     let query: InstructorCourseQueryDto;
+    const mockCourseListByInstructor = [[mockPaidCourse], 1] as [
+      CourseEntity[],
+      number,
+    ];
+    const pageMeta = new PageMetaDto({
+      pageOptionDto: new InstructorCourseQueryDto(),
+      itemCount: mockCourseListByInstructor[1],
+    });
+    const expectedCourseListByInstructor = new PageDto(
+      mockCourseListByInstructor[0],
+      pageMeta,
+    );
 
     beforeEach(() => {
       query = new InstructorCourseQueryDto();
@@ -187,51 +210,65 @@ describe('InstructorService', () => {
 
     it('강의 조회 성공', async () => {
       jest
-        .spyOn(userRepository.createQueryBuilder(), 'getMany')
-        .mockResolvedValue(mockMadeMyCourse);
+        .spyOn(courseRepository.createQueryBuilder(), 'getManyAndCount')
+        .mockResolvedValue(mockCourseListByInstructor);
 
       const result = await instructorService.getMyCoursesByInstructor(
         query,
-        user,
+        mockInstructor,
       );
 
-      expect(result).toEqual(expectedCourseByInstructor);
+      expect(result).toEqual(expectedCourseListByInstructor);
+      expect(courseRepository.createQueryBuilder().where).toBeCalledTimes(1);
+      expect(courseRepository.createQueryBuilder().take).toBeCalledTimes(1);
+      expect(courseRepository.createQueryBuilder().skip).toBeCalledTimes(1);
+      expect(courseRepository.createQueryBuilder().orderBy).toBeCalledTimes(1);
       expect(
-        userRepository.createQueryBuilder().leftJoinAndSelect,
+        courseRepository.createQueryBuilder().getManyAndCount,
       ).toBeCalledTimes(1);
-      expect(userRepository.createQueryBuilder().leftJoin).toBeCalledTimes(1);
-      expect(userRepository.createQueryBuilder().where).toBeCalledTimes(1);
-      expect(userRepository.createQueryBuilder().andWhere).toBeCalledTimes(1);
-      expect(userRepository.createQueryBuilder().take).toBeCalledTimes(1);
-      expect(userRepository.createQueryBuilder().skip).toBeCalledTimes(1);
-      expect(userRepository.createQueryBuilder().orderBy).toBeCalledTimes(1);
-      expect(userRepository.createQueryBuilder().getMany).toBeCalledTimes(1);
     });
   });
 
   describe('[내(지식공유자)가 만든 강의의 질문글 조회]', () => {
     let query: InstructorQuestionQueryDto;
+    const mockQuestionListByMyCourse = [
+      [
+        {
+          ...mockQuestion,
+          course: mockPaidCourse,
+          user: mockUserByEmail,
+        },
+      ],
+      1,
+    ] as [QuestionEntity[], number];
+    const pageMeta = new PageMetaDto({
+      pageOptionDto: new InstructorCourseQueryDto(),
+      itemCount: mockQuestionListByMyCourse[1],
+    });
+    const expectedQuestionListByMCourse = new PageDto(
+      mockQuestionListByMyCourse[0],
+      pageMeta,
+    );
+    const courseIds = [mockPaidCourse.id];
 
     beforeEach(() => {
       query = new InstructorQuestionQueryDto();
     });
 
     it('질문글 조회 성공', async () => {
-      const courseIds = CourseIdsReponseDto.from([mockCreatedCourse]);
-
       jest
         .spyOn(courseService, 'getCourseIdsByInstructor')
         .mockResolvedValue(courseIds);
       jest
         .spyOn(questionService, 'findQuestionsByInstructorCourse')
-        .mockResolvedValue(expectedQuestionWithoutComment);
+        .mockResolvedValue(expectedQuestionListByMCourse);
 
       const result = await instructorService.getQuestionsByMyCourses(
         query,
-        user,
+        mockJwtPayload,
       );
 
-      expect(result).toEqual(expectedQuestionWithoutComment);
+      expect(result).toEqual(expectedQuestionListByMCourse);
       expect(courseService.getCourseIdsByInstructor).toBeCalledTimes(1);
       expect(questionService.findQuestionsByInstructorCourse).toBeCalledTimes(
         1,
@@ -241,24 +278,44 @@ describe('InstructorService', () => {
 
   describe('[내(지식공유자)가 만든 강의의 리뷰들 조회]', () => {
     let query: InstructorReviewQueryDto;
+    const mockReviewListByMyCourse = [
+      [
+        {
+          ...mockReview,
+          course: mockPaidCourse,
+          user: mockUserByEmail,
+        },
+      ],
+      1,
+    ] as [ReviewEntity[], number];
+    const pageMeta = new PageMetaDto({
+      pageOptionDto: new InstructorReviewQueryDto(),
+      itemCount: mockReviewListByMyCourse[1],
+    });
+    const expectedReviewListByMyCourse = new PageDto(
+      mockReviewListByMyCourse[0],
+      pageMeta,
+    );
+    const courseIds = [mockPaidCourse.id];
 
     beforeEach(() => {
       query = new InstructorReviewQueryDto();
     });
 
     it('리뷰들 조회 성공', async () => {
-      const courseIds = CourseIdsReponseDto.from([mockCreatedCourse]);
-
       jest
         .spyOn(courseService, 'getCourseIdsByInstructor')
         .mockResolvedValue(courseIds);
       jest
         .spyOn(reviewService, 'findReviewsByInstructorCourse')
-        .mockResolvedValue(expectedReviewByInstructor);
+        .mockResolvedValue(expectedReviewListByMyCourse);
 
-      const result = await instructorService.getReviewsByMyCourses(query, user);
+      const result = await instructorService.getReviewsByMyCourses(
+        query,
+        mockJwtPayload,
+      );
 
-      expect(result).toEqual(expectedReviewByInstructor);
+      expect(result).toEqual(expectedReviewListByMyCourse);
       expect(courseService.getCourseIdsByInstructor).toBeCalledTimes(1);
       expect(reviewService.findReviewsByInstructorCourse).toBeCalledTimes(1);
     });

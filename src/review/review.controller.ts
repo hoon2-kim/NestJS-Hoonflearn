@@ -70,7 +70,7 @@ export class ReviewController {
     @Param('reviewId') reviewId: string,
     @Body() updateReviewDto: UpdateReviewDto,
     @CurrentUser('id') userId: string,
-  ): Promise<ReviewEntity> {
+  ): Promise<void> {
     return await this.reviewService.update(reviewId, updateReviewDto, userId);
   }
 

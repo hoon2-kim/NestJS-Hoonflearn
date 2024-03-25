@@ -46,7 +46,12 @@ import { ReviewLikeEntity } from '@src/review/review-like/entities/review-like.e
 import { CreateSectionDto } from '@src/section/dtos/create-section.dto';
 import { UpdateSectionDto } from '@src/section/dtos/update-section.dto';
 import { SectionEntity } from '@src/section/entities/section.entity';
-import { CreateUserDto, NicknameDto } from '@src/user/dtos/create-user.dto';
+import {
+  CreateUserDto,
+  NicknameDto,
+  PhoneCheckDto,
+  PhoneDto,
+} from '@src/user/dtos/create-user.dto';
 import { UpdateUserDto } from '@src/user/dtos/update-user.dto';
 import { UserEntity } from '@src/user/entities/user.entity';
 import { ERoleType } from '@src/user/enums/user.enum';
@@ -253,7 +258,7 @@ export const mockLesson = {
 export const mockCreateOrderDto: CreateOrderDto = {
   courseIds: ['uuid1', 'uuid2'],
   imp_uid: 'imp_1234',
-  price: 10000,
+  price: mockPaidCourse.price + mockPaidCourse.price,
 };
 
 export const mockOrder = {
@@ -273,7 +278,7 @@ export const mockOrderCourse = {
   id: 'uuid',
   fk_order_id: 'uuid',
   fk_course_id: 'uuid',
-  orderPrice: 10000,
+  orderPrice: mockPaidCourse.price,
   created_at: new Date(),
 } as OrderCourseEntity;
 
@@ -463,6 +468,15 @@ export const mockNickNameDto: NicknameDto = {
   nickname: '닉네임',
 };
 
+export const mockPhoneDto: PhoneDto = {
+  phone: '01012341234',
+};
+
+export const mockPhoneCheckDto: PhoneCheckDto = {
+  phone: '01012341234',
+  token: 'token',
+};
+
 // Video
 export const mockVideo = {
   id: 'uuid',
@@ -476,4 +490,56 @@ export const mockVideo = {
 // Voucher
 export const mockCreateVoucherDto: CreateVoucherDto = {
   courseId: 'uuid',
+};
+
+// Iamport
+export const mockIamportData = {
+  amount: 10000,
+  apply_num: null,
+  bank_code: null,
+  bank_name: null,
+  buyer_addr: null,
+  buyer_email: '',
+  buyer_name: '',
+  buyer_postcode: null,
+  buyer_tel: '',
+  cancel_amount: 0,
+  cancel_history: [],
+  cancel_reason: null,
+  cancel_receipt_urls: [],
+  cancelled_at: 0,
+  card_code: null,
+  card_name: null,
+  card_number: null,
+  card_quota: 0,
+  card_type: null,
+  cash_receipt_issued: false,
+  channel: 'pc',
+  currency: 'KRW',
+  custom_data: null,
+  customer_uid: null,
+  customer_uid_usage: null,
+  emb_pg_provider: null,
+  escrow: false,
+  fail_reason: null,
+  failed_at: 0,
+  imp_uid: '',
+  merchant_uid: '',
+  name: '',
+  paid_at: 0,
+  pay_method: 'card',
+  pg_id: 'tlgdacomxpay',
+  pg_provider: 'uplus',
+  pg_tid: null,
+  receipt_url: '',
+  started_at: 1696496974,
+  status: 'ready',
+  user_agent:
+    'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/116.0.0.0 Safari/537.36',
+  vbank_code: null,
+  vbank_date: 0,
+  vbank_holder: null,
+  vbank_issued_at: 0,
+  vbank_name: null,
+  vbank_num: null,
 };

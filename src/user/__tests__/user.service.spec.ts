@@ -4,22 +4,31 @@ import { AwsS3Service } from '@src/aws-s3/aws-s3.service';
 import { CartService } from '@src/cart/cart.service';
 import { InstructorProfileEntity } from '@src/instructor/entities/instructor-profile.entity';
 import { UserService } from '@src/user/user.service';
-import {
-  mockAwsS3Service,
-  mockCartService,
-  mockCreatedInstructor,
-  mockInstructorProfileRepository,
-  mockCreatedUser,
-  mockUserProfile,
-  mockUserRepository,
-  mockCreateUserDto,
-  mockNickNameDto,
-  mockUpdateUserDto,
-} from '@test/__mocks__/user.mock';
 import { DataSource, QueryRunner, Repository, UpdateResult } from 'typeorm';
 import { UserEntity } from '@src/user/entities/user.entity';
 import { BadRequestException, NotFoundException } from '@nestjs/common';
-import { mockInstructorProfile } from '@test/__mocks__/instructorProfile.mock';
+import {
+  mockCreateUserDto,
+  mockNickNameDto,
+  mockUpdateUserDto,
+  mockUserByEmail,
+  mockJwtPayload,
+  mockInstructor,
+  mockPhoneCheckDto,
+} from '@test/__mocks__/mock-data';
+import {
+  mockInstructorRepository,
+  mockUserRepository,
+} from '@test/__mocks__/mock-repository';
+import {
+  mockAwsS3Service,
+  mockCartService,
+  mockCoolsmsService,
+  mockRedisService,
+} from '@test/__mocks__/mock-service';
+import { RedisService } from '@src/redis/redis.service';
+import { CoolsmsService } from '@src/coolsms/coolsms.service';
+import { ERoleType } from '@src/user/enums/user.enum';
 
 const mockQueryRunner = {
   manager: {},
@@ -35,6 +44,8 @@ describe('UserService', () => {
   let userService: UserService;
   let awsS3Service: AwsS3Service;
   let cartService: CartService;
+  let redisService: RedisService;
+  let coolsmsService: CoolsmsService;
   let userRepository: Repository<UserEntity>;
   let instructorProfileRepository: Repository<InstructorProfileEntity>;
   let dataSource: DataSource;
@@ -66,12 +77,17 @@ describe('UserService', () => {
           useValue: mockCartService,
         },
         {
+          provide: RedisService,
+          useValue: mockRedisService,
+        },
+        { provide: CoolsmsService, useValue: mockCoolsmsService },
+        {
           provide: getRepositoryToken(UserEntity),
           useValue: mockUserRepository,
         },
         {
           provide: getRepositoryToken(InstructorProfileEntity),
-          useValue: mockInstructorProfileRepository,
+          useValue: mockInstructorRepository,
         },
         {
           provide: DataSource,
@@ -83,6 +99,8 @@ describe('UserService', () => {
     userService = module.get<UserService>(UserService);
     awsS3Service = module.get<AwsS3Service>(AwsS3Service);
     cartService = module.get<CartService>(CartService);
+    redisService = module.get<RedisService>(RedisService);
+    coolsmsService = module.get<CoolsmsService>(CoolsmsService);
     userRepository = module.get<Repository<UserEntity>>(
       getRepositoryToken(UserEntity),
     );
@@ -99,7 +117,9 @@ describe('UserService', () => {
   it('should be defined', () => {
     expect(userService).toBeDefined();
     expect(awsS3Service).toBeDefined();
-    expect(cartService).toBeDefined;
+    expect(redisService).toBeDefined();
+    expect(cartService).toBeDefined();
+    expect(coolsmsService).toBeDefined();
     expect(instructorProfileRepository).toBeDefined();
     expect(userRepository).toBeDefined();
     expect(dataSource).toBeDefined();
@@ -107,30 +127,17 @@ describe('UserService', () => {
 
   describe('[유저 회원가입]', () => {
     it('유저 회원가입 성공', async () => {
-      jest.spyOn(mockUserRepository, 'save').mockResolvedValue(mockCreatedUser);
+      jest.spyOn(mockUserRepository, 'save').mockResolvedValue(mockUserByEmail);
 
       const result = await userService.create(mockCreateUserDto);
 
-      expect(result).toEqual(mockCreatedUser);
+      expect(result).toEqual(mockUserByEmail);
     });
 
     it('유저 회원가입 실패 - 이메일 중복(400에러)', async () => {
       jest.spyOn(mockUserRepository, 'save').mockRejectedValue({
         code: '23505',
         detail: `Key (email)=(${mockCreateUserDto.email}) already exists.`,
-      });
-
-      try {
-        await userService.create(mockCreateUserDto);
-      } catch (error) {
-        expect(error).toBeInstanceOf(BadRequestException);
-      }
-    });
-
-    it('유저 회원가입 실패 - 핸드폰 번호 중복(400에러)', async () => {
-      jest.spyOn(mockUserRepository, 'save').mockRejectedValue({
-        code: '23505',
-        detail: `Key (phone)=(${mockCreateUserDto.phone}) already exists.`,
       });
 
       try {
@@ -148,15 +155,13 @@ describe('UserService', () => {
       const result = await userService.checkNick(mockNickNameDto);
 
       expect(userService.findOneByOptions).toBeCalledTimes(1);
-      expect(result).toEqual({
-        message: `해당 닉네임:${mockNickNameDto.nickname}은 사용가능합니다.`,
-      });
+      expect(result).toBeUndefined();
     });
 
     it('중복되는 닉네임이 있는 경우 - 실패(400)에러', async () => {
       jest
         .spyOn(userService, 'findOneByOptions')
-        .mockResolvedValue(mockCreatedUser);
+        .mockResolvedValue(mockUserByEmail);
 
       try {
         await userService.checkNick(mockNickNameDto);
@@ -168,18 +173,18 @@ describe('UserService', () => {
   });
 
   describe('[유저 프로필 수정]', () => {
-    const mockUpdateResult = { message: '수정 성공' };
-
     it('유저 프로필 수정 성공', async () => {
+      const mockUpdateUser = Object.assign(mockUserByEmail, mockUpdateUserDto);
+
       jest
         .spyOn(userService, 'findOneByOptions')
-        .mockResolvedValue(mockCreatedUser);
+        .mockResolvedValue(mockUserByEmail);
       jest.spyOn(mockUserRepository, 'findOne').mockResolvedValue(null);
-      jest.spyOn(mockUserRepository, 'save').mockResolvedValue(mockCreatedUser);
+      jest.spyOn(mockUserRepository, 'save').mockResolvedValue(mockUpdateUser);
 
       const result = await userService.update(userId, mockUpdateUserDto);
 
-      expect(result).toEqual(mockUpdateResult);
+      expect(result).toEqual(mockUpdateUser);
     });
 
     it('유저 프로필 수정 실패 - 해당 유저가 없는 경우(404에러)', async () => {
@@ -195,10 +200,10 @@ describe('UserService', () => {
     it('유저 프로필 수정 실패 - 중복된 닉네임인 경우(400에러)', async () => {
       jest
         .spyOn(userService, 'findOneByOptions')
-        .mockResolvedValue(mockCreatedUser);
+        .mockResolvedValue(mockUserByEmail);
       jest
         .spyOn(mockUserRepository, 'findOne')
-        .mockResolvedValue(mockCreatedUser);
+        .mockResolvedValue(mockUserByEmail);
 
       try {
         await userService.update(userId, mockUpdateUserDto);
@@ -212,44 +217,42 @@ describe('UserService', () => {
     it('유저 회원탈퇴 성공 - 일반 유저일 경우', async () => {
       jest
         .spyOn(userService, 'findOneByOptions')
-        .mockResolvedValue(mockCreatedUser);
+        .mockResolvedValue(mockUserByEmail);
       jest
-        .spyOn(mockUserRepository, 'softDelete')
-        .mockResolvedValue({ affected: 1 });
-      jest
-        .spyOn(mockInstructorProfileRepository, 'findOne')
-        .mockResolvedValue(null);
+        .spyOn(userRepository, 'softDelete')
+        .mockResolvedValue({ raw: [], generatedMaps: [], affected: 1 });
       jest.spyOn(cartService, 'removeCart').mockResolvedValue(undefined);
 
-      const result = await userService.delete(userId);
+      const result = await userService.delete(mockJwtPayload);
 
-      expect(result).toBe(true);
-      expect(instructorProfileRepository.findOne).toBeCalledTimes(1);
+      expect(result).toBeUndefined();
+      expect(instructorProfileRepository.softDelete).toBeCalledTimes(0);
       expect(cartService.removeCart).toBeCalledTimes(1);
       expect(cartService.removeCart).toBeCalledWith(userId);
     });
 
     it('유저 회원탈퇴 성공 - 지식공유자일 경우', async () => {
+      const mockJwtPayloadInstructor = {
+        ...mockJwtPayload,
+        role: ERoleType.Instructor,
+      };
+
       jest
         .spyOn(userService, 'findOneByOptions')
-        .mockResolvedValue(mockCreatedInstructor);
+        .mockResolvedValue(mockInstructor);
       jest
-        .spyOn(mockUserRepository, 'softDelete')
-        .mockResolvedValue({ affected: 1 });
-      jest
-        .spyOn(mockInstructorProfileRepository, 'findOne')
-        .mockResolvedValue(mockInstructorProfile);
-      jest
-        .spyOn(mockInstructorProfileRepository, 'softDelete')
-        .mockResolvedValue({ affected: 1 });
+        .spyOn(instructorProfileRepository, 'softDelete')
+        .mockResolvedValue({ raw: [], generatedMaps: [], affected: 1 });
       jest.spyOn(cartService, 'removeCart').mockResolvedValue(undefined);
+      jest
+        .spyOn(userRepository, 'softDelete')
+        .mockResolvedValue({ raw: [], generatedMaps: [], affected: 1 });
 
-      const result = await userService.delete(userId);
+      const result = await userService.delete(mockJwtPayloadInstructor);
 
-      expect(result).toBe(true);
-      expect(instructorProfileRepository.findOne).toBeCalledTimes(1);
+      expect(result).toBeUndefined();
       expect(instructorProfileRepository.softDelete).toBeCalledWith({
-        id: mockInstructorProfile.fk_user_id,
+        fk_user_id: mockJwtPayloadInstructor.id,
       });
       expect(cartService.removeCart).toBeCalledTimes(1);
       expect(cartService.removeCart).toBeCalledWith(userId);
@@ -259,7 +262,7 @@ describe('UserService', () => {
       jest.spyOn(userService, 'findOneByOptions').mockResolvedValue(null);
 
       try {
-        await userService.delete(userId);
+        await userService.delete(mockJwtPayload);
       } catch (error) {
         expect(error).toBeInstanceOf(NotFoundException);
       }
@@ -270,11 +273,11 @@ describe('UserService', () => {
     it('유저 프로필 조회 성공', async () => {
       jest
         .spyOn(userService, 'findOneByOptions')
-        .mockResolvedValue(mockUserProfile);
+        .mockResolvedValue(mockUserByEmail);
 
       const result = await userService.getProfile(userId);
 
-      expect(result).toEqual(mockUserProfile);
+      expect(result).toEqual(mockUserByEmail);
     });
   });
 
@@ -306,7 +309,7 @@ describe('UserService', () => {
     it('유저 프로필 이미지 업로드 성공', async () => {
       jest
         .spyOn(queryRunner.manager, 'findOne')
-        .mockResolvedValue(mockCreatedUser);
+        .mockResolvedValue(mockUserByEmail);
       jest.spyOn(awsS3Service, 'uploadFileToS3').mockResolvedValue(uploadUrl);
       jest.spyOn(queryRunner.manager, 'update').mockResolvedValue(updateResult);
 
@@ -323,14 +326,17 @@ describe('UserService', () => {
     });
 
     it('유저 프로필 변경 성공 - awsS3Service의 delete 호출해야함', async () => {
-      const mockCreatedUserWithAvatar = mockCreatedUser;
-      mockCreatedUserWithAvatar.profileAvatar = uploadUrl;
+      const mockUserWithAvatar = {
+        ...mockUserByEmail,
+        profileAvatar: uploadUrl,
+      } as UserEntity;
+
       const updateUrl =
         'https://hoonflearn-s3.s3.amazonaws.com/유저-35eee35c-d1a7-4ca7-aede-df1ae8cfc240/프로필이미지/1697697807404_dog.jpg';
 
       jest
         .spyOn(queryRunner.manager, 'findOne')
-        .mockResolvedValue(mockCreatedUserWithAvatar);
+        .mockResolvedValue(mockUserWithAvatar);
       jest
         .spyOn(awsS3Service, 'deleteS3Object')
         .mockResolvedValue({ success: true });
@@ -347,6 +353,44 @@ describe('UserService', () => {
       expect(queryRunner.commitTransaction).toBeCalledTimes(1);
       expect(queryRunner.rollbackTransaction).toBeCalledTimes(0);
       expect(queryRunner.release).toBeCalledTimes(1);
+    });
+  });
+
+  describe('[핸드폰 인증번호 검증]', () => {
+    it('검증 성공', async () => {
+      jest
+        .spyOn(redisService, 'get')
+        .mockResolvedValue(mockPhoneCheckDto.token);
+      jest
+        .spyOn(userRepository, 'update')
+        .mockResolvedValue({ generatedMaps: [], raw: [], affected: 1 });
+
+      const result = await userService.checkToken(userId, mockPhoneCheckDto);
+
+      expect(result).toBeUndefined();
+      expect(userRepository.update).toBeCalled();
+    });
+
+    it('검증 실패 - 인증번호를 안 받고 하는 경우(400에러)', async () => {
+      jest.spyOn(redisService, 'get').mockResolvedValue(null);
+
+      try {
+        await userService.checkToken(userId, mockPhoneCheckDto);
+      } catch (error) {
+        expect(error).toBeInstanceOf(BadRequestException);
+        expect(userRepository.update).toBeCalledTimes(0);
+      }
+    });
+
+    it('검증 실패 - 인증번호가 틀린 경우(400에러)', async () => {
+      jest.spyOn(redisService, 'get').mockResolvedValue('anther_token');
+
+      try {
+        await userService.checkToken(userId, mockPhoneCheckDto);
+      } catch (error) {
+        expect(error).toBeInstanceOf(BadRequestException);
+        expect(userRepository.update).toBeCalledTimes(0);
+      }
     });
   });
 });

@@ -2,15 +2,14 @@ import { BadRequestException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { VideoController } from '@src/video/video.controller';
 import { VideoService } from '@src/video/video.service';
-import { mockCreatedInstructor } from '@test/__mocks__/user.mock';
-import { mockCreatedVideo, mockVideoService } from '@test/__mocks__/video.mock';
+import { mockInstructor, mockVideo } from '@test/__mocks__/mock-data';
+import { mockVideoService } from '@test/__mocks__/mock-service';
 
 describe('VideoController', () => {
   let videoController: VideoController;
   let videoService: VideoService;
 
   const lessonId = 'uuid';
-  const user = mockCreatedInstructor;
   const videoId = 'uuid';
 
   beforeEach(async () => {
@@ -48,18 +47,26 @@ describe('VideoController', () => {
     } as Express.Multer.File;
 
     it('영상 업로드 성공', async () => {
-      jest.spyOn(videoService, 'upload').mockResolvedValue(mockCreatedVideo);
+      jest.spyOn(videoService, 'upload').mockResolvedValue(mockVideo);
 
-      const result = await videoController.uploadVideo(lessonId, file, user);
+      const result = await videoController.uploadVideo(
+        lessonId,
+        file,
+        mockInstructor,
+      );
 
-      expect(result).toEqual(mockCreatedVideo);
+      expect(result).toEqual(mockVideo);
       expect(videoService.upload).toBeCalled();
-      expect(videoService.upload).toBeCalledWith(lessonId, file, user);
+      expect(videoService.upload).toBeCalledWith(
+        lessonId,
+        file,
+        mockInstructor,
+      );
     });
 
     it('영상 업로드 실패 - 파일이 없는 경우(400에러)', async () => {
       try {
-        await videoController.uploadVideo(lessonId, null, user);
+        await videoController.uploadVideo(lessonId, null, mockInstructor);
       } catch (error) {
         expect(error).toBeInstanceOf(BadRequestException);
       }
@@ -69,7 +76,7 @@ describe('VideoController', () => {
       const bigFile = { ...file, size: 1024 * 1024 * 1024 * 5 };
 
       try {
-        await videoController.uploadVideo(lessonId, bigFile, user);
+        await videoController.uploadVideo(lessonId, bigFile, mockInstructor);
       } catch (error) {
         expect(error).toBeInstanceOf(BadRequestException);
       }
@@ -79,7 +86,7 @@ describe('VideoController', () => {
       const etcFile = { ...file, mimetype: 'video/avi' };
 
       try {
-        await videoController.uploadVideo(lessonId, etcFile, user);
+        await videoController.uploadVideo(lessonId, etcFile, mockInstructor);
       } catch (error) {
         expect(error).toBeInstanceOf(BadRequestException);
       }
@@ -88,13 +95,13 @@ describe('VideoController', () => {
 
   describe('[VideoController.deleteVideo] - 영상 업로드 삭제', () => {
     it('영상 삭제 성공', async () => {
-      jest.spyOn(videoService, 'delete').mockResolvedValue(true);
+      jest.spyOn(videoService, 'delete').mockResolvedValue(undefined);
 
-      const result = await videoController.deleteVideo(videoId, user);
+      const result = await videoController.deleteVideo(videoId, mockInstructor);
 
-      expect(result).toBe(true);
+      expect(result).toBeUndefined();
       expect(videoService.delete).toBeCalled();
-      expect(videoService.delete).toBeCalledWith(videoId, user);
+      expect(videoService.delete).toBeCalledWith(videoId, mockInstructor);
     });
   });
 });

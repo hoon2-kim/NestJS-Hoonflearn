@@ -1,12 +1,12 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { QuestionCommentController } from '@src/question/question-comment/question-comment.controller';
-import {
-  mockCreatedQuestionComment,
-  mockCreateQuestionCommentDto,
-  mockQuestionCommentService,
-  mockUpdateQuestionCommentDto,
-} from '@test/__mocks__/question-comment.mock';
 import { QuestionCommentService } from '@src/question/question-comment/question-comment.service';
+import {
+  mockCreateQuestionCommentDto,
+  mockQuestionComment,
+  mockUpdateQuestionCommentDto,
+} from '@test/__mocks__/mock-data';
+import { mockQuestionCommentService } from '@test/__mocks__/mock-service';
 
 describe('QuestionCommentController', () => {
   let questionCommentController: QuestionCommentController;
@@ -48,7 +48,7 @@ describe('QuestionCommentController', () => {
     it('생성 성공', async () => {
       jest
         .spyOn(questionCommentService, 'create')
-        .mockResolvedValue(mockCreatedQuestionComment);
+        .mockResolvedValue(mockQuestionComment);
 
       const result = await questionCommentController.createQuestionComment(
         questionId,
@@ -56,7 +56,7 @@ describe('QuestionCommentController', () => {
         userId,
       );
 
-      expect(result).toEqual(mockCreatedQuestionComment);
+      expect(result).toEqual(mockQuestionComment);
       expect(questionCommentService.create).toBeCalled();
       expect(questionCommentService.create).toBeCalledWith(
         questionId,
@@ -67,12 +67,8 @@ describe('QuestionCommentController', () => {
   });
 
   describe('[QuestionCommentController.updateQuestionComment] - 질문글 댓글 수정', () => {
-    const updateResult = { message: '수정 성공' };
-
     it('수정 성공', async () => {
-      jest
-        .spyOn(questionCommentService, 'update')
-        .mockResolvedValue(updateResult);
+      jest.spyOn(questionCommentService, 'update').mockResolvedValue(undefined);
 
       const result = await questionCommentController.updateQuestionComment(
         questionId,
@@ -81,7 +77,7 @@ describe('QuestionCommentController', () => {
         userId,
       );
 
-      expect(result).toEqual(updateResult);
+      expect(result).toBeUndefined();
       expect(questionCommentService.update).toBeCalled();
       expect(questionCommentService.update).toBeCalledWith(
         questionId,
@@ -94,7 +90,7 @@ describe('QuestionCommentController', () => {
 
   describe('[QuestionCommentController.deleteQuestionComment] - 질문글 댓글 삭제', () => {
     it('삭제 성공', async () => {
-      jest.spyOn(questionCommentService, 'delete').mockResolvedValue(true);
+      jest.spyOn(questionCommentService, 'delete').mockResolvedValue(undefined);
 
       const result = await questionCommentController.deleteQuestionComment(
         questionId,
@@ -102,7 +98,7 @@ describe('QuestionCommentController', () => {
         userId,
       );
 
-      expect(result).toBe(true);
+      expect(result).toBeUndefined();
       expect(questionCommentService.delete).toBeCalled();
       expect(questionCommentService.delete).toBeCalledWith(
         questionId,

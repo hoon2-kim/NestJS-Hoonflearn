@@ -116,7 +116,7 @@ export class CourseController {
     @Param('courseId') courseId: string,
     @Body() updateCourseDto: UpdateCourseDto,
     @CurrentUser() user: UserEntity,
-  ): Promise<CourseEntity> {
+  ): Promise<void> {
     return await this.courseService.update(courseId, updateCourseDto, user);
   }
 

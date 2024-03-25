@@ -86,7 +86,7 @@ export class UserService {
     }
   }
 
-  async checkNick(nickNameDto: NicknameDto): Promise<{ message: string }> {
+  async checkNick(nickNameDto: NicknameDto): Promise<void> {
     const check = await this.findOneByOptions({
       where: { nickname: nickNameDto.nickname },
     });
@@ -95,10 +95,10 @@ export class UserService {
       throw new BadRequestException('해당 닉네임은 이미 사용중입니다.');
     }
 
-    // TODO: 반환방식 수정
-    return { message: `해당 닉네임:${nickNameDto.nickname}은 사용가능합니다.` };
+    return;
   }
 
+  // TODO : unit-test
   async sendSMS(phoneDto: PhoneDto): Promise<void> {
     const token = createRandomToken();
 

@@ -2,11 +2,11 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { ReviewCommentController } from '@src/review/review-comment/review-comment.controller';
 import { ReviewCommentService } from '@src/review/review-comment/review-comment.service';
 import {
-  mockReviewCommentService,
+  mockReviewComment,
   mockCreateReviewCommentDto,
   mockUpdateReviewCommentDto,
-  mockCreatedReviewComment,
-} from '@test/__mocks__/review-comment.mock';
+} from '@test/__mocks__/mock-data';
+import { mockReviewCommentService } from '@test/__mocks__/mock-service';
 
 describe('ReviewCommentController', () => {
   let reviewCommentController: ReviewCommentController;
@@ -44,7 +44,7 @@ describe('ReviewCommentController', () => {
     it('생성 성공', async () => {
       jest
         .spyOn(reviewCommentService, 'create')
-        .mockResolvedValue(mockCreatedReviewComment);
+        .mockResolvedValue(mockReviewComment);
 
       const result = await reviewCommentController.createReviewComment(
         reviewId,
@@ -52,7 +52,7 @@ describe('ReviewCommentController', () => {
         userId,
       );
 
-      expect(result).toEqual(mockCreatedReviewComment);
+      expect(result).toEqual(mockReviewComment);
       expect(reviewCommentService.create).toBeCalled();
       expect(reviewCommentService.create).toBeCalledWith(
         reviewId,
@@ -63,11 +63,8 @@ describe('ReviewCommentController', () => {
   });
 
   describe('[ReviewCommentController.updateReviewComment] - 리뷰 댓글 수정', () => {
-    const updateResult = { message: '수정 성공' };
     it('수정 성공', async () => {
-      jest
-        .spyOn(reviewCommentService, 'update')
-        .mockResolvedValue(updateResult);
+      jest.spyOn(reviewCommentService, 'update').mockResolvedValue(undefined);
 
       const result = await reviewCommentController.updateReviewCommet(
         reviewId,
@@ -76,7 +73,7 @@ describe('ReviewCommentController', () => {
         userId,
       );
 
-      expect(result).toEqual(updateResult);
+      expect(result).toBeUndefined();
       expect(reviewCommentService.update).toBeCalled();
       expect(reviewCommentService.update).toBeCalledWith(
         reviewId,
@@ -89,7 +86,7 @@ describe('ReviewCommentController', () => {
 
   describe('[ReviewCommentController.deleteReviewComment] - 리뷰 댓글 삭제', () => {
     it('삭제 성공', async () => {
-      jest.spyOn(reviewCommentService, 'delete').mockResolvedValue(true);
+      jest.spyOn(reviewCommentService, 'delete').mockResolvedValue(undefined);
 
       const result = await reviewCommentController.deleteReviewCommet(
         reviewId,
@@ -97,7 +94,7 @@ describe('ReviewCommentController', () => {
         userId,
       );
 
-      expect(result).toBe(true);
+      expect(result).toBeUndefined();
       expect(reviewCommentService.delete).toBeCalled();
       expect(reviewCommentService.delete).toBeCalledWith(
         reviewId,

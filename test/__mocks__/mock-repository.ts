@@ -113,6 +113,7 @@ export const mockQuestionRepository = {
   createQueryBuilder: jest.fn().mockReturnValue({
     leftJoinAndSelect: jest.fn().mockReturnThis(),
     leftJoin: jest.fn().mockReturnThis(),
+    innerJoinAndSelect: jest.fn().mockReturnThis(),
     where: jest.fn().mockReturnThis(),
     andWhere: jest.fn().mockReturnThis(),
     orWhere: jest.fn().mockReturnThis(),
@@ -159,6 +160,13 @@ export const mockReviewRepository = {
   }),
   findOne: jest.fn(),
   save: jest.fn(),
+};
+
+// Review-Comment
+export const mockReviewCommentRepository = {
+  findOne: jest.fn(),
+  save: jest.fn(),
+  delete: jest.fn(),
 };
 
 // Review-Like

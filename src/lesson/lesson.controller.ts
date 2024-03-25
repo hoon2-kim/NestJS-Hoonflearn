@@ -60,7 +60,7 @@ export class LessonController {
     @Param('lessonId') lessonId: string,
     @Body() updateLessonDto: UpdateLessonDto,
     @CurrentUser('id') userId: string,
-  ): Promise<LessonEntity> {
+  ): Promise<void> {
     return await this.lessonService.update(lessonId, updateLessonDto, userId);
   }
 

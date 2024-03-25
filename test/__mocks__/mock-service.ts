@@ -225,3 +225,8 @@ export const mockIamportService = {
 export const mockEventEmitter2 = {
   emit: jest.fn(),
 };
+
+// coolsms
+export const mockCoolsmsService = {
+  sendSMS: jest.fn(),
+};

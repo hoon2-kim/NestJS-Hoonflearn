@@ -3,16 +3,16 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { QuestionCommentService } from '@src/question/question-comment/question-comment.service';
 import { QuestionService } from '@src/question/question.service';
-import {
-  mockCreatedQuestionComment,
-  mockCreateQuestionCommentDto,
-  mockQuestionCommentRepository,
-  mockQuestionService,
-  mockUpdateQuestionCommentDto,
-} from '@test/__mocks__/question-comment.mock';
-import { mockCreatedQuestion } from '@test/__mocks__/question.mock';
 import { Repository } from 'typeorm';
 import { QuestionCommentEntity } from '@src/question/question-comment/entities/question-comment.entity';
+import {
+  mockCreateQuestionCommentDto,
+  mockQuestion,
+  mockQuestionComment,
+  mockUpdateQuestionCommentDto,
+} from '@test/__mocks__/mock-data';
+import { mockQuestionCommentRepository } from '@test/__mocks__/mock-repository';
+import { mockQuestionService } from '@test/__mocks__/mock-service';
 
 describe('QuestionCommentService', () => {
   let questionCommentService: QuestionCommentService;
@@ -58,10 +58,10 @@ describe('QuestionCommentService', () => {
     it('생성 성공', async () => {
       jest
         .spyOn(questionService, 'findOneByOptions')
-        .mockResolvedValue(mockCreatedQuestion);
+        .mockResolvedValue(mockQuestion);
       jest
         .spyOn(questionCommentRepository, 'save')
-        .mockResolvedValue(mockCreatedQuestionComment);
+        .mockResolvedValue(mockQuestionComment);
 
       const result = await questionCommentService.create(
         questionId,
@@ -69,7 +69,7 @@ describe('QuestionCommentService', () => {
         userId,
       );
 
-      expect(result).toEqual(mockCreatedQuestionComment);
+      expect(result).toEqual(mockQuestionComment);
       expect(questionCommentRepository.save).toBeCalledTimes(1);
     });
 
@@ -90,17 +90,21 @@ describe('QuestionCommentService', () => {
   });
 
   describe('[댓글 수정]', () => {
-    const updateResult = { message: '수정 성공' };
     it('수정 성공', async () => {
+      const mockUpdateQuestionComment = Object.assign(
+        mockQuestionComment,
+        mockUpdateQuestionCommentDto,
+      );
+
       jest
         .spyOn(questionService, 'findOneByOptions')
-        .mockResolvedValue(mockCreatedQuestion);
+        .mockResolvedValue(mockQuestion);
       jest
         .spyOn(questionCommentRepository, 'findOne')
-        .mockResolvedValue(mockCreatedQuestionComment);
+        .mockResolvedValue(mockQuestionComment);
       jest
         .spyOn(questionCommentRepository, 'save')
-        .mockResolvedValue(mockCreatedQuestionComment);
+        .mockResolvedValue(mockUpdateQuestionComment);
 
       const result = await questionCommentService.update(
         questionId,
@@ -109,7 +113,7 @@ describe('QuestionCommentService', () => {
         userId,
       );
 
-      expect(result).toEqual(updateResult);
+      expect(result).toBeUndefined();
       expect(questionCommentRepository.save).toBeCalledTimes(1);
     });
 
@@ -149,10 +153,13 @@ describe('QuestionCommentService', () => {
     it('수정 실패 - 본인이 아닌 경우(403에러)', async () => {
       jest
         .spyOn(questionService, 'findOneByOptions')
-        .mockResolvedValue(mockCreatedQuestion);
-      jest
-        .spyOn(questionCommentRepository, 'findOne')
-        .mockRejectedValue(new ForbiddenException());
+        .mockResolvedValue(mockQuestion);
+
+      // 수정
+      jest.spyOn(questionCommentRepository, 'findOne').mockResolvedValue({
+        ...mockQuestionComment,
+        fk_user_id: 'anotherUserId',
+      });
 
       try {
         await questionCommentService.update(
@@ -172,10 +179,10 @@ describe('QuestionCommentService', () => {
     it('삭제 성공', async () => {
       jest
         .spyOn(questionService, 'findOneByOptions')
-        .mockResolvedValue(mockCreatedQuestion);
+        .mockResolvedValue(mockQuestion);
       jest
         .spyOn(questionCommentRepository, 'findOne')
-        .mockResolvedValue(mockCreatedQuestionComment);
+        .mockResolvedValue(mockQuestionComment);
       jest
         .spyOn(questionCommentRepository, 'delete')
         .mockResolvedValue({ raw: [], affected: 1 });
@@ -186,7 +193,7 @@ describe('QuestionCommentService', () => {
         userId,
       );
 
-      expect(result).toBe(true);
+      expect(result).toBeUndefined();
       expect(questionCommentRepository.delete).toBeCalledTimes(1);
     });
 
@@ -216,7 +223,7 @@ describe('QuestionCommentService', () => {
     it('삭제 실패 - 본인이 아닌 경우(403에러)', async () => {
       jest
         .spyOn(questionService, 'findOneByOptions')
-        .mockResolvedValue(mockCreatedQuestion);
+        .mockResolvedValue(mockQuestion);
       jest
         .spyOn(questionCommentRepository, 'findOne')
         .mockRejectedValue(new ForbiddenException());

@@ -2,11 +2,11 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { SectionController } from '@src/section/section.controller';
 import { SectionService } from '@src/section/section.service';
 import {
-  mockCreatedSection,
-  mockSectionService,
+  mockSection,
   mockCreateSectionDto,
   mockUpdateSectionDto,
-} from '@test/__mocks__/section.mock';
+} from '@test/__mocks__/mock-data';
+import { mockSectionService } from '@test/__mocks__/mock-service';
 
 describe('SectionController', () => {
   let sectionController: SectionController;
@@ -41,16 +41,14 @@ describe('SectionController', () => {
 
   describe('[SectionController.createSection] - 섹션 생성', () => {
     it('섹션 생성 성공', async () => {
-      jest
-        .spyOn(sectionService, 'create')
-        .mockResolvedValue(mockCreatedSection);
+      jest.spyOn(sectionService, 'create').mockResolvedValue(mockSection);
 
       const result = await sectionController.createSection(
         mockCreateSectionDto,
         userId,
       );
 
-      expect(result).toEqual(mockCreatedSection);
+      expect(result).toEqual(mockSection);
       expect(sectionService.create).toHaveBeenCalled();
       expect(sectionService.create).toBeCalledWith(
         mockCreateSectionDto,
@@ -60,9 +58,8 @@ describe('SectionController', () => {
   });
 
   describe('[SectionController.updateSection] - 섹션 수정', () => {
-    const updateResult = { message: '수정 성공' };
     it('섹션 수정 성공', async () => {
-      jest.spyOn(sectionService, 'update').mockResolvedValue(updateResult);
+      jest.spyOn(sectionService, 'update').mockResolvedValue(undefined);
 
       const result = await sectionController.updateSection(
         sectionId,
@@ -70,7 +67,7 @@ describe('SectionController', () => {
         userId,
       );
 
-      expect(result).toEqual(updateResult);
+      expect(result).toBeUndefined();
       expect(sectionService.update).toHaveBeenCalled();
       expect(sectionService.update).toBeCalledWith(
         sectionId,
@@ -82,7 +79,7 @@ describe('SectionController', () => {
 
   describe('[SectionController.deleteSection] - 섹션 삭제', () => {
     it('섹션 삭제 성공', async () => {
-      jest.spyOn(sectionService, 'delete').mockResolvedValue(true);
+      jest.spyOn(sectionService, 'delete').mockResolvedValue(undefined);
 
       const result = await sectionController.deleteSection(
         sectionId,
@@ -90,7 +87,7 @@ describe('SectionController', () => {
         userId,
       );
 
-      expect(result).toBe(true);
+      expect(result).toBeUndefined();
       expect(sectionService.delete).toHaveBeenCalled();
       expect(sectionService.delete).toBeCalledWith(sectionId, userId);
     });

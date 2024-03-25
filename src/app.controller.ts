@@ -6,6 +6,6 @@ import { ApiExcludeController } from '@nestjs/swagger';
 export class AppController {
   @Get()
   ping() {
-    return 'pong';
+    return 'pong!!';
   }
 }

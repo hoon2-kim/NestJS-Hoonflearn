@@ -1,15 +1,14 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { LessonController } from '@src/lesson/lesson.controller';
-import {
-  mockCreatedLesson,
-  mockCreateLessonDto,
-  mockLessonService,
-  mockLessonWithVideo,
-  mockUpdateLessonDto,
-} from '@test/__mocks__/lesson.mock';
 import { LessonService } from '@src/lesson/lesson.service';
-import { LessonResponseDto } from '@src/lesson/dtos/response/lesson.response.dto';
-import { mockCreatedUser } from '@test/__mocks__/user.mock';
+import {
+  mockLesson,
+  mockVideo,
+  mockCreateLessonDto,
+  mockUpdateLessonDto,
+  mockUserByEmail,
+} from '@test/__mocks__/mock-data';
+import { mockLessonService } from '@test/__mocks__/mock-service';
 
 describe('LessonController', () => {
   let lessonController: LessonController;
@@ -44,42 +43,42 @@ describe('LessonController', () => {
 
   describe('[LessonController.viewLesson] - 수업 조회', () => {
     it('수업 조회 성공', async () => {
-      const lessonResponse = LessonResponseDto.from(mockLessonWithVideo);
-      jest.spyOn(lessonService, 'viewLesson').mockResolvedValue(lessonResponse);
+      const mockViewLesson = { ...mockLesson, video: mockVideo };
+
+      jest.spyOn(lessonService, 'viewLesson').mockResolvedValue(mockViewLesson);
 
       const result = await lessonController.viewLesson(
         lessonId,
-        mockCreatedUser,
+        mockUserByEmail,
       );
 
-      expect(result).toEqual(lessonResponse);
+      expect(result).toEqual(mockViewLesson);
       expect(lessonService.viewLesson).toHaveBeenCalled();
       expect(lessonService.viewLesson).toBeCalledWith(
         lessonId,
-        mockCreatedUser,
+        mockUserByEmail,
       );
     });
   });
 
   describe('[LessonController.createLesson] - 수업 생성', () => {
     it('수업 생성 성공', async () => {
-      jest.spyOn(lessonService, 'create').mockResolvedValue(mockCreatedLesson);
+      jest.spyOn(lessonService, 'create').mockResolvedValue(mockLesson);
 
       const result = await lessonController.createLesson(
         mockCreateLessonDto,
         userId,
       );
 
-      expect(result).toEqual(mockCreatedLesson);
+      expect(result).toEqual(mockLesson);
       expect(lessonService.create).toHaveBeenCalled();
       expect(lessonService.create).toBeCalledWith(mockCreateLessonDto, userId);
     });
   });
 
   describe('[LessonController.updateLesson] - 수업 수정', () => {
-    const updateResult = { message: '수정 성공' };
     it('수업 수정 성공', async () => {
-      jest.spyOn(lessonService, 'update').mockResolvedValue(updateResult);
+      jest.spyOn(lessonService, 'update').mockResolvedValue(undefined);
 
       const result = await lessonController.updateLesson(
         lessonId,
@@ -87,7 +86,7 @@ describe('LessonController', () => {
         userId,
       );
 
-      expect(result).toEqual(updateResult);
+      expect(result).toBeUndefined();
       expect(lessonService.update).toHaveBeenCalled();
       expect(lessonService.update).toBeCalledWith(
         lessonId,
@@ -99,11 +98,11 @@ describe('LessonController', () => {
 
   describe('[LessonController.deleteLesson] - 수업 삭제', () => {
     it('수업 삭제 성공', async () => {
-      jest.spyOn(lessonService, 'delete').mockResolvedValue(true);
+      jest.spyOn(lessonService, 'delete').mockResolvedValue(undefined);
 
       const result = await lessonController.deleteLesson(lessonId, userId);
 
-      expect(result).toBe(true);
+      expect(result).toBeUndefined();
       expect(lessonService.delete).toHaveBeenCalled();
       expect(lessonService.delete).toBeCalledWith(
         lessonId,

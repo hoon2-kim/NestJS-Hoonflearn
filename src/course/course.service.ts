@@ -78,8 +78,6 @@ export class CourseService {
       .take(take)
       .skip(skip);
 
-    // const query = new Map<string,>
-
     if (mainCategoryId) {
       queryBuilder
         .innerJoin('course.categoriesCourses', 'categoryCourse')
@@ -276,7 +274,7 @@ export class CourseService {
     courseId: string,
     updateCourseDto: UpdateCourseDto,
     user: UserEntity,
-  ): Promise<CourseEntity> {
+  ): Promise<void> {
     const { title, selectedCategoryIds } = updateCourseDto;
 
     const existCourse = await this.findOneByOptions({
@@ -312,7 +310,7 @@ export class CourseService {
 
     Object.assign(existCourse, updateCourseDto);
 
-    return await this.courseRepository.save(existCourse);
+    await this.courseRepository.save(existCourse);
   }
 
   async uploadImage(

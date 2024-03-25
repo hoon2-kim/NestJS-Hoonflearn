@@ -155,7 +155,7 @@ export class ReviewService {
     reviewId: string,
     updateReviewDto: UpdateReviewDto,
     userId: string,
-  ): Promise<ReviewEntity> {
+  ): Promise<void> {
     const { rating } = updateReviewDto;
 
     const review = await this.findOneByOptions({
@@ -189,7 +189,7 @@ export class ReviewService {
 
     Object.assign(review, updateReviewDto);
 
-    return await this.reviewRepository.save(review);
+    await this.reviewRepository.save(review);
   }
 
   async delete(reviewId: string, userId: string): Promise<void> {
