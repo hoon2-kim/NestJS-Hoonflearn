@@ -1,4 +1,4 @@
-FROM node:18-alpine AS build
+FROM node:18 AS build
 
 # 명령이 실행될 위치
 WORKDIR /usr/src/app

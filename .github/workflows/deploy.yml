@@ -69,6 +69,7 @@ jobs:
         run: |
           docker build -t ${{ env.ECR_URI }}/${{ env.ECR_REPOSITORY }}:${{ env.IMAGE_TAG }} .
           docker push ${{ env.ECR_URI }}/${{ env.ECR_REPOSITORY }}:${{ env.IMAGE_TAG }}
+          echo "::set-output name=image::${{ env.ECR_URI }}/${{ env.ECR_REPOSITORY }}:${{ env.IMAGE_TAG }}"
 
       - name: ssh로 EC2 접속 및 배포
         uses: appleboy/ssh-action@master
@@ -95,7 +96,7 @@ jobs:
               done
             fi
 
-            aws ecr get-login-password --region ap-northeast-2 | sudo docker login --username AWS --password-stdin $ECR_REGISTRY
+            aws ecr get-login-password --region ap-northeast-2 | docker login --username AWS --password-stdin $ECR_REGISTRY
 
             sudo docker pull ${{ env.ECR_URI }}/${{ env.ECR_REPOSITORY }}:${{ env.IMAGE_TAG }}
             sudo docker run -d --env-file ./.env -p 8080:8080 ${{ env.ECR_URI }}/${{ env.ECR_REPOSITORY }}:${{ env.IMAGE_TAG }}
