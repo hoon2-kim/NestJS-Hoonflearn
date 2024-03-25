@@ -80,27 +80,27 @@ jobs:
           username: ${{ secrets.EC2_USERNAME }}
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
-            CONTAINER_IDS=$(sudo docker ps -a -q)
-            if [ ! -z "$CONTAINER_IDS" ]
-            then
-              for id in $CONTAINER_IDS
-              do
-                sudo docker stop "$id" && sudo docker rm "$id"
-              done
-            fi
-
-            IMAGE_IDS=$(sudo docker images -q)
-            if [ ! -z "$IMAGE_IDS" ]
-            then
-              for id in $IMAGE_IDS
-              do
-                sudo docker rmi $id
-              done
-            fi
-
             aws ecr get-login-password --region ap-northeast-2 | docker login --username AWS --password-stdin $ECR_REGISTRY
 
             sudo docker pull $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
             sudo docker run -d --env-file ./.env -p 8080:8080 $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
 
 # -z : 변수가 비어있다면 true
+
+# CONTAINER_IDS=$(sudo docker ps -a -q)
+#             if [ ! -z "$CONTAINER_IDS" ]
+#             then
+#               for id in $CONTAINER_IDS
+#               do
+#                 sudo docker stop "$id" && sudo docker rm "$id"
+#               done
+#             fi
+
+#             IMAGE_IDS=$(sudo docker images -q)
+#             if [ ! -z "$IMAGE_IDS" ]
+#             then
+#               for id in $IMAGE_IDS
+#               do
+#                 sudo docker rmi $id
+#               done
+#             fi
