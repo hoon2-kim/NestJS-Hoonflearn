@@ -80,7 +80,7 @@ jobs:
           username: ${{ secrets.EC2_USERNAME }}
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
-            aws ecr get-login-password --region ap-northeast-2 | docker login --username AWS --password-stdin $ECR_REGISTRY
+            aws ecr get-login-password --region ap-northeast-2 | docker login --username AWS --password-stdin 637423499058.dkr.ecr.ap-northeast-2.amazonaws.com
 
             sudo docker pull $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
             sudo docker run -d --env-file ./.env -p 8080:8080 $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
