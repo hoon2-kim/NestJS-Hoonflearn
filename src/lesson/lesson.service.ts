@@ -122,7 +122,7 @@ export class LessonService {
     lessonId: string,
     updateLessonDto: UpdateLessonDto,
     userId: string,
-  ): Promise<void> {
+  ): Promise<LessonEntity> {
     const lesson = await this.findOneByOptions({
       where: { id: lessonId },
     });
@@ -137,7 +137,7 @@ export class LessonService {
 
     Object.assign(lesson, updateLessonDto);
 
-    await this.lessonRepository.save(lesson);
+    return await this.lessonRepository.save(lesson);
   }
 
   async delete(lessonId: string, userId: string): Promise<void> {

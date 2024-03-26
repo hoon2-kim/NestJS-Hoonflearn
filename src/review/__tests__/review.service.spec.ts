@@ -297,7 +297,7 @@ describe('ReviewService', () => {
         userId,
       );
 
-      expect(result).toBeUndefined();
+      expect(result).toEqual(mockUpdateReview);
       expect(courseService.courseReviewRatingUpdate).not.toBeCalled();
     });
 
@@ -328,7 +328,7 @@ describe('ReviewService', () => {
         userId,
       );
 
-      expect(result).toBeUndefined();
+      expect(result).toEqual(mockUpdateReview);
       expect(courseService.courseReviewRatingUpdate).toBeCalled();
     });
 

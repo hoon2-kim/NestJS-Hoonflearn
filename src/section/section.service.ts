@@ -60,7 +60,7 @@ export class SectionService {
     sectionId: string,
     updateSectionDto: UpdateSectionDto,
     userId: string,
-  ): Promise<void> {
+  ): Promise<SectionEntity> {
     const section = await this.findOneByOptions({
       where: { id: sectionId },
     });
@@ -73,7 +73,7 @@ export class SectionService {
 
     Object.assign(section, updateSectionDto);
 
-    await this.sectionRepository.save(section);
+    return await this.sectionRepository.save(section);
   }
 
   async delete(sectionId: string, userId: string): Promise<void> {

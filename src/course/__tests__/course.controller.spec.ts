@@ -261,7 +261,12 @@ describe('CourseController', () => {
 
   describe('[CourseController.updateCourse] - 강의 수정', () => {
     it('수정 성공', async () => {
-      jest.spyOn(courseService, 'update').mockResolvedValue(undefined);
+      const mockUpdateCourse = Object.assign(
+        mockPaidCourse,
+        mockUpdateCourseDto,
+      );
+
+      jest.spyOn(courseService, 'update').mockResolvedValue(mockUpdateCourse);
 
       const result = await courseController.updateCourse(
         courseId,
@@ -269,7 +274,7 @@ describe('CourseController', () => {
         mockInstructor,
       );
 
-      expect(result).toBeUndefined();
+      expect(result).toEqual(mockUpdateCourse);
       expect(courseService.update).toBeCalled();
       expect(courseService.update).toBeCalledWith(
         courseId,

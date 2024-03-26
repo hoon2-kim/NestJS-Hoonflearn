@@ -20,7 +20,6 @@ import { PageMetaDto } from '@src/common/dtos/page-meta.dto';
 import { PageDto } from '@src/common/dtos/page.dto';
 import {
   ECourseChargeType,
-  ECourseLevelType,
   ECourseSortBy,
 } from '@src/course/enums/course.enum';
 import { EReviewMethod } from '@src/review/enums/review.enum';
@@ -274,7 +273,7 @@ export class CourseService {
     courseId: string,
     updateCourseDto: UpdateCourseDto,
     user: UserEntity,
-  ): Promise<void> {
+  ): Promise<CourseEntity> {
     const { title, selectedCategoryIds } = updateCourseDto;
 
     const existCourse = await this.findOneByOptions({
@@ -310,7 +309,7 @@ export class CourseService {
 
     Object.assign(existCourse, updateCourseDto);
 
-    await this.courseRepository.save(existCourse);
+    return await this.courseRepository.save(existCourse);
   }
 
   async uploadImage(

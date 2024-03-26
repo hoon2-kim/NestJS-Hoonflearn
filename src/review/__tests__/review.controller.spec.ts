@@ -118,7 +118,9 @@ describe('ReviewController', () => {
 
   describe('[ReviewController.updateReview] - 리뷰 수정', () => {
     it('수정 성공', async () => {
-      jest.spyOn(reviewService, 'update').mockResolvedValue(undefined);
+      const mockUpdateReview = Object.assign(mockReview, mockUpdateReviewDto);
+
+      jest.spyOn(reviewService, 'update').mockResolvedValue(mockUpdateReview);
 
       const result = await reviewController.updateReview(
         reviewId,
@@ -126,7 +128,7 @@ describe('ReviewController', () => {
         userId,
       );
 
-      expect(result).toBeUndefined();
+      expect(result).toEqual(mockUpdateReview);
       expect(reviewService.update).toBeCalled();
       expect(reviewService.update).toBeCalledWith(
         reviewId,

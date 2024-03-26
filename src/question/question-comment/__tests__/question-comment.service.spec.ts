@@ -113,7 +113,7 @@ describe('QuestionCommentService', () => {
         userId,
       );
 
-      expect(result).toBeUndefined();
+      expect(result).toEqual(mockUpdateQuestionComment);
       expect(questionCommentRepository.save).toBeCalledTimes(1);
     });
 

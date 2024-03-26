@@ -210,7 +210,7 @@ describe('LessonService', () => {
         userId,
       );
 
-      expect(result).toBeUndefined();
+      expect(result).toEqual(mockUpdateLesson);
       expect(
         lessonService.getCourseIdByLessonIdWithQueryBuilder,
       ).toBeCalledTimes(1);

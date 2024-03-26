@@ -148,7 +148,7 @@ export class UserController {
   async updateUserProfile(
     @CurrentUser('id') userId: string,
     @Body() updateUserDto: UpdateUserDto,
-  ) {
+  ): Promise<UserEntity> {
     return await this.userService.update(userId, updateUserDto);
   }
 
