@@ -70,7 +70,7 @@ $ yarn start:dev / npm run start:dev
 
 ## 아키텍쳐
 
-![아키텍처](https://github.com/hoon2-kim/nestjs-postgresql-graphql-survey/assets/107983013/c5419509-8457-4ce4-8858-990b310786b7)
+![아키텍처](https://github.com/hoon2-kim/NestJS-Hoonflearn/assets/107983013/e57f52ec-68f8-41b5-93ed-97a33350ad25)
 
 ---
 
