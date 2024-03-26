@@ -136,7 +136,7 @@ describe('SectionService', () => {
         userId,
       );
 
-      expect(result).toBeUndefined();
+      expect(result).toEqual(mockUpdateSection);
       expect(courseService.validateInstructor).toBeCalledTimes(1);
       expect(courseService.validateInstructor).toBeCalledWith(
         mockSection.fk_course_id,

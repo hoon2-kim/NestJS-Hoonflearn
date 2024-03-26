@@ -230,7 +230,7 @@ describe('CategoryService', () => {
         mockUpdateCategoryDto,
       );
 
-      expect(result).toBeUndefined();
+      expect(result).toEqual(mockUpdateCategory);
       expect(categoryService.findOneByOptions).toBeCalledTimes(2);
       expect(categoryRepository.save).toBeCalledWith(
         expect.objectContaining(mockUpdateCategory),

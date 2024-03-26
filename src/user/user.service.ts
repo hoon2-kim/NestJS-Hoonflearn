@@ -98,7 +98,6 @@ export class UserService {
     return;
   }
 
-  // TODO : unit-test
   async sendSMS(phoneDto: PhoneDto): Promise<void> {
     const token = createRandomToken();
 

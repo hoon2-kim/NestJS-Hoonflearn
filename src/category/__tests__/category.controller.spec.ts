@@ -73,7 +73,14 @@ describe('CategoryController', () => {
 
   describe('[CategoryController.updateCategoryOrSub] - 메인/서브 카테고리 수정', () => {
     it('메인/서브 카테고리 수정 성공', async () => {
-      jest.spyOn(categoryService, 'update').mockResolvedValue(undefined);
+      const mockUpdateCategory = Object.assign(
+        mockMainCategory,
+        mockUpdateCategoryDto,
+      );
+
+      jest
+        .spyOn(categoryService, 'update')
+        .mockResolvedValue(mockUpdateCategory);
 
       const result = await categoryController.updateCategoryOrSub(
         categoryId,
@@ -81,7 +88,7 @@ describe('CategoryController', () => {
       );
 
       expect(categoryService.update).toHaveBeenCalled();
-      expect(result).toBeUndefined();
+      expect(result).toEqual(mockUpdateCategory);
     });
   });
 

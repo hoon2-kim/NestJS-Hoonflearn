@@ -141,7 +141,7 @@ export class CategoryService {
   async update(
     categoryId: string,
     updateCategoryDto: UpdateCategoryDto,
-  ): Promise<void> {
+  ): Promise<CategoryEntity> {
     const { name } = updateCategoryDto;
 
     const category = await this.findOneByOptions({
@@ -168,7 +168,7 @@ export class CategoryService {
 
     Object.assign(category, updateCategoryDto);
 
-    await this.categoryRepository.save(category);
+    return await this.categoryRepository.save(category);
   }
 
   async delete(categoryId: string): Promise<void> {

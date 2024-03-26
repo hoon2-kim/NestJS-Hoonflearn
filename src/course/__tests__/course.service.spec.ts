@@ -634,7 +634,7 @@ describe('CourseService', () => {
         mockInstructor,
       );
 
-      expect(result).toBeUndefined();
+      expect(result).toEqual(mockUpdateCourse);
     });
 
     it('수정 성공(카테고리 수정 포함)', async () => {
@@ -669,7 +669,7 @@ describe('CourseService', () => {
         mockInstructor,
       );
 
-      expect(result).toBeUndefined();
+      expect(result).toEqual(mockUpdateCourse);
       expect(categoryService.validateCategory).toBeCalledTimes(1);
       expect(categoryCourseService.updateCourseToCategories).toBeCalledTimes(1);
     });

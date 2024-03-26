@@ -62,7 +62,7 @@ export class CategoryController {
   async updateCategoryOrSub(
     @Param('categoryId') categoryId: string,
     @Body() updateCategoryDto: UpdateCategoryDto,
-  ): Promise<void> {
+  ): Promise<CategoryEntity> {
     return await this.categoryService.update(categoryId, updateCategoryDto);
   }
 
