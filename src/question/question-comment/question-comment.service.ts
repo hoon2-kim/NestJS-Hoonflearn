@@ -46,7 +46,7 @@ export class QuestionCommentService {
     commentId: string,
     updateQuestionCommentDto: UpdateQuestionCommentDto,
     userId: string,
-  ): Promise<void> {
+  ): Promise<QuestionCommentEntity> {
     const question = await this.questionService.findOneByOptions({
       where: { id: questionId },
     });
@@ -69,7 +69,7 @@ export class QuestionCommentService {
 
     Object.assign(comment, updateQuestionCommentDto);
 
-    await this.questionCommentRepository.save(comment);
+    return await this.questionCommentRepository.save(comment);
   }
 
   async delete(

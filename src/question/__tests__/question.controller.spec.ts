@@ -186,7 +186,14 @@ describe('QuestionController', () => {
 
   describe('[QuestionController.updateQuestion] - 질문글 수정', () => {
     it('수정 성공', async () => {
-      jest.spyOn(questionService, 'update').mockResolvedValue(undefined);
+      const mockUpdateQuestion = Object.assign(
+        mockQuestion,
+        mockUpdateQuestionDto,
+      );
+
+      jest
+        .spyOn(questionService, 'update')
+        .mockResolvedValue(mockUpdateQuestion);
 
       const result = await questionController.updateQuestion(
         questionId,
@@ -194,7 +201,7 @@ describe('QuestionController', () => {
         userId,
       );
 
-      expect(result).toBeUndefined();
+      expect(result).toEqual(mockUpdateQuestion);
       expect(questionService.update).toBeCalled();
       expect(questionService.update).toBeCalledWith(
         questionId,

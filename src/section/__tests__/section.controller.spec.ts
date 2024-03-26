@@ -59,7 +59,12 @@ describe('SectionController', () => {
 
   describe('[SectionController.updateSection] - 섹션 수정', () => {
     it('섹션 수정 성공', async () => {
-      jest.spyOn(sectionService, 'update').mockResolvedValue(undefined);
+      const mockUpdateSection = Object.assign(
+        mockSection,
+        mockUpdateSectionDto,
+      );
+
+      jest.spyOn(sectionService, 'update').mockResolvedValue(mockUpdateSection);
 
       const result = await sectionController.updateSection(
         sectionId,
@@ -67,7 +72,7 @@ describe('SectionController', () => {
         userId,
       );
 
-      expect(result).toBeUndefined();
+      expect(result).toEqual(mockUpdateSection);
       expect(sectionService.update).toHaveBeenCalled();
       expect(sectionService.update).toBeCalledWith(
         sectionId,

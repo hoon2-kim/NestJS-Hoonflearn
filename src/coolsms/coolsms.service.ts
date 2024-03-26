@@ -16,10 +16,6 @@ export class CoolsmsService extends coolsms {
       type: 'SMS',
     };
 
-    const qqq = this.sendOne(message);
-
-    console.log(qqq);
-
-    return qqq;
+    return await this.sendOne(message);
   }
 }

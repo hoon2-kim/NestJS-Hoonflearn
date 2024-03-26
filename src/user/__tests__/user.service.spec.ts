@@ -15,6 +15,7 @@ import {
   mockJwtPayload,
   mockInstructor,
   mockPhoneCheckDto,
+  mockPhoneDto,
 } from '@test/__mocks__/mock-data';
 import {
   mockInstructorRepository,
@@ -29,6 +30,12 @@ import {
 import { RedisService } from '@src/redis/redis.service';
 import { CoolsmsService } from '@src/coolsms/coolsms.service';
 import { ERoleType } from '@src/user/enums/user.enum';
+import { SingleMessageSentResponse } from 'coolsms-node-sdk';
+import { coolsmsUserPhoneKey } from '@src/redis/keys';
+
+jest.mock('../../common/utils/randomToken.ts', () => ({
+  createRandomToken: jest.fn().mockReturnValue('test'),
+}));
 
 const mockQueryRunner = {
   manager: {},
@@ -391,6 +398,43 @@ describe('UserService', () => {
         expect(error).toBeInstanceOf(BadRequestException);
         expect(userRepository.update).toBeCalledTimes(0);
       }
+    });
+  });
+
+  describe('[핸드폰 인증번호 전송 - coolsms]', () => {
+    it('전송 성공', async () => {
+      const mockSingleMessageSentResponse: SingleMessageSentResponse = {
+        groupId: '',
+        to: '',
+        from: '',
+        type: 'SMS',
+        statusMessage: '정상 접수(이통사로 접수 예정) ',
+        country: '82',
+        messageId: '',
+        statusCode: '2000',
+        accountId: '',
+      };
+      const mockToken = 'test';
+
+      jest
+        .spyOn(coolsmsService, 'sendSMS')
+        .mockResolvedValue(mockSingleMessageSentResponse);
+      jest.spyOn(redisService, 'set').mockResolvedValue('OK');
+
+      const result = await userService.sendSMS(mockPhoneDto);
+
+      expect(result).toBeUndefined();
+      expect(coolsmsService.sendSMS).toBeCalledTimes(1);
+      expect(coolsmsService.sendSMS).toBeCalledWith(
+        mockPhoneDto.phone,
+        mockToken,
+      );
+      expect(redisService.set).toBeCalledTimes(1);
+      expect(redisService.set).toBeCalledWith(
+        coolsmsUserPhoneKey(mockPhoneDto.phone),
+        mockToken,
+        180,
+      );
     });
   });
 });

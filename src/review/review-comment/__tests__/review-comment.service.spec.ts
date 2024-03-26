@@ -144,7 +144,7 @@ describe('ReviewCommentService', () => {
         userId,
       );
 
-      expect(result).toBeUndefined();
+      expect(result).toEqual(mockUpdateReviewComment);
       expect(reviewService.findOneByOptions).toBeCalled();
       expect(reviewCommentRepository.findOne).toBeCalled();
     });
