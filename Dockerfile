@@ -9,10 +9,10 @@ COPY package.json yarn.lock ./
 # 의존성 설치
 RUN yarn install
 
-COPY .env.prod .env
-
 # 나머지 복사
 COPY . .
+
+COPY .env.prod .env
 
 RUN yarn build
 
