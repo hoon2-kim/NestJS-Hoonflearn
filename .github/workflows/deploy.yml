@@ -43,12 +43,17 @@ jobs:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
           ECR_REPOSITORY: hoonflearn
           IMAGE_TAG: ${{ github.sha }}
+          HOONFLEARN_ENV: ${{ secrets.ENV }}
         with:
           host: ${{ secrets.EC2_PUBLIC_IP }}
           username: ${{ secrets.EC2_USERNAME }}
           key: ${{ secrets.EC2_SSH_KEY }}
-          envs: ECR_REGISTRY,ECR_REPOSITORY,IMAGE_TAG
+          envs: ECR_REGISTRY,ECR_REPOSITORY,IMAGE_TAG,HOONFLEARN_ENV
           script: |
+            sudo rm .env
+            touch .env
+            cat << EOF >> .env
+
             CONTAINER_IDS=$(sudo docker ps -a -q)
             if [ ! -z "$CONTAINER_IDS" ]
             then
@@ -70,7 +75,6 @@ jobs:
             aws ecr get-login-password --region ap-northeast-2 | docker login --username AWS --password-stdin $ECR_REGISTRY
 
             docker pull $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
-            docker run -d -p 8080:8080 $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+            docker run -d --env-file ./.env -p 8080:8080 $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
 
 # -z : 변수가 비어있다면 true
-
