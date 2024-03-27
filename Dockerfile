@@ -12,8 +12,6 @@ RUN yarn install
 # 나머지 복사
 COPY . .
 
-COPY .env.prod .env
-
 RUN yarn build
 
 FROM node:18-alpine AS prod
@@ -31,6 +29,7 @@ WORKDIR /usr/src/app
 
 COPY --from=build /usr/src/app/node_modules ./node_modules
 COPY --from=build /usr/src/app/dist ./dist
+COPY --from=build /usr/src/app/.env.prod .env
 
 # 8080 포트 열기
 EXPOSE 8080
