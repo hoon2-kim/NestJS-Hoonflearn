@@ -12,7 +12,6 @@ import { LoginUserDto } from '@src/auth/dtos/login-user.dto';
 import { AtGuard } from '@src/auth/guards/at.guard';
 import { RtGuard } from '@src/auth/guards/rt.guard';
 import { IAuthToken, IJwtPayload } from '@src/auth/interfaces/auth.interface';
-import { UserEntity } from '@src/user/entities/user.entity';
 import { GoogleTokenDto } from '@src/auth/dtos/google-token.dto';
 
 @ApiTags('AUTH')

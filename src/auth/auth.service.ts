@@ -42,8 +42,6 @@ export class AuthService {
       throw new UnauthorizedException('유저가 존재하지 않습니다.');
     }
 
-    console.log(user);
-
     const validatePassword = await bcryptjs.compare(password, user.password);
 
     if (!validatePassword) {

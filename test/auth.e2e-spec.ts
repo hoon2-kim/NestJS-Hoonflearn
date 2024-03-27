@@ -12,13 +12,12 @@ import { HttpExceptionFilter } from '@src/common/filters/http-api-exception.filt
 import cookieParser from 'cookie-parser';
 import { parse } from 'cookie';
 import { DataSource } from 'typeorm';
-import { login, signUp } from './e2e.util';
+import { ResponseInterceptor } from '@src/common/interceptors/response-interceptor';
 
 const userDto: CreateUserDto = {
   email: 'test@test.com',
   password: '1234',
-  nickname: '테스트1',
-  phone: '00000000000',
+  nickname: 'test',
 };
 
 describe('AUTH (e2e)', () => {
@@ -37,21 +36,41 @@ describe('AUTH (e2e)', () => {
     app.use(cookieParser());
     app.useGlobalInterceptors(
       new ClassSerializerInterceptor(app.get(Reflector)),
+      new ResponseInterceptor(),
     );
+
     app.useGlobalFilters(new HttpExceptionFilter());
 
     await app.init();
 
     dataSource = moduleFixture.get<DataSource>(DataSource);
 
-    await signUp(app, userDto);
+    // await signUp(app, userDto);
+  });
+
+  afterEach(async () => {
+    await dataSource.synchronize(true);
   });
 
   afterAll(async () => {
     await app.close();
   });
 
+  function signUp(userDto: CreateUserDto) {
+    return request(app.getHttpServer()).post('/users/signup').send(userDto);
+  }
+
+  function login(email: string, password: string) {
+    return request(app.getHttpServer())
+      .post('/auth/login')
+      .send({ email, password });
+  }
+
   describe('/auth/login [POST]', () => {
+    beforeEach(async () => {
+      await signUp(userDto);
+    });
+
     it('로그인 성공 - access_token, refresh_token 반환', async () => {
       await request(app.getHttpServer())
         .post('/auth/login')
@@ -61,8 +80,8 @@ describe('AUTH (e2e)', () => {
         })
         .expect(HttpStatus.CREATED)
         .then((res) => {
-          expect(res.body.access_token).toBeDefined();
-          expect(res.body.refresh_token).toBeDefined();
+          expect(res.body.data.access_token).toBeDefined();
+          expect(res.body.data.refresh_token).toBeDefined();
 
           const cookie = res.headers['set-cookie'][0];
 
@@ -109,12 +128,10 @@ describe('AUTH (e2e)', () => {
 
   describe('/auth/logout [POST]', () => {
     beforeEach(async () => {
-      const loginResponse = await login(app, {
-        email: userDto.email,
-        password: userDto.password,
-      });
+      await signUp(userDto);
+      const loginResponse = await login(userDto.email, userDto.password);
 
-      access_token = loginResponse.body.access_token;
+      access_token = loginResponse.body.data.access_token;
     });
 
     it('로그아웃 성공 - refresh_token 쿠키에서는 빈값 및 만료시간 과거 확인', async () => {
@@ -135,12 +152,10 @@ describe('AUTH (e2e)', () => {
 
   describe('/auth/refresh [POST]', () => {
     beforeEach(async () => {
-      const loginResponse = await login(app, {
-        email: userDto.email,
-        password: userDto.password,
-      });
+      await signUp(userDto);
+      const loginResponse = await login(userDto.email, userDto.password);
 
-      refresh_token = loginResponse.body.refresh_token;
+      refresh_token = loginResponse.body.data.refresh_token;
     });
 
     it('토큰 재발급 성공 - refresh_token으로 access_token 발급', async () => {
@@ -149,7 +164,7 @@ describe('AUTH (e2e)', () => {
         .set('Cookie', `refreshToken=${refresh_token}`)
         .expect(HttpStatus.CREATED)
         .then((res) => {
-          expect(res.body.access_token).toBeDefined();
+          expect(res.body.data.access_token).toBeDefined();
         });
     });
 
