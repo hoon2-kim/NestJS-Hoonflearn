@@ -44,8 +44,6 @@ describe('AUTH (e2e)', () => {
     await app.init();
 
     dataSource = moduleFixture.get<DataSource>(DataSource);
-
-    // await signUp(app, userDto);
   });
 
   afterEach(async () => {
