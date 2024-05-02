@@ -12,10 +12,13 @@ export const typeOrmModuleConfig = {
     password: configService.get('DB_PASSWORD'),
     database: configService.get('DB_DATABASE'),
     entities: [__dirname + './../**/**.entity{.ts,.js}'],
-    synchronize: configService.get('NODE_ENV') === 'development',
-    // synchronize: true,
+    // synchronize: configService.get('NODE_ENV') === 'development',
+    synchronize: true,
     autoLoadEntities: true,
     logging: configService.get('NODE_ENV') === 'development',
+    // ssl: {
+    //   rejectUnauthorized: false,
+    // },
   }),
   inject: [ConfigService],
 };
