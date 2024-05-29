@@ -19,7 +19,7 @@ import { AwsS3Service } from '@src/aws-s3/aws-s3.service';
 import { InstructorProfileEntity } from '@src/instructor/entities/instructor-profile.entity';
 import { CartService } from '@src/cart/cart.service';
 import { CoolsmsService } from '@src/coolsms/coolsms.service';
-import { RedisService } from '@src/redis/redis.service';
+import { CustomRedisService } from '@src/redis/redis.service';
 import { createRandomToken } from '@src/common/utils/randomToken';
 import { coolsmsUserPhoneKey } from '@src/redis/keys';
 import { IJwtPayload } from '@src/auth/interfaces/auth.interface';
@@ -37,7 +37,7 @@ export class UserService {
     private readonly awsS3Service: AwsS3Service,
     private readonly cartService: CartService,
     private readonly coolsmsService: CoolsmsService,
-    private readonly redisService: RedisService,
+    private readonly redisService: CustomRedisService,
   ) {}
 
   async findOneByOptions(
@@ -48,9 +48,18 @@ export class UserService {
     return user;
   }
 
-  async getProfile(userId: string): Promise<UserEntity> {
+  async getProfile(userId: string) {
     const profile = await this.findOneByOptions({
       where: { id: userId },
+      select: {
+        id: true,
+        email: true,
+        description: true,
+        nickname: true,
+        phone: true,
+        profileAvatar: true,
+        role: true,
+      },
     });
 
     return profile;

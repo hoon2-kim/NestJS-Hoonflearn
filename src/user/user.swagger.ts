@@ -22,7 +22,10 @@ export const ApiProfileUserSwagger = (summary: string) => {
   return applyDecorators(
     ApiOperation({ summary }),
     ApiBearerAuth('access_token'),
-    ApiOkResponse({ description: '프로필 조회 성공', type: UserEntity }),
+    ApiOkResponse({
+      description: '프로필 조회 성공',
+      type: UserEntity,
+    }),
     ApiUnauthorizedResponse({
       description: '로그인 하지 않았을 경우',
     }),

@@ -24,7 +24,7 @@ import { CourseService } from '@src/course/course.service';
 import { QuestionService } from '@src/question/question.service';
 import { ReviewService } from '@src/review/review.service';
 import { ERoleType } from '@src/user/enums/user.enum';
-import { RedisService } from '@src/redis/redis.service';
+import { CustomRedisService } from '@src/redis/redis.service';
 import { jwtRefreshTokenKey } from '@src/redis/keys';
 import { CourseEntity } from '@src/course/entities/course.entity';
 import { QuestionEntity } from '@src/question/entities/question.entity';
@@ -44,7 +44,7 @@ export class InstructorService {
     private readonly courseService: CourseService,
     private readonly questionService: QuestionService,
     private readonly reviewService: ReviewService,
-    private readonly redisService: RedisService,
+    private readonly redisService: CustomRedisService,
   ) {}
 
   async findOneById(instructorId: string): Promise<InstructorProfileEntity> {

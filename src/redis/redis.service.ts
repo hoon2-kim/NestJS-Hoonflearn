@@ -3,18 +3,21 @@ import { InjectRedis } from '@liaoliaots/nestjs-redis';
 import Redis from 'ioredis';
 
 @Injectable()
-export class RedisService {
+export class CustomRedisService {
   constructor(
-    @InjectRedis()
-    private readonly redis: Redis,
+    @InjectRedis('auth-redis')
+    private readonly authRedis: Redis,
+
+    @InjectRedis('coupon-redis')
+    private readonly couponRedis: Redis,
   ) {}
 
   async set(key: string, value: string, ttl?: number): Promise<'OK'> {
-    return await this.redis.set(key, value, 'EX', ttl);
+    return await this.authRedis.set(key, value, 'EX', ttl);
   }
 
   async get(key: string): Promise<string | null> {
-    const data = await this.redis.get(key);
+    const data = await this.authRedis.get(key);
 
     if (data) {
       return data;
@@ -24,6 +27,38 @@ export class RedisService {
   }
 
   async del(key: string): Promise<void> {
-    await this.redis.del(key);
+    await this.authRedis.del(key);
+  }
+
+  async hGetAll(key: string) {
+    return await this.couponRedis.hgetall(key);
+  }
+
+  async hGet(key: string, field: string) {
+    return await this.couponRedis.hget(key, field);
+  }
+
+  async hSet(key: string, value: Record<string, any>) {
+    return await this.couponRedis.hset(key, value);
+  }
+
+  async hDel(key: string) {
+    return await this.couponRedis.hdel(key);
+  }
+
+  async sAdd(key: string, value: string) {
+    return await this.couponRedis.sadd(key, value);
+  }
+
+  async sCard(key: string) {
+    return await this.couponRedis.scard(key);
+  }
+
+  async sIsMember(key: string, value: string) {
+    return await this.couponRedis.sismember(key, value);
+  }
+
+  async luaExcute(script: string, keys: string[], args: string[]) {
+    return await this.couponRedis.eval(script, keys.length, ...keys, ...args);
   }
 }
