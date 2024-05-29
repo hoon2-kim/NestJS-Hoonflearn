@@ -28,8 +28,11 @@ import { typeOrmModuleConfig } from '@src/common/configs/db/database';
 import { AppController } from '@src/app.controller';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { APP_GUARD } from '@nestjs/core';
-import { RedisModule } from '@src/redis/redis.module';
+import { CustomRedisModule } from '@src/redis/redis.module';
 import { testTypeOrmModuleConfig } from '@src/common/configs/db/database-test';
+import { CouponModule } from './coupon/coupon.module';
+import { BullModule } from '@nestjs/bull';
+import { CouponUserModule } from './coupon_user/coupon-user.module';
 
 @Module({
   imports: [
@@ -47,7 +50,14 @@ import { testTypeOrmModuleConfig } from '@src/common/configs/db/database-test';
       ? TypeOrmModule.forRootAsync(testTypeOrmModuleConfig)
       : TypeOrmModule.forRootAsync(typeOrmModuleConfig),
     EventEmitterModule.forRoot(),
-    RedisModule,
+    CustomRedisModule,
+    BullModule.forRoot({
+      redis: {
+        host: process.env.REDIS_HOST,
+        port: +process.env.REDIS_PORT,
+        db: 3,
+      },
+    }),
     UserModule,
     AuthModule,
     CategoryModule,
@@ -70,6 +80,8 @@ import { testTypeOrmModuleConfig } from '@src/common/configs/db/database-test';
     OrderModule,
     OrderCourseModule,
     VoucherModule,
+    CouponModule,
+    CouponUserModule,
   ],
   controllers: [AppController],
   providers: [

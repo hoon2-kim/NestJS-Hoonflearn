@@ -10,7 +10,7 @@ import { CourseUserModule } from '@src/course_user/course-user.module';
 import { InstructorProfileEntity } from '@src/instructor/entities/instructor-profile.entity';
 import { CartModule } from '@src/cart/cart.module';
 import { CoolsmsModule } from '@src/coolsms/coolsms.module';
-import { RedisModule } from '@src/redis/redis.module';
+import { CustomRedisModule } from '@src/redis/redis.module';
 
 @Module({
   imports: [
@@ -21,7 +21,7 @@ import { RedisModule } from '@src/redis/redis.module';
     CourseUserModule,
     CartModule,
     CoolsmsModule,
-    RedisModule,
+    CustomRedisModule,
   ],
   controllers: [UserController],
   providers: [UserService],

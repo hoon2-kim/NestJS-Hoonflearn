@@ -9,7 +9,7 @@ import { CourseModule } from '@src/course/course.module';
 import { QuestionModule } from '@src/question/question.module';
 import { UserEntity } from '@src/user/entities/user.entity';
 import { ReviewModule } from '@src/review/review.module';
-import { RedisService } from '@src/redis/redis.service';
+import { CustomRedisService } from '@src/redis/redis.service';
 import { CourseEntity } from '@src/course/entities/course.entity';
 
 @Module({
@@ -26,6 +26,6 @@ import { CourseEntity } from '@src/course/entities/course.entity';
     ReviewModule,
   ],
   controllers: [InstructorController],
-  providers: [InstructorService, RedisService],
+  providers: [InstructorService, CustomRedisService],
 })
 export class InstructorModule {}

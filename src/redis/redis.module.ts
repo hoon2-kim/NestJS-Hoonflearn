@@ -1,25 +1,36 @@
 import { Module } from '@nestjs/common';
-import { RedisModule as _RedisModule } from '@liaoliaots/nestjs-redis';
+import { RedisModule } from '@liaoliaots/nestjs-redis';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { RedisService } from '@src/redis/redis.service';
+import { CustomRedisService } from '@src/redis/redis.service';
 
 @Module({
   imports: [
-    _RedisModule.forRootAsync(
+    RedisModule.forRootAsync(
       {
         imports: [ConfigModule],
         useFactory: async (configService: ConfigService) => ({
-          config: {
-            host: configService.get<string>('REDIS_HOST'),
-            port: configService.get<number>('REDIS_PORT'),
-          },
+          readyLog: true,
+          config: [
+            {
+              namespace: 'auth-redis',
+              host: configService.get<string>('REDIS_HOST'),
+              port: configService.get<number>('REDIS_PORT'),
+              db: 0,
+            },
+            {
+              namespace: 'coupon-redis',
+              host: configService.get<string>('REDIS_HOST'),
+              port: configService.get<number>('REDIS_PORT'),
+              db: 1,
+            },
+          ],
         }),
         inject: [ConfigService],
       },
       true,
     ),
   ],
-  providers: [RedisService],
-  exports: [RedisService],
+  providers: [CustomRedisService],
+  exports: [CustomRedisService],
 })
-export class RedisModule {}
+export class CustomRedisModule {}
