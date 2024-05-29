@@ -9,7 +9,7 @@ import { LoginUserDto } from '@src/auth/dtos/login-user.dto';
 import { Response } from 'express';
 import { UserService } from '@src/user/user.service';
 import { IAuthToken, IJwtPayload } from '@src/auth/interfaces/auth.interface';
-import { RedisService } from '@src/redis/redis.service';
+import { CustomRedisService } from '@src/redis/redis.service';
 import { UserEntity } from '@src/user/entities/user.entity';
 import { CreateUserDto } from '@src/user/dtos/create-user.dto';
 import { GoogleTokenDto } from './dtos/google-token.dto';
@@ -23,7 +23,7 @@ export class AuthService {
   constructor(
     private readonly jwtService: JwtService,
     private readonly userService: UserService,
-    private readonly redisService: RedisService,
+    private readonly redisService: CustomRedisService,
   ) {
     this.google = new OAuth2Client({
       clientId: process.env.GOOGLE_CLIENT_ID,

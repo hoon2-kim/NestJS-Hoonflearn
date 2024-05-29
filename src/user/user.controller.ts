@@ -63,7 +63,7 @@ export class UserController {
   @UseGuards(AtGuard)
   async getMyProfile(
     @CurrentUser('id') userId: string, //
-  ): Promise<UserEntity> {
+  ) {
     return await this.userService.getProfile(userId);
   }
 
