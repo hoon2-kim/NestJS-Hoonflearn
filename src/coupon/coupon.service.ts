@@ -8,6 +8,7 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { compareCouponEndAt } from '@src/common/utils/date-fns';
 import { createRandomToken } from '@src/common/utils/randomToken';
+import { CouponUserEntity } from '@src/coupon_user/entities/coupon-user.entity';
 import { CourseService } from '@src/course/course.service';
 import { CustomRedisService } from '@src/redis/redis.service';
 import { Queue } from 'bull';
@@ -21,13 +22,16 @@ import {
 import { CreateCouponDto } from './dtos/create-coupon.dto';
 import { RegisterCouponDto } from './dtos/register-coupon.dto';
 import { UpdateCouponDto } from './dtos/update-coupon.dto';
-import { CouponEntity } from './entities/coupon.entity';
+import { CouponEntity, ECouponType } from './entities/coupon.entity';
 
 @Injectable()
 export class CouponService {
   constructor(
     @InjectRepository(CouponEntity)
     private readonly couponRepository: Repository<CouponEntity>,
+
+    @InjectRepository(CouponUserEntity)
+    private readonly couponUserRepository: Repository<CouponUserEntity>,
 
     private readonly courseService: CourseService,
     private readonly redisService: CustomRedisService,
@@ -53,6 +57,10 @@ export class CouponService {
       throw new NotFoundException('해당 강의가 존재하지 않습니다.');
     }
 
+    if (course.price === 0) {
+      throw new BadRequestException('무료강의는 쿠폰을 발급할 수 없습니다.');
+    }
+
     if (course.fk_instructor_id !== userId) {
       throw new ForbiddenException('해당 강의를 만든 지식공유자가 아닙니다.');
     }
@@ -68,6 +76,7 @@ export class CouponService {
       totalQuantity,
       code: createRandomToken(10),
       course: { id: courseId },
+      instructor: { id: userId },
     });
 
     await this.redisService.hSet(REDIS_COUPON_HASH_KEY(result.code), {
@@ -95,16 +104,30 @@ export class CouponService {
       throw new BadRequestException('해당 쿠폰은 만료되었습니다.');
     }
 
-    if (
-      await this.redisService.sIsMember(
-        REDIS_COUPON_SET_KEY(coupon.couponId),
-        userId,
-      )
-    ) {
-      throw new BadRequestException('이미 쿠폰을 등록하셨습니다.');
+    if (coupon.couponType === ECouponType.INFINITY) {
+      const duplicateInfiCouponUser = await this.couponUserRepository.findOne({
+        where: {
+          fk_user_id: userId,
+          fk_coupon_id: coupon.couponId,
+        },
+      });
+
+      if (duplicateInfiCouponUser) {
+        throw new BadRequestException('이미 쿠폰을 등록하셨습니다.');
+      }
     }
 
-    const luaScript = `
+    if (coupon.couponType === ECouponType.LIMIT) {
+      const duplicateLimitCouponUser = await this.redisService.sIsMember(
+        REDIS_COUPON_SET_KEY(coupon.couponId),
+        userId,
+      );
+
+      if (duplicateLimitCouponUser) {
+        throw new BadRequestException('이미 쿠폰을 등록하셨습니다.');
+      }
+
+      const luaScript = `
     local couponSetKey = KEYS[1]
     local userId = ARGV[1]
     local totalQuantity = tonumber(ARGV[2])
@@ -118,15 +141,19 @@ export class CouponService {
     return 1
     `;
 
-    const keys = [REDIS_COUPON_SET_KEY(coupon.couponId)];
-    const args = [userId, coupon.totalQuantity];
+      const keys = [REDIS_COUPON_SET_KEY(coupon.couponId)];
+      const args = [userId, coupon.totalQuantity];
 
-    const luaResult = await this.redisService.luaExcute(luaScript, keys, args);
+      const luaResult = await this.redisService.luaExcute(
+        luaScript,
+        keys,
+        args,
+      );
 
-    if (luaResult === -1) {
-      throw new BadRequestException('쿠폰이 소진되었습니다.');
+      if (luaResult === -1) {
+        throw new BadRequestException('쿠폰이 소진되었습니다.');
+      }
     }
-
     await this.couponQueue.add(
       BULL_QUEUE_ADD_NAME,
       {

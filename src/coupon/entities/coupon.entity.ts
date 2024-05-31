@@ -11,7 +11,7 @@ import {
 } from 'typeorm';
 
 export enum ECouponType {
-  INFINTY = 'INFINTY',
+  INFINITY = 'INFINITY',
   LIMIT = 'LIMIT',
 }
 

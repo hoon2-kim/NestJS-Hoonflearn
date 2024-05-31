@@ -8,6 +8,11 @@ import { CreateCategoryDto } from '@src/category/dtos/create-category.dto';
 import { UpdateCategoryDto } from '@src/category/dtos/update-category.dto';
 import { CategoryEntity } from '@src/category/entities/category.entity';
 import { CategoryCourseEntity } from '@src/category_course/entities/category-course.entitiy';
+import { CreateCouponDto } from '@src/coupon/dtos/create-coupon.dto';
+import { RegisterCouponDto } from '@src/coupon/dtos/register-coupon.dto';
+import { UpdateCouponDto } from '@src/coupon/dtos/update-coupon.dto';
+import { CouponEntity, ECouponType } from '@src/coupon/entities/coupon.entity';
+import { CouponUserEntity } from '@src/coupon_user/entities/coupon-user.entity';
 import { CourseWishEntity } from '@src/course/course-wish/entities/course-wish.entity';
 import { CreateCourseDto } from '@src/course/dtos/create-course.dto';
 import { UpdateCourseDto } from '@src/course/dtos/update-course.dto';
@@ -491,6 +496,58 @@ export const mockVideo = {
 export const mockCreateVoucherDto: CreateVoucherDto = {
   courseId: 'uuid',
 };
+
+// Coupon
+export const mockCreateCouponDto: CreateCouponDto = {
+  couponType: ECouponType.LIMIT,
+  courseId: 'uuid',
+  discountPrice: 10000,
+  endAt: '2024-12-31',
+  totalQuantity: 3,
+};
+
+export const mockUpdateCouponDto: UpdateCouponDto = {
+  isActive: false,
+};
+
+export const mockRegisterCouponDto: RegisterCouponDto = {
+  code: '0000679246',
+};
+
+export const mockCoupon = {
+  id: 'uuid',
+  couponType: ECouponType.LIMIT,
+  discountPrice: 10000,
+  endAt: new Date('2024-12-31'),
+  totalQuantity: 3,
+  code: '0000679246',
+  isActive: true,
+  createdAt: new Date(),
+  updatedAt: new Date(),
+  deletedAt: null,
+  course: {
+    id: 'uuid',
+  } as CourseEntity,
+} as CouponEntity;
+
+export const mockHashCoupon = {
+  couponId: 'uuid',
+  couponType: ECouponType.LIMIT,
+  discountPrice: '10000',
+  totalQuantity: '3',
+  endAt: 'Tue December 31 2024 09:00:00 GMT+0900 (대한민국 표준시)',
+  courseId: 'uuid',
+};
+
+// CouponUser
+export const mockCouponUser = {
+  id: 'uuid',
+  fk_coupon_id: 'uuid',
+  fk_user_id: 'uuid',
+  isUsed: false,
+  created_at: new Date(),
+  used_at: null,
+} as CouponUserEntity;
 
 // Iamport
 export const mockIamportData = {
