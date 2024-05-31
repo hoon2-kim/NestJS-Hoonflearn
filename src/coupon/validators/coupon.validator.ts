@@ -16,7 +16,7 @@ export class CouponTypeValidator implements ValidatorConstraintInterface {
   validate(value: ECouponType, args: ValidationArguments): boolean {
     const dto = args.object as CreateCouponDto;
 
-    if (value === ECouponType.INFINTY) {
+    if (value === ECouponType.INFINITY) {
       return dto.totalQuantity ? false : true;
     }
 
@@ -26,7 +26,7 @@ export class CouponTypeValidator implements ValidatorConstraintInterface {
   }
 
   defaultMessage(args: ValidationArguments): string {
-    if (args.value === ECouponType.INFINTY) {
+    if (args.value === ECouponType.INFINITY) {
       return '쿠폰타입이 무제한인 경우 수량을 입력하지 말아주세요.';
     }
 

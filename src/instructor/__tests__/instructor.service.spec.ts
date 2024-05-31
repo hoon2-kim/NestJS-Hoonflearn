@@ -16,7 +16,7 @@ import {
   InstructorQuestionQueryDto,
   InstructorReviewQueryDto,
 } from '@src/instructor/dtos/instructor.query.dto';
-import { RedisService } from '@src/redis/redis.service';
+import { CustomRedisService } from '@src/redis/redis.service';
 import {
   mockCourseRepository,
   mockInstructorRepository,
@@ -57,7 +57,7 @@ describe('InstructorService', () => {
   let courseService: CourseService;
   let questionService: QuestionService;
   let reviewService: ReviewService;
-  let redisService: RedisService;
+  let redisService: CustomRedisService;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -80,7 +80,7 @@ describe('InstructorService', () => {
         { provide: CourseService, useValue: mockCourseService },
         { provide: QuestionService, useValue: mockQuestionService },
         { provide: ReviewService, useValue: mockReviewService },
-        { provide: RedisService, useValue: mockRedisService },
+        { provide: CustomRedisService, useValue: mockRedisService },
       ],
     }).compile();
 
@@ -99,7 +99,7 @@ describe('InstructorService', () => {
     courseService = module.get<CourseService>(CourseService);
     questionService = module.get<QuestionService>(QuestionService);
     reviewService = module.get<ReviewService>(ReviewService);
-    redisService = module.get<RedisService>(RedisService);
+    redisService = module.get<CustomRedisService>(CustomRedisService);
   });
 
   afterEach(() => {

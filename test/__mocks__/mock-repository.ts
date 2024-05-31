@@ -203,4 +203,14 @@ export const mockOrderRepository = {
   }),
 };
 
-// Order_Course
+// Coupon
+export const mockCouponRepository = {
+  save: jest.fn(),
+  findOne: jest.fn(),
+};
+
+// CouponUser
+export const mockCouponUserRepository = {
+  save: jest.fn(),
+  findOne: jest.fn(),
+};
