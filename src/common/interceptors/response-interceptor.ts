@@ -19,8 +19,6 @@ export class ResponseInterceptor<T> implements NestInterceptor {
   ): Observable<IResponse<T>> {
     return next.handle().pipe(
       map((data) => {
-        console.log(Array.isArray(data));
-
         if (data?.data) {
           return {
             ok: true,

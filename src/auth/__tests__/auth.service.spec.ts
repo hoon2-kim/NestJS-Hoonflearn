@@ -5,7 +5,7 @@ import { AuthService } from '@src/auth/auth.service';
 import { UserService } from '@src/user/user.service';
 import bcryptjs from 'bcryptjs';
 import { Response } from 'express';
-import { RedisService } from '@src/redis/redis.service';
+import { CustomRedisService } from '@src/redis/redis.service';
 import {
   mockJwtService,
   mockRedisService,
@@ -49,7 +49,7 @@ describe('AuthService', () => {
   let authService: AuthService;
   let jwtService: JwtService;
   let userService: UserService;
-  let redisService: RedisService;
+  let redisService: CustomRedisService;
 
   const mockResponse = {
     cookie: jest.fn(),
@@ -61,14 +61,14 @@ describe('AuthService', () => {
         AuthService,
         { provide: JwtService, useValue: mockJwtService },
         { provide: UserService, useValue: mockUserService },
-        { provide: RedisService, useValue: mockRedisService },
+        { provide: CustomRedisService, useValue: mockRedisService },
       ],
     }).compile();
 
     authService = module.get<AuthService>(AuthService);
     jwtService = module.get<JwtService>(JwtService);
     userService = module.get<UserService>(UserService);
-    redisService = module.get<RedisService>(RedisService);
+    redisService = module.get<CustomRedisService>(CustomRedisService);
   });
 
   afterEach(() => {

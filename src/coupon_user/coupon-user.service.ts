@@ -11,8 +11,6 @@ export class CouponUserService {
   ) {}
 
   async saveCouponUserData(couponId: string, userId: string) {
-    console.log(couponId, userId);
-
     return await this.couponUserRepository.save({
       fk_user_id: userId,
       fk_coupon_id: couponId,

@@ -208,6 +208,14 @@ export const mockRedisService = {
   set: jest.fn().mockResolvedValue('OK'),
   get: jest.fn().mockResolvedValue('refresh_token'),
   del: jest.fn().mockResolvedValue(undefined),
+  hGetAll: jest.fn(),
+  hGet: jest.fn(),
+  hSet: jest.fn(),
+  hDel: jest.fn(),
+  sAdd: jest.fn(),
+  sCard: jest.fn(),
+  sIsMember: jest.fn(),
+  luaExcute: jest.fn(),
 };
 
 // AWS-S3
