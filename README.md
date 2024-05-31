@@ -23,6 +23,7 @@
 - PostgreSQL
 - Redis
 - TypeORM
+- Bull
 - Docker
 - Jest
 - AWS EC2, RDS, S3, Route 53, ECR, Elasticache, ELB(ALB)
@@ -39,6 +40,7 @@
 - 강의를 구매한 유저는 리뷰,질문글을 작성할 수 있습니다.
 - 질문글을 작성한 작성자는 질문글의 상태(해결,미해결)를 바꿀 수 있습니다.
 - 질문글에 추천,비추천을 줄 수 있습니다.
+- 지식공유자는 쿠폰 발급, 유저는 쿠폰을 등록할 수 있습니다.
 
 ---
 
