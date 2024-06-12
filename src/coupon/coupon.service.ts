@@ -171,6 +171,9 @@ export class CouponService {
   ) {
     const coupon = await this.couponRepository.findOne({
       where: { id },
+      relations: {
+        instructor: true,
+      },
     });
 
     if (!coupon) {
