@@ -528,13 +528,16 @@ export const mockCoupon = {
   course: {
     id: 'uuid',
   } as CourseEntity,
+  instructor: {
+    id: 'uuid',
+  } as UserEntity,
 } as CouponEntity;
 
 export const mockHashCoupon = {
   couponId: 'uuid',
   couponType: ECouponType.LIMIT,
   discountPrice: '10000',
-  totalQuantity: '3',
+  totalQuantity: '10',
   endAt: 'Tue December 31 2024 09:00:00 GMT+0900 (대한민국 표준시)',
   courseId: 'uuid',
 };
