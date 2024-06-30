@@ -16,9 +16,6 @@ export const typeOrmModuleConfig = {
     synchronize: true,
     autoLoadEntities: true,
     logging: configService.get('NODE_ENV') === 'development',
-    // ssl: {
-    //   rejectUnauthorized: false,
-    // },
   }),
   inject: [ConfigService],
 };
