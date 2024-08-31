@@ -5,7 +5,7 @@ import { ApiExcludeController } from '@nestjs/swagger';
 @Controller()
 export class AppController {
   @Get()
-  ping() {
-    return 'pong';
+  healthCheck() {
+    return 'ok';
   }
 }
