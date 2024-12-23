@@ -1,4 +1,4 @@
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import {
   IsDateString,
   IsEnum,
@@ -36,7 +36,7 @@ export class CreateCouponDto {
   @Validate(CouponTypeValidator)
   couponType: ECouponType;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: '쿠폰 종류가 제한 인 경우 수량',
   })
   @IsOptional()
@@ -44,8 +44,8 @@ export class CreateCouponDto {
   @Min(0)
   totalQuantity: number;
 
-  @ApiProperty({
-    description: '쿠폰 만료일',
+  @ApiPropertyOptional({
+    description: '쿠폰 만료일(DateString)',
   })
   @IsDateString()
   @IsOptional()
