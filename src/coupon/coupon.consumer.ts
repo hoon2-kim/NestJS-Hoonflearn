@@ -8,7 +8,7 @@ export class CouponConsumer {
   constructor(private readonly couponUserService: CouponUserService) {}
 
   @Process(BULL_QUEUE_ADD_NAME)
-  async test(job: Job) {
+  async jobSaveDbCouponData(job: Job) {
     const { couponId, userId } = job.data;
 
     await this.couponUserService.saveCouponUserData(couponId, userId);
